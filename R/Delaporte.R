@@ -9,3 +9,9 @@ pdelap <- function (q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE) {
 	PDLAP <- pdelap_C(q, alpha, beta, lambda, lower.tail, log.p)
 	return(PDLAP)
 }
+
+qdelap <- function (p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE) {
+  QDLAP <- vector(length = length(p), mode="numeric")
+  QDLAP <- pdelap_C(q, alpha, beta, lambda, lower.tail, log.p)
+  return(QDLAP)
+}

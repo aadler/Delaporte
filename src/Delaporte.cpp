@@ -116,5 +116,39 @@ std::vector <int> qdelap_C(std::vector <double> p, double alpha, double beta, do
 }
 
 // [[Rcpp::export]]
-
-//  RNGScope scope;
+std::vector <int> rdelap_C(int p, double alpha, double beta, double lambda) {
+// The idea is to find the largest CDF point in the vector, and build counts up to that point.
+// Every other value is a lookup off of the largest vector.
+  RNGScope scope;
+  NumericVector RUNI = runif(p, 0.0, 1.0);
+  NumericVector::iterator MX = std::max_element(RUNI.begin(), RUNI.end());
+	double top = *MX;
+  double top2 = 0.0;
+  std::vector <double> CDFVEC;
+  CDFVEC.push_back(exp(-lambda)/pow((1+beta), alpha));
+  int cap = 1;
+  while (top2 < top) {
+    double CCC = 0.0;
+  	for(int i = 0; i <= cap; i++) {
+			CCC += exp(lgamma(alpha+i)+i*log(beta)+(cap-i)*log(lambda)-lambda-lgamma(alpha)-lgamma(i+1)-(alpha+i)*log(1+beta)-lgamma(cap-i+1));			
+		}
+    CCC = CCC +  CDFVEC[cap-1];
+    CDFVEC.push_back(CCC);
+    top2 = CDFVEC[cap];
+    ++cap;
+  }
+  std::vector <int> RETVEC(p);
+  std::vector<double>::iterator foundit;
+  for (int t = 0; t < p; t++) {
+      if (RUNI[t]<= 0) {
+        RETVEC[t] = 0;
+      } else if (RUNI[t] >= 1) {
+        RETVEC[t] = INFINITY;
+      } else {
+        foundit = std::upper_bound (CDFVEC.begin(), CDFVEC.end(), RUNI[t]);
+        int spot = foundit - CDFVEC.begin();
+        RETVEC[t] = spot;
+		  }
+  }
+	return (RETVEC);
+}

@@ -20,7 +20,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // pdelap_C
-NumericVector pdelap_C(std::vector <double> q, double alpha, double beta, double lambda, bool lt, bool lp);
+std::vector <double> pdelap_C(std::vector <double> q, double alpha, double beta, double lambda, bool lt, bool lp);
 RcppExport SEXP Delaporte_pdelap_C(SEXP qSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP lambdaSEXP, SEXP ltSEXP, SEXP lpSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
@@ -30,7 +30,35 @@ BEGIN_RCPP
     double lambda = Rcpp::as<double >(lambdaSEXP);
     bool lt = Rcpp::as<bool >(ltSEXP);
     bool lp = Rcpp::as<bool >(lpSEXP);
-    NumericVector __result = pdelap_C(q, alpha, beta, lambda, lt, lp);
+    std::vector <double> __result = pdelap_C(q, alpha, beta, lambda, lt, lp);
+    return Rcpp::wrap(__result);
+END_RCPP
+}
+// qdelap_C
+std::vector <double> qdelap_C(std::vector <double> p, double alpha, double beta, double lambda, bool lt, bool lp);
+RcppExport SEXP Delaporte_qdelap_C(SEXP pSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP lambdaSEXP, SEXP ltSEXP, SEXP lpSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    std::vector <double> p = Rcpp::as<std::vector <double> >(pSEXP);
+    double alpha = Rcpp::as<double >(alphaSEXP);
+    double beta = Rcpp::as<double >(betaSEXP);
+    double lambda = Rcpp::as<double >(lambdaSEXP);
+    bool lt = Rcpp::as<bool >(ltSEXP);
+    bool lp = Rcpp::as<bool >(lpSEXP);
+    std::vector <double> __result = qdelap_C(p, alpha, beta, lambda, lt, lp);
+    return Rcpp::wrap(__result);
+END_RCPP
+}
+// rdelap_C
+std::vector <double> rdelap_C(int p, double alpha, double beta, double lambda);
+RcppExport SEXP Delaporte_rdelap_C(SEXP pSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP lambdaSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    int p = Rcpp::as<int >(pSEXP);
+    double alpha = Rcpp::as<double >(alphaSEXP);
+    double beta = Rcpp::as<double >(betaSEXP);
+    double lambda = Rcpp::as<double >(lambdaSEXP);
+    std::vector <double> __result = rdelap_C(p, alpha, beta, lambda);
     return Rcpp::wrap(__result);
 END_RCPP
 }

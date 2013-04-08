@@ -9,3 +9,11 @@ pdelap_C <- function(q, alpha, beta, lambda, lt, lp) {
     .Call('Delaporte_pdelap_C', PACKAGE = 'Delaporte', q, alpha, beta, lambda, lt, lp)
 }
 
+qdelap_C <- function(p, alpha, beta, lambda, lt, lp) {
+    .Call('Delaporte_qdelap_C', PACKAGE = 'Delaporte', p, alpha, beta, lambda, lt, lp)
+}
+
+rdelap_C <- function(p, alpha, beta, lambda) {
+    .Call('Delaporte_rdelap_C', PACKAGE = 'Delaporte', p, alpha, beta, lambda)
+}
+

@@ -1,11 +1,11 @@
 Package: Delaporte
 Type: Package
-Title: What the package does (short line)
+Title: Statistical functions for the Delaporte distribution
 Version: 1.0
 Date: 2013-04-05
-Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
-License: What Licence is it under ?
+Author: Avraham Adler
+Maintainer: Avraham Adler <Avraham.Adler@gmail.com>
+Description: Provides probability mass, distribution, and quantile functions, as well as a random number generator, for the Delaporte distribution.
+License: (GPL >= 2.0 || LGPL >= 3.0)
 Depends: Rcpp (>= 0.10.3)
 LinkingTo: Rcpp

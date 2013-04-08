@@ -3,11 +3,10 @@
 \alias{Delaporte}
 \docType{package}
 \title{
-What the package does (short line)
+Statistical functions for the Delaporte distribution
 }
 \description{
-More about what it does (maybe more than one line)
-~~ A concise (1-5 lines) description of the package ~~
+Provides probability mass, distribution, and quantile functions, as well as a random number generator, for the Delaporte distribution.
 }
 \details{
 \tabular{ll}{
@@ -15,24 +14,14 @@ Package: \tab Delaporte\cr
 Type: \tab Package\cr
 Version: \tab 1.0\cr
 Date: \tab 2013-04-05\cr
-License: \tab What license is it under?\cr
+License: \tab (GPL >= 2 || LGPL >= 3)\cr
 }
-~~ An overview of how to use the package, including the most important functions ~~
+This package provides the standard probability mass, distribution, and quantile functions, as well as a random number generator, for the Delaporte distribution. It is used similarly to the distributions in \code{stats}.
 }
 \author{
-Who wrote it
+Avraham Adler
 
-Maintainer: Who to complain to <yourfault@somewhere.net>
+Maintainer: Avraham Adler <Avraham.Adler@gmail.com>
 }
-\references{
-~~ Literature or other references for background information ~~
-}
-~~ Optionally other standard keywords, one per line, from file KEYWORDS in the R documentation directory ~~
 \keyword{ package }
-\seealso{
-~~ Optional links to other man pages, e.g. ~~
-~~ \code{\link[<pkg>:<pkg>-package]{<pkg>}} ~~
-}
-\examples{
-%% ~~ simple examples of the most important functions ~~
-}
+\keyword{ distribution }

@@ -57,7 +57,7 @@ rdelap(n, alpha, beta, lambda)
 \references{
   Johnson, Norman Lloyd, Kemp, Adrienne W. and Kotz, Samuel (2005) \emph{Univariate discrete distributions} (Third ed.). John Wiley & Sons. pp. 241--242. ISBN 978-0-471-27246-5.
   
-  Wikipedia contributors, "Delaporte distribution," \emph{Wikipedia, The Free Encyclopedia}, \url{http://en.wikipedia.org/w/index.php?title=Delaporte_distribution&oldid=540316091} (accessed April 8, 2013). 
+  Vose, David (2008) \emph{Risk analysis: a quantitative guide} (Third, illustrated ed.). John Wiley & Sons. pp. 618--619 ISBN 978-0-470-51284-5
 }
 
 \seealso{

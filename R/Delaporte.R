@@ -17,14 +17,14 @@ qdelap <- function (p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE) {
 }
 
 rdelap <- function (n, alpha, beta, lambda) {
-  RDLAP <- vector(length = length(n), mode="integer")
+  RDLAP <- vector(length = length(n), mode="numeric")
   Quants <- runif(n)
   RDLAP <- qdelap_C(Quants, alpha, beta, lambda, TRUE, FALSE)
   return(RDLAP)
 }
 
 rdelap2 <- function (n, alpha, beta, lambda) {
-  RDLAP <- vector(length = length(n), mode="integer")
+  RDLAP <- vector(length = length(n), mode="numeric")
   RDLAP <- rdelap_C(n, alpha, beta, lambda)
   return(RDLAP)
 }

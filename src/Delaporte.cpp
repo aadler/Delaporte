@@ -61,7 +61,7 @@ bool OUTSIDE01 (double quantile) {return (quantile <= 0.0 || quantile >= 1.0);}
 //above needed to trim vector
 
 // [[Rcpp::export]]
-std::vector <int> qdelap_C(std::vector <double> p, double alpha, double beta, double lambda, bool lt, bool lp) {
+std::vector <double> qdelap_C(std::vector <double> p, double alpha, double beta, double lambda, bool lt, bool lp) {
 // The idea is to find the largest CDF point in the vector, and build counts up to that point.
 // Every other value is a lookup off of the largest vector.
 	std::vector <double>::size_type n = p.size();
@@ -99,16 +99,18 @@ std::vector <int> qdelap_C(std::vector <double> p, double alpha, double beta, do
     top2 = CDFVEC[cap];
     ++cap;
   }
-  std::vector <int> RETVEC(n);
+  std::vector <double> RETVEC(n);
   std::vector<double>::iterator foundit;
   for (std::vector <double>::size_type t = 0; t < n; t++) {
-      if (p[t]<= 0) {
+      if (p[t]< 0) {
+        RETVEC[t] = std::numeric_limits<double>::quiet_NaN();
+      } else if (p[t]==0) {
         RETVEC[t] = 0;
       } else if (p[t] >= 1) {
-        RETVEC[t] = INFINITY;
+        RETVEC[t] = std::numeric_limits<double>::infinity();
       } else {
         foundit = std::upper_bound (CDFVEC.begin(), CDFVEC.end(), p[t]);
-        int spot = foundit - CDFVEC.begin();
+        double spot = foundit - CDFVEC.begin();
         RETVEC[t] = spot;
 		  }
   }
@@ -116,7 +118,7 @@ std::vector <int> qdelap_C(std::vector <double> p, double alpha, double beta, do
 }
 
 // [[Rcpp::export]]
-std::vector <int> rdelap_C(int p, double alpha, double beta, double lambda) {
+std::vector <double> rdelap_C(int p, double alpha, double beta, double lambda) {
 // The idea is to find the largest CDF point in the vector, and build counts up to that point.
 // Every other value is a lookup off of the largest vector.
   RNGScope scope;
@@ -137,16 +139,16 @@ std::vector <int> rdelap_C(int p, double alpha, double beta, double lambda) {
     top2 = CDFVEC[cap];
     ++cap;
   }
-  std::vector <int> RETVEC(p);
-  std::vector<double>::iterator foundit;
+  std::vector <double> RETVEC(p);
+  std::vector <double>::iterator foundit;
   for (int t = 0; t < p; t++) {
-      if (RUNI[t]<= 0) {
+      if (RUNI[t] == 0) {
         RETVEC[t] = 0;
-      } else if (RUNI[t] >= 1) {
-        RETVEC[t] = INFINITY;
+      } else if (RUNI[t] == 1) {
+        RETVEC[t] = std::numeric_limits<double>::infinity();
       } else {
         foundit = std::upper_bound (CDFVEC.begin(), CDFVEC.end(), RUNI[t]);
-        int spot = foundit - CDFVEC.begin();
+        double spot = foundit - CDFVEC.begin();
         RETVEC[t] = spot;
 		  }
   }

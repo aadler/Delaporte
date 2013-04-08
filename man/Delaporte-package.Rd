@@ -1,6 +1,5 @@
 \name{Delaporte-package}
 \alias{Delaporte-package}
-\alias{Delaporte}
 \docType{package}
 \title{
 Statistical functions for the Delaporte distribution

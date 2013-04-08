@@ -10,3 +10,4 @@ Description: Provides probability mass, distribution, and quantile functions, as
 License: GPL (>= 2.0) | LGPL (>= 3.0)
 Depends: Rcpp (>= 0.10.3)
 LinkingTo: Rcpp
+NeedsCompilation: yes

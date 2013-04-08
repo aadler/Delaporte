@@ -23,5 +23,5 @@ Avraham Adler
 
 Maintainer: Avraham Adler <Avraham.Adler@gmail.com>
 }
-\keyword{ package }
-\keyword{ distribution }
+\keyword{package}
+\keyword{distribution}

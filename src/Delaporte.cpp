@@ -12,7 +12,8 @@ NumericVector ddelap_C(NumericVector x, double alpha, double beta, double lambda
 		int k = ceil(x[t]);
 		double PV = 0.0;
 		for(int i = 0; i <= k; i++) {
-			PV += exp(lgamma(alpha+i)+i*log(beta)+(k-i)*log(lambda)-lambda-lgamma(alpha)-lgamma(i+1)-(alpha+i)*log(1+beta)-lgamma(k-i+1));			
+			PV += exp(lgamma(alpha+i)+i*log(beta)+(k-i)*log(lambda)-lambda-lgamma(alpha)-lgamma(i+1)-(alpha+i)*log(1+beta)-lgamma(k-i+1));
+      //using logs to prevent underflow/overflow from small/large numbers
 		}
 		DDLP[t] = PV;
 	}
@@ -58,7 +59,7 @@ std::vector <double> pdelap_C(std::vector <double> q, double alpha, double beta,
 }
 
 bool OUTSIDE01 (double quantile) {return (quantile <= 0.0 || quantile >= 1.0);}
-//above needed to trim vector
+//above needed to trim vector of values <=0 and >= 1
 
 // [[Rcpp::export]]
 std::vector <double> qdelap_C(std::vector <double> p, double alpha, double beta, double lambda, bool lt, bool lp) {
@@ -83,20 +84,19 @@ std::vector <double> qdelap_C(std::vector <double> p, double alpha, double beta,
   pcopy2.assign (pcbegin, pcend);
   std::vector <double>::iterator MX = std::max_element(pcopy2.begin(), pcopy2.end());
   pcopy.clear();
-  pcopy.resize(0);
-	double top = *MX;
-  double top2 = 0.0;
+	double maxquantile = *MX;
+  double cdftop = 0.0;
   std::vector <double> CDFVEC;
-  CDFVEC.push_back(exp(-lambda)/pow((1+beta), alpha));
-  int cap = 1;
-  while (top2 < top) {
-    double CCC = 0.0;
+  CDFVEC.push_back(exp(-lambda)/pow((1+beta), alpha)); //pre-load 0 value
+  int cap = 1; //Will be "max integer"
+  while (cdftop < maxquantile) {
+    double PMF = 0.0;
   	for(int i = 0; i <= cap; i++) {
-			CCC += exp(lgamma(alpha+i)+i*log(beta)+(cap-i)*log(lambda)-lambda-lgamma(alpha)-lgamma(i+1)-(alpha+i)*log(1+beta)-lgamma(cap-i+1));			
+			PMF += exp(lgamma(alpha+i)+i*log(beta)+(cap-i)*log(lambda)-lambda-lgamma(alpha)-lgamma(i+1)-(alpha+i)*log(1+beta)-lgamma(cap-i+1));			
 		}
-    CCC = CCC +  CDFVEC[cap-1];
-    CDFVEC.push_back(CCC);
-    top2 = CDFVEC[cap];
+    PMF = PMF +  CDFVEC[cap-1]; //add pmf value at cap to previous CDF value
+    CDFVEC.push_back(PMF);
+    cdftop = CDFVEC[cap];
     ++cap;
   }
   std::vector <double> RETVEC(n);
@@ -124,19 +124,19 @@ std::vector <double> rdelap_C(int p, double alpha, double beta, double lambda) {
   RNGScope scope;
   NumericVector RUNI = runif(p, 0.0, 1.0);
   NumericVector::iterator MX = std::max_element(RUNI.begin(), RUNI.end());
-	double top = *MX;
-  double top2 = 0.0;
+	double maxquantile = *MX;
+  double cdftop = 0.0;
   std::vector <double> CDFVEC;
-  CDFVEC.push_back(exp(-lambda)/pow((1+beta), alpha));
-  int cap = 1;
-  while (top2 < top) {
+  CDFVEC.push_back(exp(-lambda)/pow((1+beta), alpha)); //pre-load 0 value
+  int cap = 1; //Will be "max integer"
+  while (cdftop < maxquantile) {
     double CCC = 0.0;
   	for(int i = 0; i <= cap; i++) {
 			CCC += exp(lgamma(alpha+i)+i*log(beta)+(cap-i)*log(lambda)-lambda-lgamma(alpha)-lgamma(i+1)-(alpha+i)*log(1+beta)-lgamma(cap-i+1));			
 		}
     CCC = CCC +  CDFVEC[cap-1];
     CDFVEC.push_back(CCC);
-    top2 = CDFVEC[cap];
+    cdftop = CDFVEC[cap];
     ++cap;
   }
   std::vector <double> RETVEC(p);

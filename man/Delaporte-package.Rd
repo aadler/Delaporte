@@ -11,7 +11,7 @@ Provides probability mass, distribution, and quantile functions, as well as a ra
 \tabular{ll}{
 Package: \tab Delaporte\cr
 Type: \tab Package\cr
-Version: \tab 0.1-1\cr
+Version: \tab 0.1-2\cr
 Date: \tab 2013-04-08\cr
 License: \tab (>= 2) | LGPL (>= 3) \cr
 }

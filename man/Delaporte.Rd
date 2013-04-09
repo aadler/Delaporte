@@ -6,7 +6,7 @@
 \alias{rdelap}
 \title{The Delaporte Distribution}
 \description{
-Density, distribution function, quantile function and random generation for the negative binomial distribution with parameters \code{alpha}, \code{beta}, and \code{lambda}.
+Density, distribution function, quantile function and random generation for the Delaporte distribution with parameters \code{alpha}, \code{beta}, and \code{lambda}.
 }
 \usage{
 ddelap(x, alpha, beta, lambda, log = FALSE)
@@ -51,7 +51,7 @@ rdelap(n, alpha, beta, lambda)
   \code{NaN} or \code{Inf} as appropriate.
   
   The length of the result is determined by \code{n} for
-  \code{rnbinom}, and is the length of the vector of inputs for the other functions.  
+  \code{rdelap}, and is the length of the vector of inputs for the other functions.  
 }
 \references{
   Johnson, Norman Lloyd, Kemp, Adrienne W. and Kotz, Samuel (2005) \emph{Univariate discrete distributions} (Third ed.). John Wiley & Sons. pp. 241--242. ISBN 978-0-471-27246-5.

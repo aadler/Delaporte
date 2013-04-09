@@ -16,7 +16,7 @@
     \itemize{
       \item Corrected help for rdelap (does not use \code{length(n)})
       
-      \item Minor help documentation spelling corrections, comments, and tweaks
+      \item Help documentation corrections (such as proper name of function), comments, and tweaks
     }  
   }
 }    

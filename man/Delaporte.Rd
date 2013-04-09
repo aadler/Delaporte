@@ -18,8 +18,7 @@ rdelap(n, alpha, beta, lambda)
   \item{x}{vector of (non-negative integer) quantiles.}
   \item{q}{vector of quantiles.}
   \item{p}{vector of probabilities.}
-  \item{n}{number of observations. If \code{length(n) > 1}, the length
-    is taken to be the number required.}
+  \item{n}{number of observations.}
   \item{alpha}{the alpha parameter of the gamma portion of the Delaporte distribution.
     Must be strictly positive, but need not be integer.}
   \item{beta}{the beta parameter of the gamma portion of the Delaporte distribution.

@@ -13,7 +13,7 @@ Package: \tab Delaporte\cr
 Type: \tab Package\cr
 Version: \tab 0.1-1\cr
 Date: \tab 2013-04-08\cr
-License: \tab GPL (>= 2.0) | LGPL (>= 3.0) \cr
+License: \tab (>= 2) | LGPL (>= 3) \cr
 }
 This package provides the standard probability mass, distribution, and quantile functions, as well as a random number generator, for the Delaporte distribution. It is used similarly to the distributions in \code{stats}.
 }

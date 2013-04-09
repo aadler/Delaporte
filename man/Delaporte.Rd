@@ -91,7 +91,7 @@ lines(density(NB), col="red", lwd=2)
 lines(density(DP1), col="blue", lwd=2)
 lines(density(DP2), col="green3", lwd=2)
 lines(density(DP3), col="orange3", lwd=2)
-legend(x="topright", legend=c("Poisson", "NegBinom", "DP{a=2, b=2, l=21}", "DP{a=3, b=4, l=13}", "DP{a=4, b=5, l-5}"), col=c("black","red", "blue", "green3","orange3"), lwd=2)
+legend(x="topright", legend=c("Poisson", "NegBinom", "DP{a=2, b=2, l=21}", "DP{a=3, b=4, l=13}", "DP{a=4, b=5, l=5}"), col=c("black","red", "blue", "green3","orange3"), lwd=2)
   }
 }
 

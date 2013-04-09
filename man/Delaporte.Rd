@@ -78,19 +78,19 @@ A <- c(-1, A, 1, 2)
 qdelap(A, alpha=3, beta=4, lambda=10)
 
 ## Compare a Poisson, negative binomial, and three Delaporte distributions with the same mean:
-P <- rpois(10000, 25)
-NB <- rnbinom(10000, size=5, mu=25)
-DP1 <- rdelap(10000, alpha=2, beta=2, lambda=21)
-DP2 <- rdelap(10000, alpha=3, beta=4, lambda=13)
-DP3 <- rdelap(10000, alpha=4, beta=5, lambda=5)
+P <- rpois(10000, 25)                              ## Will have tightest spread
+NB <- rnbinom(10000, size=5, mu=25)                ## Will have widest spread
+DP1 <- rdelap(10000, alpha=2, beta=2, lambda=21)   ## Close to Poisson
+DP2 <- rdelap(10000, alpha=3, beta=4, lambda=13)   ## In between
+DP3 <- rdelap(10000, alpha=4, beta=5, lambda=5)    ## Close to Negative Binomial
 mean(P);mean(NB);mean(DP1);mean(DP2);mean(DP3)
 \dontshow{
 plot(density(P), col="black", lwd=2, main="Distribution Comparison", xlab="Value")
-lines(density(NB), col="red", lwd=2)
 lines(density(DP1), col="blue", lwd=2)
 lines(density(DP2), col="green3", lwd=2)
 lines(density(DP3), col="orange3", lwd=2)
-legend(x="topright", legend=c("Poisson", "NegBinom", "DP{a=2, b=2, l=21}", "DP{a=3, b=4, l=13}", "DP{a=4, b=5, l=5}"), col=c("black","red", "blue", "green3","orange3"), lwd=2)
+lines(density(NB), col="red", lwd=2)
+legend(x="topright", legend=c("Poisson", "DP {a=2, b=2, l=21}", "DP {a=3, b=4, l=13}", "DP {a=4, b=5, l=5}", "NegBinom"), col=c("black", "blue", "green3","orange3", "red"), lwd=2)
   }
 }
 

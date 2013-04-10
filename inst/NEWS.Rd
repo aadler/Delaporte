@@ -13,10 +13,8 @@
     }
   }  
   \subsection{Bug Fixes}{
-    \itemize{
-      \item Corrected help for rdelap (does not use \code{length(n)})
-      
-      \item Help documentation corrections (such as proper name of function), comments, and tweaks
+    \itemize{  
+      \item Help documentation corrections, comments, and tweaks
     }  
   }
 }    

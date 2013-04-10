@@ -1,5 +1,6 @@
 \name{Delaporte}
 \alias{Delaporte}
+\alias{delaporte}
 \alias{ddelap}
 \alias{pdelap}
 \alias{qdelap}
@@ -36,11 +37,11 @@ rdelap(n, alpha, beta, lambda)
   
   It can be considered the convolution of a negative binomial distribution with a Poisson distribution.  Alternatively, it can be considered a counting distribution with both a Poisson and negative binomial component.
   
-  The cumulative distribution function, \code{pdelap}, is calcuated through double summation:
+  The cumulative distribution function, \code{pdelap}, is calculated through double summation:
   \deqn{CDF(n) = \sum_{j=0}^n \sum_{i=0}^j\frac{\Gamma(\alpha+i)\beta^i\lambda^{j-i}e^{-\lambda}}{\Gamma(\alpha)i!(1+\beta)^{\alpha+i}(j-i)!}}{CDF(n) = \sum(j=0:n) \sum(i=0:j) [\Gamma(\alpha+i) \beta^i \lambda^(j-i) exp(-\lambda)] / [\Gamma(\alpha) i! (1+\beta)^(\alpha+i) (j-i)!]}
   for \eqn{n = 0, 1, 2, \ldots}; \eqn{\alpha, \beta, \lambda > 0}.  This can be computationally expensive for large \code{alpha}, \code{beta}, and \code{n}.  To optimize for speed, the function identifies the largest value passed to it and computes a vector of CDF values for all integers up to and including that value.  The remaining results are looked up off of this vector, requiring only one double summation instead of \code{length(q)} such summations. 
   
-  The quantile function, \code{qdelap}, works by identifying the largest valid quantile passed to it, and then, starting from \code{0}, building a CDF vector until such point as the CDF value exceeds the largest passed quantile.  The function returns \code{NaN} for quantiles \code{< 0}, \code{0} for quantiles \code{= 0}, \code{Inf} for quantiles \code{>= 1}.  For valid quantilies, the function uses the constructed CDF vector, finds the first value where the CDF is greater than the quantile, and returns that value.
+  The quantile function, \code{qdelap}, works by identifying the largest valid quantile passed to it, and then, starting from \code{0}, building a CDF vector until such point as the CDF value exceeds the largest passed quantile.  The function returns \code{NaN} for quantiles \code{< 0}, \code{0} for quantiles \code{= 0}, \code{Inf} for quantiles \code{>= 1}.  For valid quantiles, the function uses the constructed CDF vector, finds the first value for which the CDF is greater than or equal to the passed quantile, and returns that value.
   
   The random generator, \code{rdelap}, uses inversion and works very similarly to the quantile function, in that a vector of \code{n} uniformly distributed random variates between \code{0} and \code{1} is generated, a CDF vector is constructed as per the quantile function, and the resulting values are looked up off of the constructed vector.
 }

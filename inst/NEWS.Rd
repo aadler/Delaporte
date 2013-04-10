@@ -8,7 +8,7 @@
     \itemize{
       \item Converted NEWS to NEWS.Rd
       
-      \item Added repository URL to DESCRIPTION
+      \item Added repository and bug report URL to DESCRIPTION
       
     }
   }  

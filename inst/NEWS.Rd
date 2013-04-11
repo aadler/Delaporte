@@ -3,7 +3,7 @@
 
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
 
-\section{Changes in version 0.1-2 (TBD)}{
+\section{Changes in version 0.1-2 (2013-04-10)}{
   \subsection{New Features}{
     \itemize{
       \item Converted NEWS to NEWS.Rd

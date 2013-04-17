@@ -54,6 +54,9 @@ rdelap(n, alpha, beta, lambda)
   The length of the result is determined by \code{n} for
   \code{rdelap}, and is the length of the vector of inputs for the other functions.  
 }
+\author{
+Avraham Adler \code{<Avraham.Adler@gmail.com>}
+}
 \references{
   Johnson, Norman Lloyd, Kemp, Adrienne W. and Kotz, Samuel (2005) \emph{Univariate discrete distributions} (Third ed.). John Wiley & Sons. pp. 241--242. ISBN 978-0-471-27246-5.
   

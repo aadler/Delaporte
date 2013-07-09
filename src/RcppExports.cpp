@@ -9,56 +9,76 @@ using namespace Rcpp;
 NumericVector ddelap_C(NumericVector x, double alpha, double beta, double lambda, bool lg);
 RcppExport SEXP Delaporte_ddelap_C(SEXP xSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP lambdaSEXP, SEXP lgSEXP) {
 BEGIN_RCPP
-    Rcpp::RNGScope __rngScope;
-    NumericVector x = Rcpp::as<NumericVector >(xSEXP);
-    double alpha = Rcpp::as<double >(alphaSEXP);
-    double beta = Rcpp::as<double >(betaSEXP);
-    double lambda = Rcpp::as<double >(lambdaSEXP);
-    bool lg = Rcpp::as<bool >(lgSEXP);
-    NumericVector __result = ddelap_C(x, alpha, beta, lambda, lg);
-    return Rcpp::wrap(__result);
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        NumericVector x = Rcpp::as<NumericVector >(xSEXP);
+        double alpha = Rcpp::as<double >(alphaSEXP);
+        double beta = Rcpp::as<double >(betaSEXP);
+        double lambda = Rcpp::as<double >(lambdaSEXP);
+        bool lg = Rcpp::as<bool >(lgSEXP);
+        NumericVector __result = ddelap_C(x, alpha, beta, lambda, lg);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
 END_RCPP
 }
 // pdelap_C
 std::vector <double> pdelap_C(std::vector <double> q, double alpha, double beta, double lambda, bool lt, bool lp);
 RcppExport SEXP Delaporte_pdelap_C(SEXP qSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP lambdaSEXP, SEXP ltSEXP, SEXP lpSEXP) {
 BEGIN_RCPP
-    Rcpp::RNGScope __rngScope;
-    std::vector <double> q = Rcpp::as<std::vector <double> >(qSEXP);
-    double alpha = Rcpp::as<double >(alphaSEXP);
-    double beta = Rcpp::as<double >(betaSEXP);
-    double lambda = Rcpp::as<double >(lambdaSEXP);
-    bool lt = Rcpp::as<bool >(ltSEXP);
-    bool lp = Rcpp::as<bool >(lpSEXP);
-    std::vector <double> __result = pdelap_C(q, alpha, beta, lambda, lt, lp);
-    return Rcpp::wrap(__result);
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        std::vector <double> q = Rcpp::as<std::vector <double> >(qSEXP);
+        double alpha = Rcpp::as<double >(alphaSEXP);
+        double beta = Rcpp::as<double >(betaSEXP);
+        double lambda = Rcpp::as<double >(lambdaSEXP);
+        bool lt = Rcpp::as<bool >(ltSEXP);
+        bool lp = Rcpp::as<bool >(lpSEXP);
+        std::vector <double> __result = pdelap_C(q, alpha, beta, lambda, lt, lp);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
 END_RCPP
 }
 // qdelap_C
 std::vector <double> qdelap_C(std::vector <double> p, double alpha, double beta, double lambda, bool lt, bool lp);
 RcppExport SEXP Delaporte_qdelap_C(SEXP pSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP lambdaSEXP, SEXP ltSEXP, SEXP lpSEXP) {
 BEGIN_RCPP
-    Rcpp::RNGScope __rngScope;
-    std::vector <double> p = Rcpp::as<std::vector <double> >(pSEXP);
-    double alpha = Rcpp::as<double >(alphaSEXP);
-    double beta = Rcpp::as<double >(betaSEXP);
-    double lambda = Rcpp::as<double >(lambdaSEXP);
-    bool lt = Rcpp::as<bool >(ltSEXP);
-    bool lp = Rcpp::as<bool >(lpSEXP);
-    std::vector <double> __result = qdelap_C(p, alpha, beta, lambda, lt, lp);
-    return Rcpp::wrap(__result);
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        std::vector <double> p = Rcpp::as<std::vector <double> >(pSEXP);
+        double alpha = Rcpp::as<double >(alphaSEXP);
+        double beta = Rcpp::as<double >(betaSEXP);
+        double lambda = Rcpp::as<double >(lambdaSEXP);
+        bool lt = Rcpp::as<bool >(ltSEXP);
+        bool lp = Rcpp::as<bool >(lpSEXP);
+        std::vector <double> __result = qdelap_C(p, alpha, beta, lambda, lt, lp);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
 END_RCPP
 }
 // rdelap_C
 std::vector <double> rdelap_C(int p, double alpha, double beta, double lambda);
 RcppExport SEXP Delaporte_rdelap_C(SEXP pSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP lambdaSEXP) {
 BEGIN_RCPP
-    Rcpp::RNGScope __rngScope;
-    int p = Rcpp::as<int >(pSEXP);
-    double alpha = Rcpp::as<double >(alphaSEXP);
-    double beta = Rcpp::as<double >(betaSEXP);
-    double lambda = Rcpp::as<double >(lambdaSEXP);
-    std::vector <double> __result = rdelap_C(p, alpha, beta, lambda);
-    return Rcpp::wrap(__result);
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        int p = Rcpp::as<int >(pSEXP);
+        double alpha = Rcpp::as<double >(alphaSEXP);
+        double beta = Rcpp::as<double >(betaSEXP);
+        double lambda = Rcpp::as<double >(lambdaSEXP);
+        std::vector <double> __result = rdelap_C(p, alpha, beta, lambda);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
 END_RCPP
 }

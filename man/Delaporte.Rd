@@ -93,14 +93,12 @@ DP1 <- rdelap(10000, alpha=2, beta=2, lambda=21)   ## Close to Poisson
 DP2 <- rdelap(10000, alpha=3, beta=4, lambda=13)   ## In between
 DP3 <- rdelap(10000, alpha=4, beta=5, lambda=5)    ## Close to Negative Binomial
 mean(P);mean(NB);mean(DP1);mean(DP2);mean(DP3)
-\dontshow{
 plot(density(P), col="black", lwd=2, main="Distribution Comparison", xlab="Value")
 lines(density(DP1), col="blue", lwd=2)
 lines(density(DP2), col="green3", lwd=2)
 lines(density(DP3), col="orange3", lwd=2)
 lines(density(NB), col="red", lwd=2)
-legend(x="topright", legend=c("Poisson", "DP {a=2, b=2, l=21}", "DP {a=3, b=4, l=13}", "DP {a=4, b=5, l=5}", "NegBinom"), col=c("black", "blue", "green3","orange3", "red"), lwd=2)
-  }
+legend(x="topright", legend=c("Poisson {l=25}", "DP {a=2, b=2, l=21}", "DP {a=3, b=4, l=13}", "DP {a=4, b=5, l=5}", "NegBinom {a=5, b=5}"), col=c("black", "blue", "green3","orange3", "red"), lwd=2)
 }
 
 \keyword{distribution}

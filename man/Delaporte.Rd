@@ -7,7 +7,7 @@
 \alias{rdelap}
 \title{The Delaporte Distribution}
 \description{
-Density, distribution function, quantile function and random generation for the Delaporte distribution with parameters \code{alpha}, \code{beta}, and \code{lambda}.
+Density, distribution function, quantile function and random variate generation for the Delaporte distribution with parameters \code{alpha}, \code{beta}, and \code{lambda}.
 }
 \usage{
 ddelap(x, alpha, beta, lambda, log = FALSE)
@@ -36,15 +36,15 @@ rdelap(n, alpha, beta, lambda, exact=TRUE)
   \deqn{p(n) = \sum_{i=0}^n\frac{\Gamma(\alpha+i)\beta^i\lambda^{n-i}e^{-\lambda}}{\Gamma(\alpha) i! (1+\beta)^{\alpha+i}(n-i)!}}{p(n) = \sum (i=0:n) [\Gamma(\alpha+i) \beta^i \lambda^(n-i) exp(-\lambda)] / [\Gamma(\alpha) i! (1+\beta)^(\alpha+i) (n-i)!]}
   for \eqn{n = 0, 1, 2, \ldots}; \eqn{\alpha, \beta, \lambda > 0}.
   
-  It can be considered the convolution of a negative binomial distribution with a Poisson distribution.  Alternatively, it can be considered a counting distribution with both a Poisson and negative binomial component.
+It can be considered the convolution of a negative binomial distribution with a Poisson distribution.  Alternatively, it can be considered a counting distribution with both a Poisson and negative binomial component.
   
-  The cumulative distribution function, \code{pdelap}, is calculated through double summation:
+The cumulative distribution function, \code{pdelap}, is calculated through double summation:
   \deqn{CDF(n) = \sum_{j=0}^n \sum_{i=0}^j\frac{\Gamma(\alpha+i)\beta^i\lambda^{j-i}e^{-\lambda}}{\Gamma(\alpha)i!(1+\beta)^{\alpha+i}(j-i)!}}{CDF(n) = \sum(j=0:n) \sum(i=0:j) [\Gamma(\alpha+i) \beta^i \lambda^(j-i) exp(-\lambda)] / [\Gamma(\alpha) i! (1+\beta)^(\alpha+i) (j-i)!]}
   for \eqn{n = 0, 1, 2, \ldots}; \eqn{\alpha, \beta, \lambda > 0}. This can be computationally expensive for large \code{alpha}, \code{beta}, and \code{n}. To optimize for speed, the function identifies the largest value passed to it and computes a vector of CDF values for all integers up to and including that value.  The remaining results are looked up off of this vector, requiring only one double summation instead of \code{length(q)} such summations. 
   
 The quantile function, \code{qdelap}, has two versions. When \code{exact=TRUE}, the function identifies the largest valid quantile passed to it, and, starting from \eqn{0}, builds a CDF vector until such point as the CDF value exceeds the largest passed quantile. For valid quantiles, the function uses the constructed CDF vector, finds the first value for which the CDF is greater than or equal to the passed quantile, and returns that value.
 
-However, the above method can take a very long time for large \eqn{\alpha, \beta}, or \eqn{\lambda}. Therefore, when \code{exact=FALSE}, the function takes advantage of the Delaporte's definition as a counting distribution with both a Poisson and negative binomial component. It generates \eqn{10^7} variates from a negative binomial distribution with the supplied shape parameter \eqn{\alpha}, and scale parameter \eqn{\beta}, another \eqn{10^7} variates from a Poisson distribution with the supplied parameter \eqn{\lambda}, sums them, and calls the \code{\link{quantile}} function on the result. Both versions return \code{NaN} for quantiles \eqn{< 0}, \eqn{0} for quantiles \eqn{= 0}, and \code{Inf} for quantiles \eqn{\ge 1}.
+However, the above method can take a very long time for large \eqn{\alpha, \beta}, or \eqn{\lambda}. Therefore, when \code{exact=FALSE}, the function takes advantage of the Delaporte's definition as a counting distribution with both a Poisson and negative binomial component. It generates up to \eqn{10^7} variates from a negative binomial distribution with the supplied shape parameter \eqn{\alpha}, and scale parameter \eqn{\beta}, up to another \eqn{10^7} variates from a Poisson distribution with the supplied parameter \eqn{\lambda}, sums them, and calls the \code{\link{quantile}} function on the result. Both versions return \code{NaN} for quantiles \eqn{< 0}, \eqn{0} for quantiles \eqn{= 0}, and \code{Inf} for quantiles \eqn{\ge 1}.
   
 The random variate generator, \code{rdelap}, has the same two versions as the quantile function. When \code{exact=TRUE}, it uses inversion and works very similarly to the quantile function, in that a vector of \code{n} uniformly distributed random variates between \eqn{0} and \eqn{1} is generated, a CDF vector is constructed as per the quantile function, and the resulting values are looked up off of the constructed vector. When \code{exact=FALSE}, the larger of \eqn{n} or \eqn{10^7} variates from both a Poisson and negative binomial with the appropriate parameters are generated and summed. If \code{n} \eqn{< 10^7}, sampling with replacment is used to generate the \code{n} samples from the pool of \eqn{10^7} pseudo-Delaporte variates.
 }

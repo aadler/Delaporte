@@ -6,7 +6,7 @@
 \section{Changes in version 1.0-0 (2013-07-09)}{
   \subsection{New Features}{
     \itemize{
-    \item Added Poisson-negative binomial approximation to quantile and random variate function
+    \item Added Poisson-negative binomial approximation to quantile and random variate functions
       \itemize{
       \item This greatly speeds up calculation for large \eqn{\alpha, \beta}, or \eqn{\lambda}.
       }

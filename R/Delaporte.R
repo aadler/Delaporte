@@ -19,12 +19,12 @@ qdelap <-
     if (exact) {
       QDLAP <- qdelap_C(p, alpha, beta, lambda, lower.tail, log.p)
     } else {
-      pValid <- p[p>0 & p < 1]
+      pValid <- p[p > 0 & p < 1]
       pNan <- p[p < 0]
       p0 <- p[p == 0]
       pInf <- p[p >= 1]
-      n <- min(10^(ceiling(log(alpha*beta+lambda, 10))+3), 1e7)
-      NB <- rnbinom(n, mu=alpha*beta, size=alpha)
+      n <- min(10^(ceiling(log(alpha * beta + lambda, 10))+3), 1e7)
+      NB <- rnbinom(n, mu=alpha * beta, size=alpha)
       P <- rpois(n, lambda=lambda)
       DP <- NB + P
       QValid <- as.vector(quantile(DP, pValid, na.rm = TRUE))
@@ -44,7 +44,7 @@ rdelap <-
     } else {
       NB <- rnbinom(max(1e7, n), mu=alpha*beta, size=alpha)
       P <- rpois(max(1e7, n), lambda=lambda)
-      DPT <- NB+P
+      DPT <- NB + P
       if (n > 1e7) {
         RDLAP <- DPT
       } else {

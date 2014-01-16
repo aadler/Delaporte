@@ -3,6 +3,14 @@
 
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
 
+\section{Changes in version 1.0-2 (2014-01-16)}{
+  \subsection{Updates}{
+    \itemize{
+      \item Have R code be written in a consistent style
+    }
+  }
+}
+
 \section{Changes in version 1.0-1 (2013-09-01)}{
   \subsection{Updates}{
     \itemize{
@@ -41,5 +49,3 @@
     \item Initial release
   }
 }
-
-

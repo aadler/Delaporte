@@ -1,8 +1,8 @@
 Package: Delaporte
 Type: Package
 Title: Statistical functions for the Delaporte distribution
-Version: 1.0-1
-Date: 2013-09-01
+Version: 1.0-2
+Date: 2014-01-16
 Authors@R: c(person(given="Avraham", family="Adler", role=c("aut", "cph", "cre"), email="Avraham.Adler@gmail.com"))
 Author: Avraham Adler
 Maintainer: Avraham Adler <Avraham.Adler@gmail.com>

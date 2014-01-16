@@ -12,11 +12,11 @@ BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        NumericVector x = Rcpp::as<NumericVector >(xSEXP);
-        double alpha = Rcpp::as<double >(alphaSEXP);
-        double beta = Rcpp::as<double >(betaSEXP);
-        double lambda = Rcpp::as<double >(lambdaSEXP);
-        bool lg = Rcpp::as<bool >(lgSEXP);
+        Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP );
+        Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP );
+        Rcpp::traits::input_parameter< double >::type beta(betaSEXP );
+        Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP );
+        Rcpp::traits::input_parameter< bool >::type lg(lgSEXP );
         NumericVector __result = ddelap_C(x, alpha, beta, lambda, lg);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
@@ -31,12 +31,12 @@ BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        std::vector <double> q = Rcpp::as<std::vector <double> >(qSEXP);
-        double alpha = Rcpp::as<double >(alphaSEXP);
-        double beta = Rcpp::as<double >(betaSEXP);
-        double lambda = Rcpp::as<double >(lambdaSEXP);
-        bool lt = Rcpp::as<bool >(ltSEXP);
-        bool lp = Rcpp::as<bool >(lpSEXP);
+        Rcpp::traits::input_parameter< std::vector <double> >::type q(qSEXP );
+        Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP );
+        Rcpp::traits::input_parameter< double >::type beta(betaSEXP );
+        Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP );
+        Rcpp::traits::input_parameter< bool >::type lt(ltSEXP );
+        Rcpp::traits::input_parameter< bool >::type lp(lpSEXP );
         std::vector <double> __result = pdelap_C(q, alpha, beta, lambda, lt, lp);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
@@ -51,12 +51,12 @@ BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        std::vector <double> p = Rcpp::as<std::vector <double> >(pSEXP);
-        double alpha = Rcpp::as<double >(alphaSEXP);
-        double beta = Rcpp::as<double >(betaSEXP);
-        double lambda = Rcpp::as<double >(lambdaSEXP);
-        bool lt = Rcpp::as<bool >(ltSEXP);
-        bool lp = Rcpp::as<bool >(lpSEXP);
+        Rcpp::traits::input_parameter< std::vector <double> >::type p(pSEXP );
+        Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP );
+        Rcpp::traits::input_parameter< double >::type beta(betaSEXP );
+        Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP );
+        Rcpp::traits::input_parameter< bool >::type lt(ltSEXP );
+        Rcpp::traits::input_parameter< bool >::type lp(lpSEXP );
         std::vector <double> __result = qdelap_C(p, alpha, beta, lambda, lt, lp);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
@@ -71,10 +71,10 @@ BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        int p = Rcpp::as<int >(pSEXP);
-        double alpha = Rcpp::as<double >(alphaSEXP);
-        double beta = Rcpp::as<double >(betaSEXP);
-        double lambda = Rcpp::as<double >(lambdaSEXP);
+        Rcpp::traits::input_parameter< int >::type p(pSEXP );
+        Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP );
+        Rcpp::traits::input_parameter< double >::type beta(betaSEXP );
+        Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP );
         std::vector <double> __result = rdelap_C(p, alpha, beta, lambda);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }

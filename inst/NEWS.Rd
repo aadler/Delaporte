@@ -3,9 +3,11 @@
 
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
 
-\section{Changes in version 1.0-2 (2014-01-16)}{
+\section{Changes in version 1.1-0 (2014-01-17)}{
   \subsection{Updates}{
     \itemize{
+      \item Change "Depends" to "LinkingTo" in line with CRAN philosophy on package dependencies
+      \item Update documentation to give rough estimate as to when "exact = FALSE" should be used (rarely)
       \item Have R code be written in a consistent style
     }
   }

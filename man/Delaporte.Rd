@@ -72,6 +72,7 @@ Avraham Adler \code{<Avraham.Adler@gmail.com>}
 }
 
 \examples{
+library(Delaporte)
 ## Density and distribution
 A <- c(0, seq_len(50))
 PMF <- ddelap(A, alpha = 3, beta = 4, lambda = 10)

@@ -1,2 +1,3 @@
 useDynLib(Delaporte)
 exportPattern("^[[:alpha:]]+")
+importFrom(Rcpp, evalCpp)

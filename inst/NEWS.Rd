@@ -3,7 +3,13 @@
 
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
 
-\section{Changes in version 2.0-0 (2014-02-05)}{
+\section{Changes in version 2.0-1 (2014-02-05)}{
+  \subsection{Updates}{
+    \itemize{
+      \item Minor cleanup after Rcpp update (remove Makevar files; tweak documentation).
+    }
+  }
+}\section{Changes in version 2.0-0 (2014-02-05)}{
   \subsection{Updates}{
     \itemize{
       \item Updating for changes made to Rcpp 0.11.0. Previous versions may no longer compile properly and the current version may no longer work with older versions of Rcpp.

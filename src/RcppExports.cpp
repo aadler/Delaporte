@@ -82,3 +82,18 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// MoMdelap_C
+NumericVector MoMdelap_C(NumericVector X);
+RcppExport SEXP Delaporte_MoMdelap_C(SEXP XSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< NumericVector >::type X(XSEXP );
+        NumericVector __result = MoMdelap_C(X);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}

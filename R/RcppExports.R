@@ -17,3 +17,7 @@ rdelap_C <- function(p, alpha, beta, lambda) {
     .Call('Delaporte_rdelap_C', PACKAGE = 'Delaporte', p, alpha, beta, lambda)
 }
 
+MoMdelap_C <- function(X) {
+    .Call('Delaporte_MoMdelap_C', PACKAGE = 'Delaporte', X)
+}
+

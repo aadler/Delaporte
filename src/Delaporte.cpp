@@ -154,3 +154,30 @@ std::vector <double> rdelap_C(int p, double alpha, double beta, double lambda) {
   }
 	return (RETVEC);
 }
+
+// [[Rcpp::export]]
+NumericVector MoMdelap_C(NumericVector X){
+// Using the definitions for the mean, variance and skew of the Delaporte, find the method of moments
+// parameter estimates for a vector of data. This is also good starting point for maximum likelihood.
+  int n = X.size();
+  double nm1 = n - 1.0;
+  double P = n * sqrt(nm1) / (n - 2.0);
+  double Mu_D = 0;
+  double M2 = 0;
+	double M3 = 0;
+  for (int i = 0; i < n; i++) {
+	   double delta = X(i) - Mu_D;
+     double delta_i = delta / (i + 1);
+      double T1 = delta * delta_i * i;
+      Mu_D += delta_i;
+      M3 += (T1 * delta_i * (i - 1) - 3 * delta_i * M2);
+      M2 += T1;
+    }
+  double Var_D = M2 / nm1;
+  double Skew_D = P * M3 / pow(M2, 1.5);
+  double VmM_D = Var_D - Mu_D;
+  double beta = 0.5 * (Skew_D * pow(Var_D, 1.5) / VmM_D - 3);
+  double alpha = VmM_D / (beta * beta);
+  double lambda = Mu_D - alpha * beta;
+  return(NumericVector::create(alpha, beta, lambda));
+}

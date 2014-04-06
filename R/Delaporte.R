@@ -49,3 +49,9 @@ rdelap <-
     }
     return(RDLAP)
   }
+
+MoMdelap <- function (x) {
+    MoMDLAP <- vector(length = 3, mode = "numeric")
+    MoMDLAP <- MoMdelap_C(x)
+    return(MoMDLAP)
+  }

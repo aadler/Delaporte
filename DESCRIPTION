@@ -10,5 +10,6 @@ URL: https://bitbucket.org/aadler/delaporte
 BugReports: https://bitbucket.org/aadler/delaporte/issues
 Imports: Rcpp (>= 0.11.0)
 LinkingTo: Rcpp
+Suggests: testthat
 ByteCompile: yes
 NeedsCompilation: yes

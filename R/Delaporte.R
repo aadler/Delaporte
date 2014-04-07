@@ -53,5 +53,6 @@ rdelap <-
 MoMdelap <- function (x) {
     MoMDLAP <- vector(length = 3, mode = "numeric")
     MoMDLAP <- MoMdelap_C(x)
+    if (any(MoMDLAP < 0)) stop ("Data not amenable to method of moments; results include negative parameters.")
     return(MoMDLAP)
   }

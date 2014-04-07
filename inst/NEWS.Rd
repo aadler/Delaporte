@@ -3,6 +3,12 @@
 
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
 
+\section{Changes in version 2.1-0 (2014-04-06)}{
+  \subsection{New Features}{
+    \itemize{
+      \item Added function to calculate method of moments estimates for the parameters. These estimates should also serve as good starting points for maximum likelihood estimates.
+    }
+  }
 \section{Changes in version 2.0-1 (2014-02-05)}{
   \subsection{Updates}{
     \itemize{

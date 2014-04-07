@@ -5,6 +5,7 @@
 \alias{pdelap_C}
 \alias{qdelap_C}
 \alias{rdelap_C}
+\alias{MoMdelap_C}
 
 \title{Internal Delaporte Functions}
 \description{

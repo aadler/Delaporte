@@ -5,17 +5,17 @@
 Statistical functions for the Delaporte distribution
 }
 \description{
-Provides probability mass, distribution, and quantile functions, as well as a random number generator, for the Delaporte distribution.
+Provides probability mass, distribution, quantile, and random number generation functions for the Delaporte distribution. It also contains a function to calculate the method of moments estimates of the the parameters.
 }
 \details{
 \tabular{ll}{
 Package: \tab Delaporte\cr
 Type: \tab Package\cr
-Version: \tab 2.0-1\cr
-Date: \tab 2014-02-05\cr
+Version: \tab 2.1-0\cr
+Date: \tab 2014-04-06\cr
 License: \tab GPL (>= 2) | LGPL (>= 3) \cr
 }
-This package provides the standard probability mass, distribution, and quantile functions, as well as a random number generator, for the Delaporte distribution. It is used similarly to the distributions in \code{stats}.
+Provides probability mass, distribution, quantile, and random number generation functions for the Delaporte distribution. It also contains a function to calculate the method of moments estimates of the the parameters. It is used similarly to the distributions in \code{stats}.
 }
 \author{
 Avraham Adler

@@ -5,6 +5,7 @@
   \subsection{New Features}{
     \itemize{
       \item Added function to calculate method of moments estimates for the parameters. These estimates should also serve as good starting points for maximum likelihood estimates.
+      \item Added unit testing.
     }
   }
 }

@@ -1,6 +1,14 @@
 \name{NEWS}
 \alias{NEWS}
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
+\section{Changes in version 2.1-1 (2014-04-07)}{
+  \subsection{Updates}{
+    \itemize{
+      \item Adjusted unit test so it can be run more easily on 32 bit machine with limited memory
+      \item Fixed spelling and other prose.
+    }
+  }
+}
 \section{Changes in version 2.1-0 (2014-04-06)}{
   \subsection{New Features}{
     \itemize{

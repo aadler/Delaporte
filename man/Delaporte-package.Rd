@@ -11,8 +11,8 @@ Provides probability mass, distribution, quantile, random number generation, and
 \tabular{ll}{
 Package: \tab Delaporte\cr
 Type: \tab Package\cr
-Version: \tab 2.1-0\cr
-Date: \tab 2014-04-06\cr
+Version: \tab 2.1-1\cr
+Date: \tab 2014-04-07\cr
 License: \tab GPL (>= 2) | LGPL (>= 3) \cr
 }
 Provides probability mass, distribution, quantile, random number generation, and method of moments estimation functions for the Delaporte distribution. It is used similarly to the distributions in \code{stats}.

@@ -23,11 +23,11 @@ MoMdelap(x)
   \item{q}{vector of quantiles.}
   \item{p}{vector of probabilities.}
   \item{n}{number of observations.}
-  \item{alpha}{the alpha parameter of the gamma portion of the Delaporte distribution.
+  \item{alpha}{vector of alpha parameters of the gamma portion of the Delaporte distribution.
+    Must be strictly positive, but need not be integer. }
+  \item{beta}{vector of beta parameters of the gamma portion of the Delaporte distribution.
     Must be strictly positive, but need not be integer.}
-  \item{beta}{the beta parameter of the gamma portion of the Delaporte distribution.
-    Must be strictly positive, but need not be integer.}
-  \item{lambda}{the lambda parameter of the Poisson portion of the Delaporte distribution.
+  \item{lambda}{vector of lambda parameters of the Poisson portion of the Delaporte distribution.
     Must be strictly positive, but need not be integer.}
   \item{log, log.p}{logical; if TRUE, probabilities p are given as log(p).}
   \item{lower.tail}{logical; if TRUE (default), probabilities are
@@ -58,7 +58,9 @@ The random variate generator, \code{rdelap}, has the same two versions as the qu
   \code{NaN} or \code{Inf} as appropriate.
   
   The length of the result is determined by \code{n} for
-  \code{rdelap}, and is the length of the vector of inputs for the other functions.  
+  \code{rdelap}, and is the maximum of the lengths of the numerical parameters for the other functions.
+  
+  The numerical parameters other than \code{n} are recycled to the length of the result.
 }
 \author{
 Avraham Adler \code{<Avraham.Adler@gmail.com>}

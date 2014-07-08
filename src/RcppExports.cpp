@@ -6,16 +6,16 @@
 using namespace Rcpp;
 
 // ddelap_C
-NumericVector ddelap_C(NumericVector x, double alpha, double beta, double lambda, bool lg);
+NumericVector ddelap_C(NumericVector x, NumericVector alpha, NumericVector beta, NumericVector lambda, bool lg);
 RcppExport SEXP Delaporte_ddelap_C(SEXP xSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP lambdaSEXP, SEXP lgSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP );
-        Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP );
-        Rcpp::traits::input_parameter< double >::type beta(betaSEXP );
-        Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP );
+        Rcpp::traits::input_parameter< NumericVector >::type alpha(alphaSEXP );
+        Rcpp::traits::input_parameter< NumericVector >::type beta(betaSEXP );
+        Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP );
         Rcpp::traits::input_parameter< bool >::type lg(lgSEXP );
         NumericVector __result = ddelap_C(x, alpha, beta, lambda, lg);
         PROTECT(__sexp_result = Rcpp::wrap(__result));

@@ -5,24 +5,31 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-NumericVector ddelap_C(NumericVector x, double alpha, double beta, double lambda, bool lg) {
-	int n = x.size();
-	NumericVector DDLP(n);
-	for (int t = 0; t < n; t++) {
+NumericVector ddelap_C(NumericVector x, NumericVector alpha, NumericVector beta,
+                       NumericVector lambda, bool lg) {
+  int n = x.size();
+  int a_size = alpha.size();
+  int b_size = beta.size();
+  int l_size = lambda.size();
+	NumericVector del_pmf(n);
+	for (int t = 0; t < n; ++t) {
 		int k = ceil(x[t]);
 		double PV = 0.0;
-		for(int i = 0; i <= k; i++) {
-			PV += exp(lgamma(alpha+i)+i*log(beta)+(k-i)*log(lambda)-lambda-lgamma(alpha)-lgamma(i+1)-(alpha+i)*log(1+beta)-lgamma(k-i+1));
-      //using logs to prevent underflow/overflow from small/large numbers
+		for(int i = 0; i <= k; ++i) { //using logs to prevent under/overflow
+			PV += exp(lgamma(alpha[t % a_size] + i) + i * log(beta[t % b_size]) +
+                (k - i) * log(lambda[t % l_size]) - lambda[t % l_size] - 
+                lgamma(alpha[t % a_size]) - lgamma(i + 1) -
+                (alpha[t % a_size] + i) * log1p(beta[t % b_size]) - lgamma(k - i + 1));
+      
 		}
-		DDLP[t] = PV;
+		del_pmf[t] = PV;
 	}
 		if (lg==TRUE) {
-		for (int t = 0; t < n; t++) {
-			DDLP[t] = log(DDLP[t]);
+		for (int t = 0; t < n; ++t) {
+			del_pmf[t] = log(del_pmf[t]);
 		}
 	}
-	return (DDLP);
+	return (del_pmf);
 }
 
 // [[Rcpp::export]]

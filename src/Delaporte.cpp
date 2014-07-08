@@ -33,36 +33,48 @@ NumericVector ddelap_C(NumericVector x, NumericVector alpha, NumericVector beta,
 }
 
 // [[Rcpp::export]]
-std::vector <double> pdelap_C(std::vector <double> q, double alpha, double beta, double lambda, bool lt, bool lp) {
-// The idea is to find the largest value in the vector, and build the PDF up to that point.
-// Every other value is a lookup off of the largest vector. 
-	std::vector <double>::size_type n = q.size();
-	std::vector <double>::iterator MX = std::max_element(q.begin(), q.end());
-	int top = ceil(*MX);
-	std::vector <double> PDLP(top+1);
-	PDLP[0] = exp(-lambda)/pow((1+beta), alpha);
-	for (int t = 1; t <= top; t++) {
-		double PDFt = 0.0;
-		for (int i = 0; i <= t; i++) {
-			PDFt += exp(lgamma(alpha+i)+i*log(beta)+(t-i)*log(lambda)-lambda-lgamma(alpha)-lgamma(i+1)-(alpha+i)*log(1+beta)-lgamma(t-i+1));			
+std::vector <double> pdelap_C(std::vector <double> q, std::vector <double> alpha, std::vector <double> beta,
+                              std::vector <double> lambda, bool lt, bool lp) {
+  std::vector <double>::size_type n = q.size();
+  std::vector <double>::size_type a_size = alpha.size();
+  std::vector <double>::size_type b_size = beta.size();
+  std::vector <double>::size_type l_size = lambda.size();
+  std::vector <double> del_cdf(n);
+  if (a_size == b_size == l_size == 1) {
+    /* if parameters are all singletons (not vectors) then the idea is to find the largest value in the vector
+     * and build the PDF up to that point. Every other value will be a lookup off of the largest vector.
+     * Otherwise each entry will need to build its own value.
+     */ 
+	  std::vector <double>::iterator MX = std::max_element(q.begin(), q.end());
+	  int top = ceil(*MX);
+	  std::vector <double> single_cdf_vector(top + 1);
+	  single_cdf_vector[0] = exp(-lambda[0]) / pow((1 + beta[0]), alpha[0]);
+	  for (int t = 1; t <= top; ++t) {
+		  double cdf_at_t = 0.0;
+		  for (int i = 0; i <= t; ++i) {
+			  cdf_at_t += exp(lgamma(alpha[0] + i) + i * log(beta[0]) + (t - i) * log(lambda[0]) -
+                        lambda[0] - lgamma(alpha[0]) - lgamma(i+1) -  (alpha[0] + i) * log1p(beta[0]) -
+                        lgamma(t - i + 1));			
 			}
-		PDLP[t] = PDLP[t-1] + PDFt;
-	}
-	std::vector <double> PDLPRET(n);
-	for (std::vector <double>::size_type t = 0; t < n; t++) {
-		PDLPRET[t] = PDLP[ceil(q[t])];
-	}
-	if (lt==FALSE) {
-		for (std::vector <double>::size_type t = 0; t < n; t++) {
-			PDLPRET[t] = 1.0 - PDLPRET[t];
-		}
-	}
-	if (lp==TRUE) {
-		for (std::vector <double>::size_type t = 0; t < n; t++) {
-			PDLPRET[t] = log(PDLPRET[t]);
-		}
-	}
-	return (PDLPRET);
+		  single_cdf_vector[t] = single_cdf_vector[t - 1] + cdf_at_t;
+	  }
+	  for (std::vector <double>::size_type t = 0; t < n; ++t) {
+		  del_cdf[t] = single_cdf_vector[ceil(q[t])];
+	  }
+	  if (lt==FALSE) {
+		  for (std::vector <double>::size_type t = 0; t < n; ++t) {
+			  del_cdf[t] = 1.0 - del_cdf[t];
+		  }
+	  }
+	  if (lp==TRUE) {
+		  for (std::vector <double>::size_type t = 0; t < n; ++t) {
+			  del_cdf[t] = log(del_cdf[t]);
+		  }
+	  }
+  } else {
+    //Here will go code to build each PDF entry individually
+  }
+	return (del_cdf);
 }
 
 bool OUTSIDE01 (double quantile) {return (quantile <= 0.0 || quantile >= 1.0);}

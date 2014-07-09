@@ -40,7 +40,7 @@ std::vector <double> pdelap_C(std::vector <double> q, std::vector <double> alpha
   std::vector <double>::size_type b_size = beta.size();
   std::vector <double>::size_type l_size = lambda.size();
   std::vector <double> del_cdf(n);
-  if (a_size == b_size == l_size == 1) {
+  if (1 == a_size && a_size == b_size && b_size == l_size) {
     /* if parameters are all singletons (not vectors) then the idea is to find the largest value in the vector
      * and build the PDF up to that point. Every other value will be a lookup off of the largest vector.
      * Otherwise each entry will need to build its own value.

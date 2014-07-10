@@ -30,6 +30,15 @@ NumericVector ddelap_C(NumericVector x, NumericVector alpha, NumericVector beta,
   return(del_pmf);
 }
 
+double pdelap_C_S(double q, double alpha, double beta, double lambda) {
+  int k = ceil(q);
+  double del_cdf_s = exp(-lambda) / pow((1 + beta), alpha);
+  for (int i = 1; i <= k; ++i) {
+    del_cdf_s += ddelap_C_S(i, alpha, beta, lambda, FALSE);
+  }
+  return(del_cdf_s);
+}
+
 // [[Rcpp::export]]
 std::vector <double> pdelap_C(std::vector <double> q, std::vector <double> alpha, std::vector <double> beta,
                               std::vector <double> lambda, bool lt, bool lp) {
@@ -47,31 +56,27 @@ std::vector <double> pdelap_C(std::vector <double> q, std::vector <double> alpha
 	  int top = ceil(*MX);
 	  std::vector <double> single_cdf_vector(top + 1);
 	  single_cdf_vector[0] = exp(-lambda[0]) / pow((1 + beta[0]), alpha[0]);
-	  for (int t = 1; t <= top; ++t) {
-		  double cdf_at_t = 0.0;
-		  for (int i = 0; i <= t; ++i) {
-			  cdf_at_t += exp(lgamma(alpha[0] + i) + i * log(beta[0]) + (t - i) * log(lambda[0]) -
-                        lambda[0] - lgamma(alpha[0]) - lgamma(i+1) -  (alpha[0] + i) * log1p(beta[0]) -
-                        lgamma(t - i + 1));			
-			}
-		  single_cdf_vector[t] = single_cdf_vector[t - 1] + cdf_at_t;
+	  for (int i = 1; i <= top; ++i) {
+		  single_cdf_vector[i] = single_cdf_vector[i - 1] + ddelap_C_S(i, alpha[0], beta[0], lambda[0], FALSE);
 	  }
-	  for (std::vector <double>::size_type t = 0; t < n; ++t) {
-		  del_cdf[t] = single_cdf_vector[ceil(q[t])];
+	  for (std::vector <double>::size_type i = 0; i < n; ++i) {
+		  del_cdf[i] = single_cdf_vector[ceil(q[i])];
 	  }
-	  if (lt==FALSE) {
-		  for (std::vector <double>::size_type t = 0; t < n; ++t) {
-			  del_cdf[t] = 1.0 - del_cdf[t];
-		  }
-	  }
-	  if (lp==TRUE) {
-		  for (std::vector <double>::size_type t = 0; t < n; ++t) {
-			  del_cdf[t] = log(del_cdf[t]);
-		  }
-	  }
-  } else {
-    //Here will go code to build each PDF entry individually
+  } else { //Have to build full double summation chain for each entry as the parameters change. Much slower
+    for (std::vector <double>::size_type i = 0; i < n; ++i) {
+    del_cdf[i] = pdelap_C_S(q[i], alpha[i % a_size], beta[i % b_size], lambda[i % l_size]);
+    }
   }
+	if (lt==FALSE) {
+	  for (std::vector <double>::size_type i = 0; i < n; ++i) {
+		  del_cdf[i] = 1.0 - del_cdf[i];
+		}
+	}
+	if (lp==TRUE) {
+	  for (std::vector <double>::size_type i = 0; i < n; ++i) {
+		  del_cdf[i] = log(del_cdf[i]);
+		}
+	}
 	return (del_cdf);
 }
 

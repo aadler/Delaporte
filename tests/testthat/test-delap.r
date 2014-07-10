@@ -10,7 +10,7 @@ test_that("singleton ddelap pdelap, and qdelap are working", {
 
 test_that("vector ddelap and pdelap are working", {
   expect_that(ddelap(SEQUENCE, c(1, 2, 3), c(4, 1, 2), c(2, 5, 7)), equals(VAL$DDELAP_Triple))
-  expect_that(pdelap(SEQUENCE, 2, 1, 5), equals(VAL$PDELAP_2))
+  expect_that(pdelap(SEQUENCE, c(1, 2, 3), c(4, 1, 2), c(2, 5, 7)), equals(VAL$PDELAP_Triple))
   expect_that(qdelap(pmax(VAL$PDELAP_3 - .0001, 0), 3, 2, 7), equals(SEQUENCE))
 })
 

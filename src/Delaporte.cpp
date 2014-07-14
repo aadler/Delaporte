@@ -93,13 +93,13 @@ std::vector <double> qdelap_C(std::vector <double> p, std::vector <double> alpha
   std::vector <double> pcopy = p;
   std::vector <double> RETVEC(n);
   if (lp == TRUE) {
-    for (std::vector <double>::size_type t = 0; t < n; ++t) {
-  	  pcopy[t] = exp(pcopy[t]);
+    for (std::vector <double>::size_type i = 0; i < n; ++i) {
+  	  pcopy[i] = exp(pcopy[i]);
 		}
   }
   if (lt == FALSE) {
-	  for (std::vector <double>::size_type t = 0; t < n; ++t) {
-		  pcopy[t] = 1.0 - pcopy[t];
+	  for (std::vector <double>::size_type i = 0; i < n; ++i) {
+		  pcopy[i] = 1.0 - pcopy[i];
 		}
 	}
   if (1 == a_size && a_size == b_size && b_size == l_size) {
@@ -115,37 +115,50 @@ std::vector <double> qdelap_C(std::vector <double> p, std::vector <double> alpha
     std::vector <double>::iterator MX = std::max_element(pcopy2.begin(), pcopy2.end());
     pcopy.clear();
 	  double maxquantile = *MX;
-    double cdftop = 0.0;
+    double cdf_curr_top = 0.0;
     std::vector <double> CDFVEC;
-    CDFVEC.push_back(exp(-lambda[0])/pow((1 + beta[0]), alpha[0])); //pre-load 0 value
-    int cap = 1; //Will be "max integer"
-    while (cdftop < maxquantile) {
-      double PMF = 0.0;
-  	  for(int i = 0; i <= cap; i++) {
-			  PMF += exp(lgamma(alpha[0] + i) + i * log(beta[0]) + (cap - i) * log(lambda[0]) - lambda[0] - lgamma(alpha[0]) -
-                   lgamma(i + 1) - (alpha[0] + i) * log1p(beta[0]) - lgamma(cap - i + 1));			
-		  }
-      PMF = PMF +  CDFVEC[cap-1]; //add pmf value at cap to previous CDF value
-      CDFVEC.push_back(PMF);
-      cdftop = CDFVEC[cap];
+    CDFVEC.push_back(exp(-lambda[0]) / pow((1 + beta[0]), alpha[0])); //pre-load 0 value
+    int cap = 1; //Will become "max integer"
+    while (cdf_curr_top < maxquantile) {
+      CDFVEC.push_back(ddelap_C_S(cap, alpha[0], beta[0], lambda[0], FALSE) +  CDFVEC[cap - 1]); //add pmf value at cap to previous CDF value
+      cdf_curr_top = CDFVEC[cap];
       ++cap;
     }
     std::vector<double>::iterator foundit;
-    for (std::vector <double>::size_type t = 0; t < n; t++) {
-      if (p[t]< 0) {
-        RETVEC[t] = std::numeric_limits<double>::quiet_NaN();
-      } else if (p[t]==0) {
-        RETVEC[t] = 0;
-      } else if (p[t] >= 1) {
-        RETVEC[t] = std::numeric_limits<double>::infinity();
+    for (std::vector <double>::size_type i = 0; i < n; ++i) {
+      if (p[i] < 0) {
+        RETVEC[i] = std::numeric_limits<double>::quiet_NaN();
+      } else if (p[i] == 0) {
+        RETVEC[i] = 0;
+      } else if (p[i] >= 1) {
+        RETVEC[i] = std::numeric_limits<double>::infinity();
       } else {
-        foundit = std::upper_bound (CDFVEC.begin(), CDFVEC.end(), p[t]);
+        foundit = std::upper_bound (CDFVEC.begin(), CDFVEC.end(), p[i]);
         double spot = foundit - CDFVEC.begin();
-        RETVEC[t] = spot;
+        RETVEC[i] = spot;
 		  }
     }
   } else {
-    
+    for (std::vector <double>::size_type i = 0; i < n; ++i) {
+      if (p[i] < 0) {
+        RETVEC[i] = std::numeric_limits<double>::quiet_NaN();
+      } else if (p[i] == 0) {
+        RETVEC[i] = 0;
+      } else if (p[i] >= 1) {
+        RETVEC[i] = std::numeric_limits<double>::infinity();
+      } else {
+        std::vector <double> CDFVEC;
+        int del_quantile = 0; //Will become "needed integer"
+        CDFVEC.push_back(exp(-lambda[i % l_size]) / pow((1 + beta[i % l_size]), alpha[i % l_size])); //pre-load 0 value
+        double cdf_curr_top = CDFVEC[0];
+        while (cdf_curr_top < p[i]) {
+          ++del_quantile;
+          CDFVEC.push_back(ddelap_C_S(del_quantile, alpha[i % l_size], beta[i % l_size], lambda[i % l_size], FALSE) +  CDFVEC[del_quantile - 1]);
+          cdf_curr_top = CDFVEC[del_quantile];
+        }
+        RETVEC[i] = del_quantile;
+  	  }
+    }
   }
 	return (RETVEC);
 }

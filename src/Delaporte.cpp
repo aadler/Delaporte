@@ -90,75 +90,37 @@ std::vector <double> qdelap_C(std::vector <double> p, std::vector <double> alpha
   std::vector <double>::size_type a_size = alpha.size();
   std::vector <double>::size_type b_size = beta.size();
   std::vector <double>::size_type l_size = lambda.size();
-  std::vector <double> pcopy = p;
+  std::vector <double> adjusted_p = p;
   std::vector <double> RETVEC(n);
   if (lp == TRUE) {
     for (std::vector <double>::size_type i = 0; i < n; ++i) {
-  	  pcopy[i] = exp(pcopy[i]);
+  	  adjusted_p[i] = exp(adjusted_p[i]);
 		}
   }
   if (lt == FALSE) {
 	  for (std::vector <double>::size_type i = 0; i < n; ++i) {
-		  pcopy[i] = 1.0 - pcopy[i];
+		  adjusted_p[i] = 0.5 - adjusted_p[i] + 0.5;
 		}
 	}
-  if (1 == a_size && a_size == b_size && b_size == l_size) {
-    /* if parameters are all singletons (not vectors) then the idea is to find the largest CDF point in the vector,
-     * and build the CDF vector up to that point. Every other value is a lookup off of that vector. Otherwise,
-     * each entry will need to build its own value, which will be dreadfully slow.
-     */ 
-    std::vector <double>::iterator pcbegin = pcopy.begin();
-    std::vector <double>::iterator pcend = pcopy.end();
-    pcend = std::remove_if(pcbegin, pcend, OUTSIDE01);
-    std::vector <double> pcopy2;
-    pcopy2.assign (pcbegin, pcend);
-    std::vector <double>::iterator MX = std::max_element(pcopy2.begin(), pcopy2.end());
-    pcopy.clear();
-	  double maxquantile = *MX;
-    double cdf_curr_top = 0.0;
-    std::vector <double> CDFVEC;
-    CDFVEC.push_back(exp(-lambda[0]) / pow((1 + beta[0]), alpha[0])); //pre-load 0 value
-    int cap = 1; //Will become "max integer"
-    while (cdf_curr_top < maxquantile) {
-      CDFVEC.push_back(ddelap_C_S(cap, alpha[0], beta[0], lambda[0], FALSE) +  CDFVEC[cap - 1]); //add pmf value at cap to previous CDF value
-      cdf_curr_top = CDFVEC[cap];
-      ++cap;
-    }
-    std::vector<double>::iterator foundit;
-    for (std::vector <double>::size_type i = 0; i < n; ++i) {
-      if (p[i] < 0) {
-        RETVEC[i] = std::numeric_limits<double>::quiet_NaN();
-      } else if (p[i] == 0) {
-        RETVEC[i] = 0;
-      } else if (p[i] >= 1) {
-        RETVEC[i] = std::numeric_limits<double>::infinity();
-      } else {
-        foundit = std::upper_bound (CDFVEC.begin(), CDFVEC.end(), p[i]);
-        double spot = foundit - CDFVEC.begin();
-        RETVEC[i] = spot;
-		  }
-    }
-  } else {
-    for (std::vector <double>::size_type i = 0; i < n; ++i) {
-      if (p[i] < 0) {
-        RETVEC[i] = std::numeric_limits<double>::quiet_NaN();
-      } else if (p[i] == 0) {
-        RETVEC[i] = 0;
-      } else if (p[i] >= 1) {
-        RETVEC[i] = std::numeric_limits<double>::infinity();
-      } else {
-        std::vector <double> CDFVEC;
-        int del_quantile = 0; //Will become "needed integer"
-        CDFVEC.push_back(exp(-lambda[i % l_size]) / pow((1 + beta[i % l_size]), alpha[i % l_size])); //pre-load 0 value
-        double cdf_curr_top = CDFVEC[0];
-        while (cdf_curr_top < p[i]) {
-          ++del_quantile;
-          CDFVEC.push_back(ddelap_C_S(del_quantile, alpha[i % l_size], beta[i % l_size], lambda[i % l_size], FALSE) +  CDFVEC[del_quantile - 1]);
-          cdf_curr_top = CDFVEC[del_quantile];
-        }
-        RETVEC[i] = del_quantile;
-  	  }
-    }
+  for (std::vector <double>::size_type i = 0; i < n; ++i) {
+    if (p[i] < 0) {
+      RETVEC[i] = std::numeric_limits<double>::quiet_NaN();
+    } else if (p[i] == 0) {
+      RETVEC[i] = 0;
+    } else if (p[i] >= 1) {
+      RETVEC[i] = std::numeric_limits<double>::infinity();
+    } else {
+      std::vector <double> CDFVEC;
+      int del_quantile = 0; //Will become "needed integer"
+      CDFVEC.push_back(exp(-lambda[i % l_size]) / pow((1 + beta[i % l_size]), alpha[i % l_size])); //pre-load 0 value
+      double cdf_curr_top = CDFVEC[0];
+      while (cdf_curr_top < adjusted_p[i]) {
+        ++del_quantile;
+        CDFVEC.push_back(ddelap_C_S(del_quantile, alpha[i % l_size], beta[i % l_size], lambda[i % l_size], FALSE) +  CDFVEC[del_quantile - 1]);
+        cdf_curr_top = CDFVEC[del_quantile];
+      }
+      RETVEC[i] = del_quantile;
+  	}
   }
 	return (RETVEC);
 }

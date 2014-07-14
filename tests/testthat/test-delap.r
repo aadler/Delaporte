@@ -2,16 +2,16 @@ context("Mathematical Functionality")
   VAL <- data.frame(read.csv(file = "./RawTest.csv", header = TRUE, colClasses = 'numeric'))
   SEQUENCE <- seq_len(37) - 1
 
-test_that("singleton ddelap pdelap, and qdelap are working", {
+test_that("singleton ddelap, pdelap, and qdelap are working", {
   expect_that(ddelap(SEQUENCE, 1, 4, 2), equals(VAL$DDELAP_1))
-  expect_that(pdelap(SEQUENCE, 1, 4, 2), equals(VAL$PDELAP_1))
-  expect_that(qdelap(pmax(VAL$PDELAP_1 - .0001, 0), 1, 4, 2), equals(SEQUENCE))
+  expect_that(pdelap(SEQUENCE, 2, 1, 5), equals(VAL$PDELAP_2))
+  expect_that(qdelap(pdelap(SEQUENCE, 3, 2, 7), 3, 2, 7), equals(SEQUENCE))
 })
 
-test_that("vector ddelap and pdelap are working", {
+test_that("vector ddelap, pdelap, and qdelap are working", {
   expect_that(ddelap(SEQUENCE, c(1, 2, 3), c(4, 1, 2), c(2, 5, 7)), equals(VAL$DDELAP_Triple))
   expect_that(pdelap(SEQUENCE, c(1, 2, 3), c(4, 1, 2), c(2, 5, 7)), equals(VAL$PDELAP_Triple))
-  expect_that(qdelap(pmax(VAL$PDELAP_3 - .0001, 0), 3, 2, 7), equals(SEQUENCE))
+  expect_that(qdelap(pdelap(SEQUENCE, c(1, 2, 3), c(4, 1, 2), c(2, 5, 7)), c(1, 2, 3), c(4, 1, 2), c(2, 5, 7)), equals(SEQUENCE))
 })
 
 test_that("rdelap generates properly", {

@@ -67,12 +67,12 @@ std::vector <double> pdelap_C(std::vector <double> q, std::vector <double> alpha
     del_cdf[i] = pdelap_C_S(q[i], alpha[i % a_size], beta[i % b_size], lambda[i % l_size]);
     }
   }
-	if (lt==FALSE) {
+	if (lt == FALSE) {
 	  for (std::vector <double>::size_type i = 0; i < n; ++i) {
 		  del_cdf[i] = 1.0 - del_cdf[i];
 		}
 	}
-	if (lp==TRUE) {
+	if (lp == TRUE) {
 	  for (std::vector <double>::size_type i = 0; i < n; ++i) {
 		  del_cdf[i] = log(del_cdf[i]);
 		}
@@ -84,46 +84,54 @@ bool OUTSIDE01 (double quantile) {return (quantile <= 0.0 || quantile >= 1.0);}
 //above needed to trim vector of values <=0 and >= 1
 
 // [[Rcpp::export]]
-std::vector <double> qdelap_C(std::vector <double> p, double alpha, double beta, double lambda, bool lt, bool lp) {
-// The idea is to find the largest CDF point in the vector, and build counts up to that point.
-// Every other value is a lookup off of the largest vector.
+std::vector <double> qdelap_C(std::vector <double> p, std::vector <double> alpha, std::vector <double> beta,
+                              std::vector <double> lambda, bool lt, bool lp) {
 	std::vector <double>::size_type n = p.size();
+  std::vector <double>::size_type a_size = alpha.size();
+  std::vector <double>::size_type b_size = beta.size();
+  std::vector <double>::size_type l_size = lambda.size();
   std::vector <double> pcopy = p;
-  if (lp==TRUE) {
-    for (std::vector <double>::size_type t = 0; t < n; t++) {
-			pcopy[t] = exp(pcopy[t]);
-		}
-	}
-  if (lt==FALSE) {
-		for (std::vector <double>::size_type t = 0; t < n; t++) {
-			pcopy[t] = 1.0 - pcopy[t];
-		}
-	}
-  std::vector <double>::iterator pcbegin = pcopy.begin();
-  std::vector <double>::iterator pcend = pcopy.end();
-  pcend = std::remove_if(pcbegin, pcend, OUTSIDE01);
-  std::vector <double> pcopy2;
-  pcopy2.assign (pcbegin, pcend);
-  std::vector <double>::iterator MX = std::max_element(pcopy2.begin(), pcopy2.end());
-  pcopy.clear();
-	double maxquantile = *MX;
-  double cdftop = 0.0;
-  std::vector <double> CDFVEC;
-  CDFVEC.push_back(exp(-lambda)/pow((1+beta), alpha)); //pre-load 0 value
-  int cap = 1; //Will be "max integer"
-  while (cdftop < maxquantile) {
-    double PMF = 0.0;
-  	for(int i = 0; i <= cap; i++) {
-			PMF += exp(lgamma(alpha+i)+i*log(beta)+(cap-i)*log(lambda)-lambda-lgamma(alpha)-lgamma(i+1)-(alpha+i)*log(1+beta)-lgamma(cap-i+1));			
-		}
-    PMF = PMF +  CDFVEC[cap-1]; //add pmf value at cap to previous CDF value
-    CDFVEC.push_back(PMF);
-    cdftop = CDFVEC[cap];
-    ++cap;
-  }
   std::vector <double> RETVEC(n);
-  std::vector<double>::iterator foundit;
-  for (std::vector <double>::size_type t = 0; t < n; t++) {
+  if (lp == TRUE) {
+    for (std::vector <double>::size_type t = 0; t < n; ++t) {
+  	  pcopy[t] = exp(pcopy[t]);
+		}
+  }
+  if (lt == FALSE) {
+	  for (std::vector <double>::size_type t = 0; t < n; ++t) {
+		  pcopy[t] = 1.0 - pcopy[t];
+		}
+	}
+  if (1 == a_size && a_size == b_size && b_size == l_size) {
+    /* if parameters are all singletons (not vectors) then the idea is to find the largest CDF point in the vector,
+     * and build the CDF vector up to that point. Every other value is a lookup off of that vector. Otherwise,
+     * each entry will need to build its own value, which will be dreadfully slow.
+     */ 
+    std::vector <double>::iterator pcbegin = pcopy.begin();
+    std::vector <double>::iterator pcend = pcopy.end();
+    pcend = std::remove_if(pcbegin, pcend, OUTSIDE01);
+    std::vector <double> pcopy2;
+    pcopy2.assign (pcbegin, pcend);
+    std::vector <double>::iterator MX = std::max_element(pcopy2.begin(), pcopy2.end());
+    pcopy.clear();
+	  double maxquantile = *MX;
+    double cdftop = 0.0;
+    std::vector <double> CDFVEC;
+    CDFVEC.push_back(exp(-lambda[0])/pow((1 + beta[0]), alpha[0])); //pre-load 0 value
+    int cap = 1; //Will be "max integer"
+    while (cdftop < maxquantile) {
+      double PMF = 0.0;
+  	  for(int i = 0; i <= cap; i++) {
+			  PMF += exp(lgamma(alpha[0] + i) + i * log(beta[0]) + (cap - i) * log(lambda[0]) - lambda[0] - lgamma(alpha[0]) -
+                   lgamma(i + 1) - (alpha[0] + i) * log1p(beta[0]) - lgamma(cap - i + 1));			
+		  }
+      PMF = PMF +  CDFVEC[cap-1]; //add pmf value at cap to previous CDF value
+      CDFVEC.push_back(PMF);
+      cdftop = CDFVEC[cap];
+      ++cap;
+    }
+    std::vector<double>::iterator foundit;
+    for (std::vector <double>::size_type t = 0; t < n; t++) {
       if (p[t]< 0) {
         RETVEC[t] = std::numeric_limits<double>::quiet_NaN();
       } else if (p[t]==0) {
@@ -135,6 +143,9 @@ std::vector <double> qdelap_C(std::vector <double> p, double alpha, double beta,
         double spot = foundit - CDFVEC.begin();
         RETVEC[t] = spot;
 		  }
+    }
+  } else {
+    
   }
 	return (RETVEC);
 }

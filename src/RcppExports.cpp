@@ -45,16 +45,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // qdelap_C
-std::vector <double> qdelap_C(std::vector <double> p, double alpha, double beta, double lambda, bool lt, bool lp);
+std::vector <double> qdelap_C(std::vector <double> p, std::vector <double> alpha, std::vector <double> beta, std::vector <double> lambda, bool lt, bool lp);
 RcppExport SEXP Delaporte_qdelap_C(SEXP pSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP lambdaSEXP, SEXP ltSEXP, SEXP lpSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< std::vector <double> >::type p(pSEXP );
-        Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP );
-        Rcpp::traits::input_parameter< double >::type beta(betaSEXP );
-        Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP );
+        Rcpp::traits::input_parameter< std::vector <double> >::type alpha(alphaSEXP );
+        Rcpp::traits::input_parameter< std::vector <double> >::type beta(betaSEXP );
+        Rcpp::traits::input_parameter< std::vector <double> >::type lambda(lambdaSEXP );
         Rcpp::traits::input_parameter< bool >::type lt(ltSEXP );
         Rcpp::traits::input_parameter< bool >::type lp(lpSEXP );
         std::vector <double> __result = qdelap_C(p, alpha, beta, lambda, lt, lp);

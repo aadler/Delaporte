@@ -14,4 +14,4 @@ LaTeX: pdfLaTeX
 
 BuildType: Package
 PackageInstallArgs: --force-biarch
-PackageCheckArgs: --as-cran
+PackageCheckArgs: --force-multiarch --as-cran

@@ -26,12 +26,12 @@ test_that("Vector pdelap functions", {
 
 context("Testing qdelap")
 test_that("Singleton qdelap functions", {  
-  expect_that(qdelap(pdelap(SEQUENCE, 3, 2, 7), 3, 2, 7), equals(SEQUENCE))
+  expect_that(qdelap(pdelap(seq(4) - 1, 1, 4, 2), 1, 4, 2), equals(c(0, 1, 2, 3)))
   expect_that(qdelap(0.4971031395336245, 4, 6, 3, lower.tail = TRUE), equals(25))
   expect_that(qdelap(-0.255, 20, 15, 50, log.p = TRUE), equals(400))
 })
 test_that("Vector qdelap functions", {
-  expect_that(qdelap(pdelap(SEQUENCE, c(1, 2, 3), c(4, 1, 2), c(2, 5, 7)), c(1, 2, 3), c(4, 1, 2), c(2, 5, 7)), equals(SEQUENCE))
+  expect_that(qdelap(pdelap(seq(4), c(1, 2), c(4, 1), c(2, 5)), c(1, 2), c(4, 1), c(2, 5)), equals(c(1, 2, 3, 4)))
   expect_that(qdelap(c(0.4971031395336245, 0.1374992163369109), c(4, 1), c(6, 9), c(3, 12), lower.tail = FALSE), equals(c(25, 31)))
 })
 

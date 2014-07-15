@@ -6,12 +6,22 @@ test_that("singleton ddelap, pdelap, and qdelap are working", {
   expect_that(ddelap(SEQUENCE, 1, 4, 2), equals(VAL$DDELAP_1))
   expect_that(pdelap(SEQUENCE, 2, 1, 5), equals(VAL$PDELAP_2))
   expect_that(qdelap(pdelap(SEQUENCE, 3, 2, 7), 3, 2, 7), equals(SEQUENCE))
+  expect_that(ddelap(SEQUENCE, 5, 3, 8, log = TRUE), equals(log(ddelap(SEQUENCE, 5, 3, 8))))
+  expect_that(pdelap(SEQUENCE, 4, 5, 1, log.p = TRUE), equals(log(pdelap(SEQUENCE, 4, 5, 1))))
+  expect_that(pdelap(seq_len(101) - 1, 8, 10, 6, lower.tail = FALSE), equals(1 - pdelap(seq_len(101) - 1, 8, 10, 6)))
+  expect_that(qdelap(0.4971031395336245, 4, 6, 3, lower.tail = TRUE), equals(25))
+  expect_that(qdelap(-0.2521449179700315, 20, 15, 50, log.p = TRUE), equals(400))
 })
 
 test_that("vector ddelap, pdelap, and qdelap are working", {
   expect_that(ddelap(SEQUENCE, c(1, 2, 3), c(4, 1, 2), c(2, 5, 7)), equals(VAL$DDELAP_Triple))
   expect_that(pdelap(SEQUENCE, c(1, 2, 3), c(4, 1, 2), c(2, 5, 7)), equals(VAL$PDELAP_Triple))
   expect_that(qdelap(pdelap(SEQUENCE, c(1, 2, 3), c(4, 1, 2), c(2, 5, 7)), c(1, 2, 3), c(4, 1, 2), c(2, 5, 7)), equals(SEQUENCE))
+  expect_that(ddelap(seq_len(101) - 1, c(4, 9, 2), c(6, 12, 8), c(7, 14, 9), log = TRUE), 
+              equals(log(ddelap(seq_len(101) - 1, c(4, 9, 2), c(6, 12, 8), c(7, 14, 9)))))
+  expect_that(pdelap(seq_len(101) - 1, c(4, 9, 2), c(6, 12, 8), c(7, 14, 9), lower.tail = FALSE),
+              equals(1 - pdelap(seq_len(101) - 1, c(4, 9, 2), c(6, 12, 8), c(7, 14, 9))))
+  expect_that(qdelap(c(0.4971031395336245, 0.1374992163369109), c(4, 1), c(6, 9), c(3, 12), lower.tail = FALSE), equals(c(25, 31)))
 })
 
 test_that("rdelap generates properly", {

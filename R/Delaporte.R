@@ -17,16 +17,16 @@ qdelap <-
       QDLAP <- qdelap_C(p, alpha, beta, lambda, lower.tail, log.p)
     } else {
       if (log.p) p <- exp(p)
-      if (!lower.tail) p <- 0.5 - p + 0.5
+      if (!lower.tail) p <- 1 - p
       pValid <- p[p > 0 & p < 1]
       pNan <- p[p < 0]
       p0 <- p[p == 0]
       pInf <- p[p >= 1]
-      n <- min(10 ^ (ceiling(log(alpha * beta + lambda, 10)) + 4), 1e7)
+      n <- min(10 ^ (ceiling(log(alpha * beta + lambda, 10)) + 5), 1e7)
       NB <- rnbinom(n, mu = alpha * beta, size = alpha)
       P <- rpois(n, lambda = lambda)
       DP <- NB + P
-      QValid <- as.vector(quantile(DP, pValid, na.rm = TRUE))
+      QValid <- as.vector(quantile(DP, pValid, na.rm = TRUE, type = 8))
       QNan <- rep.int(NaN, times = length(pNan))
       Q0 <- rep.int(0, times = length(p0))
       QInf <- rep.int(Inf, times = length(pInf))

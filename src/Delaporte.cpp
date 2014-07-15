@@ -99,24 +99,24 @@ std::vector <double> qdelap_C(std::vector <double> p, std::vector <double> alpha
   }
   if (lt == FALSE) {
 	  for (std::vector <double>::size_type i = 0; i < n; ++i) {
-		  adjusted_p[i] = 0.5 - adjusted_p[i] + 0.5;
+		  adjusted_p[i] = 1.0 - adjusted_p[i];
 		}
 	}
   for (std::vector <double>::size_type i = 0; i < n; ++i) {
-    if (p[i] < 0) {
+    if (adjusted_p[i] < 0) {
       RETVEC[i] = std::numeric_limits<double>::quiet_NaN();
-    } else if (p[i] == 0) {
+    } else if (adjusted_p[i] == 0) {
       RETVEC[i] = 0;
-    } else if (p[i] >= 1) {
+    } else if (adjusted_p[i] >= 1) {
       RETVEC[i] = std::numeric_limits<double>::infinity();
     } else {
       std::vector <double> CDFVEC;
       int del_quantile = 0; //Will become "needed integer"
-      CDFVEC.push_back(exp(-lambda[i % l_size]) / pow((1 + beta[i % l_size]), alpha[i % l_size])); //pre-load 0 value
+      CDFVEC.push_back(exp(-lambda[i % l_size]) / pow((1 + beta[i % b_size]), alpha[i % a_size])); //pre-load 0 value
       double cdf_curr_top = CDFVEC[0];
       while (cdf_curr_top < adjusted_p[i]) {
         ++del_quantile;
-        CDFVEC.push_back(ddelap_C_S(del_quantile, alpha[i % l_size], beta[i % l_size], lambda[i % l_size], FALSE) +  CDFVEC[del_quantile - 1]);
+        CDFVEC.push_back(ddelap_C_S(del_quantile, alpha[i % a_size], beta[i % b_size], lambda[i % l_size], FALSE) +  CDFVEC[del_quantile - 1]);
         cdf_curr_top = CDFVEC[del_quantile];
       }
       RETVEC[i] = del_quantile;

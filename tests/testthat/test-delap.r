@@ -10,7 +10,7 @@ test_that("singleton ddelap, pdelap, and qdelap are working", {
   expect_that(pdelap(SEQUENCE, 4, 5, 1, log.p = TRUE), equals(log(pdelap(SEQUENCE, 4, 5, 1))))
   expect_that(pdelap(seq_len(101) - 1, 8, 10, 6, lower.tail = FALSE), equals(1 - pdelap(seq_len(101) - 1, 8, 10, 6)))
   expect_that(qdelap(0.4971031395336245, 4, 6, 3, lower.tail = TRUE), equals(25))
-  expect_that(qdelap(-0.2521449179700315, 20, 15, 50, log.p = TRUE), equals(400))
+  expect_that(qdelap(-0.255, 20, 15, 50, log.p = TRUE), equals(400))
 })
 
 test_that("vector ddelap, pdelap, and qdelap are working", {
@@ -25,18 +25,14 @@ test_that("vector ddelap, pdelap, and qdelap are working", {
 })
 
 test_that("rdelap generates properly", {
-  DP1 <- rdelap(1e7, alpha = 10, beta = 2, lambda = 10) 
-  DP2 <- rdelap(1e7, alpha = 6, beta = 4, lambda = 6) 
-  DP3 <- rdelap(1e7, alpha = 3, beta = 9, lambda = 3)
-  DP4 <- rdelap(1e7, alpha = 2, beta = 14, lambda = 2, exact = FALSE)
-  DP5 <- rdelap(1e4, alpha = c(5, 5), beta = c(5, 5), lambda = c(5, 5))
-  DP6 <- rdelap(1e7, alpha = c(5, 5), beta = c(5, 5), lambda = c(5, 5), exact = FALSE)
-  expect_that(abs((mean(DP1) / 30 - 1)) < 1e-3, is_true())
-  expect_that(abs((mean(DP2) / 30 - 1)) < 1e-3, is_true())
-  expect_that(abs((mean(DP3) / 30 - 1)) < 1e-3, is_true())
-  expect_that(abs((mean(DP4) / 30 - 1)) < 1e-3, is_true())
-  expect_that(abs((mean(DP5) / 30 - 1)) < 1e-2, is_true())
-  expect_that(abs((mean(DP6) / 30 - 1)) < 1e-3, is_true())
+  DP1 <- rdelap(1e6, alpha = 10, beta = 2, lambda = 10) 
+  DP2 <- rdelap(1e6, alpha = 2, beta = 14, lambda = 2, exact = FALSE)
+  DP3 <- rdelap(1e3, alpha = c(5, 5), beta = c(5, 5), lambda = c(5, 5))
+  DP4 <- rdelap(1e6, alpha = c(5, 5), beta = c(5, 5), lambda = c(5, 5), exact = FALSE)
+  expect_that(abs((mean(DP1) / 30 - 1)) < 5e-3, is_true())
+  expect_that(abs((mean(DP2) / 30 - 1)) < 5e-3, is_true())
+  expect_that(abs((mean(DP3) / 30 - 1)) < 5e-2, is_true())
+  expect_that(abs((mean(DP4) / 30 - 1)) < 5e-3, is_true())
 })
 
 test_that("MoMdelap works", {

@@ -13,8 +13,8 @@ qdelap_C <- function(p, alpha, beta, lambda, lt, lp) {
     .Call('Delaporte_qdelap_C', PACKAGE = 'Delaporte', p, alpha, beta, lambda, lt, lp)
 }
 
-rdelap_C <- function(p, alpha, beta, lambda) {
-    .Call('Delaporte_rdelap_C', PACKAGE = 'Delaporte', p, alpha, beta, lambda)
+rdelap_C <- function(n, alpha, beta, lambda) {
+    .Call('Delaporte_rdelap_C', PACKAGE = 'Delaporte', n, alpha, beta, lambda)
 }
 
 MoMdelap_C <- function(X) {

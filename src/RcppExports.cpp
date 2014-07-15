@@ -25,19 +25,19 @@ BEGIN_RCPP
 END_RCPP
 }
 // pdelap_C
-std::vector <double> pdelap_C(std::vector <double> q, std::vector <double> alpha, std::vector <double> beta, std::vector <double> lambda, bool lt, bool lp);
+NumericVector pdelap_C(NumericVector q, NumericVector alpha, NumericVector beta, NumericVector lambda, bool lt, bool lp);
 RcppExport SEXP Delaporte_pdelap_C(SEXP qSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP lambdaSEXP, SEXP ltSEXP, SEXP lpSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< std::vector <double> >::type q(qSEXP );
-        Rcpp::traits::input_parameter< std::vector <double> >::type alpha(alphaSEXP );
-        Rcpp::traits::input_parameter< std::vector <double> >::type beta(betaSEXP );
-        Rcpp::traits::input_parameter< std::vector <double> >::type lambda(lambdaSEXP );
+        Rcpp::traits::input_parameter< NumericVector >::type q(qSEXP );
+        Rcpp::traits::input_parameter< NumericVector >::type alpha(alphaSEXP );
+        Rcpp::traits::input_parameter< NumericVector >::type beta(betaSEXP );
+        Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP );
         Rcpp::traits::input_parameter< bool >::type lt(ltSEXP );
         Rcpp::traits::input_parameter< bool >::type lp(lpSEXP );
-        std::vector <double> __result = pdelap_C(q, alpha, beta, lambda, lt, lp);
+        NumericVector __result = pdelap_C(q, alpha, beta, lambda, lt, lp);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -45,19 +45,19 @@ BEGIN_RCPP
 END_RCPP
 }
 // qdelap_C
-std::vector <double> qdelap_C(std::vector <double> p, std::vector <double> alpha, std::vector <double> beta, std::vector <double> lambda, bool lt, bool lp);
+NumericVector qdelap_C(NumericVector p, NumericVector alpha, NumericVector beta, NumericVector lambda, bool lt, bool lp);
 RcppExport SEXP Delaporte_qdelap_C(SEXP pSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP lambdaSEXP, SEXP ltSEXP, SEXP lpSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< std::vector <double> >::type p(pSEXP );
-        Rcpp::traits::input_parameter< std::vector <double> >::type alpha(alphaSEXP );
-        Rcpp::traits::input_parameter< std::vector <double> >::type beta(betaSEXP );
-        Rcpp::traits::input_parameter< std::vector <double> >::type lambda(lambdaSEXP );
+        Rcpp::traits::input_parameter< NumericVector >::type p(pSEXP );
+        Rcpp::traits::input_parameter< NumericVector >::type alpha(alphaSEXP );
+        Rcpp::traits::input_parameter< NumericVector >::type beta(betaSEXP );
+        Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP );
         Rcpp::traits::input_parameter< bool >::type lt(ltSEXP );
         Rcpp::traits::input_parameter< bool >::type lp(lpSEXP );
-        std::vector <double> __result = qdelap_C(p, alpha, beta, lambda, lt, lp);
+        NumericVector __result = qdelap_C(p, alpha, beta, lambda, lt, lp);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -65,17 +65,17 @@ BEGIN_RCPP
 END_RCPP
 }
 // rdelap_C
-std::vector <double> rdelap_C(int p, double alpha, double beta, double lambda);
-RcppExport SEXP Delaporte_rdelap_C(SEXP pSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP lambdaSEXP) {
+NumericVector rdelap_C(int n, NumericVector alpha, NumericVector beta, NumericVector lambda);
+RcppExport SEXP Delaporte_rdelap_C(SEXP nSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP lambdaSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< int >::type p(pSEXP );
-        Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP );
-        Rcpp::traits::input_parameter< double >::type beta(betaSEXP );
-        Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP );
-        std::vector <double> __result = rdelap_C(p, alpha, beta, lambda);
+        Rcpp::traits::input_parameter< int >::type n(nSEXP );
+        Rcpp::traits::input_parameter< NumericVector >::type alpha(alphaSEXP );
+        Rcpp::traits::input_parameter< NumericVector >::type beta(betaSEXP );
+        Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP );
+        NumericVector __result = rdelap_C(n, alpha, beta, lambda);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);

@@ -40,69 +40,66 @@ double pdelap_C_S(double q, double alpha, double beta, double lambda) {
 }
 
 // [[Rcpp::export]]
-std::vector <double> pdelap_C(std::vector <double> q, std::vector <double> alpha, std::vector <double> beta,
-                              std::vector <double> lambda, bool lt, bool lp) {
-  std::vector <double>::size_type n = q.size();
-  std::vector <double>::size_type a_size = alpha.size();
-  std::vector <double>::size_type b_size = beta.size();
-  std::vector <double>::size_type l_size = lambda.size();
-  std::vector <double> del_cdf(n);
+NumericVector pdelap_C(NumericVector q, NumericVector alpha, NumericVector beta,
+                              NumericVector lambda, bool lt, bool lp) {
+  int n = q.size();
+  int a_size = alpha.size();
+  int b_size = beta.size();
+  int l_size = lambda.size();
+  NumericVector del_cdf(n);
   if (1 == a_size && a_size == b_size && b_size == l_size) {
     /* if parameters are all singletons (not vectors) then the idea is to find the largest value in the vector
      * and build the PDF up to that point. Every other value will be a lookup off of the largest vector.
      * Otherwise each entry will need to build its own value.
      */ 
-	  std::vector <double>::iterator MX = std::max_element(q.begin(), q.end());
+	  NumericVector::iterator MX = std::max_element(q.begin(), q.end());
 	  int top = ceil(*MX);
-	  std::vector <double> single_cdf_vector(top + 1);
+	  NumericVector single_cdf_vector(top + 1);
 	  single_cdf_vector[0] = exp(-lambda[0]) / pow((1 + beta[0]), alpha[0]);
 	  for (int i = 1; i <= top; ++i) {
 		  single_cdf_vector[i] = single_cdf_vector[i - 1] + ddelap_C_S(i, alpha[0], beta[0], lambda[0], FALSE);
 	  }
-	  for (std::vector <double>::size_type i = 0; i < n; ++i) {
+	  for (int i = 0; i < n; ++i) {
 		  del_cdf[i] = single_cdf_vector[ceil(q[i])];
 	  }
   } else { //Have to build full double summation chain for each entry as the parameters change. Much slower
-    for (std::vector <double>::size_type i = 0; i < n; ++i) {
+    for (int i = 0; i < n; ++i) {
     del_cdf[i] = pdelap_C_S(q[i], alpha[i % a_size], beta[i % b_size], lambda[i % l_size]);
     }
   }
 	if (lt == FALSE) {
-	  for (std::vector <double>::size_type i = 0; i < n; ++i) {
+	  for (int i = 0; i < n; ++i) {
 		  del_cdf[i] = 1.0 - del_cdf[i];
 		}
 	}
 	if (lp == TRUE) {
-	  for (std::vector <double>::size_type i = 0; i < n; ++i) {
+	  for (int i = 0; i < n; ++i) {
 		  del_cdf[i] = log(del_cdf[i]);
 		}
 	}
 	return (del_cdf);
 }
 
-bool OUTSIDE01 (double quantile) {return (quantile <= 0.0 || quantile >= 1.0);}
-//above needed to trim vector of values <=0 and >= 1
-
 // [[Rcpp::export]]
-std::vector <double> qdelap_C(std::vector <double> p, std::vector <double> alpha, std::vector <double> beta,
-                              std::vector <double> lambda, bool lt, bool lp) {
-	std::vector <double>::size_type n = p.size();
-  std::vector <double>::size_type a_size = alpha.size();
-  std::vector <double>::size_type b_size = beta.size();
-  std::vector <double>::size_type l_size = lambda.size();
-  std::vector <double> adjusted_p = p;
-  std::vector <double> RETVEC(n);
+NumericVector qdelap_C(NumericVector p, NumericVector alpha, NumericVector beta,
+                              NumericVector lambda, bool lt, bool lp) {
+	int n = p.size();
+  int a_size = alpha.size();
+  int b_size = beta.size();
+  int l_size = lambda.size();
+  NumericVector adjusted_p = p;
+  NumericVector RETVEC(n);
   if (lp == TRUE) {
-    for (std::vector <double>::size_type i = 0; i < n; ++i) {
+    for (int i = 0; i < n; ++i) {
   	  adjusted_p[i] = exp(adjusted_p[i]);
 		}
   }
   if (lt == FALSE) {
-	  for (std::vector <double>::size_type i = 0; i < n; ++i) {
+	  for (int i = 0; i < n; ++i) {
 		  adjusted_p[i] = 1.0 - adjusted_p[i];
 		}
 	}
-  for (std::vector <double>::size_type i = 0; i < n; ++i) {
+  for (int i = 0; i < n; ++i) {
     if (adjusted_p[i] < 0) {
       RETVEC[i] = std::numeric_limits<double>::quiet_NaN();
     } else if (adjusted_p[i] == 0) {
@@ -110,7 +107,7 @@ std::vector <double> qdelap_C(std::vector <double> p, std::vector <double> alpha
     } else if (adjusted_p[i] >= 1) {
       RETVEC[i] = std::numeric_limits<double>::infinity();
     } else {
-      std::vector <double> CDFVEC;
+      NumericVector CDFVEC;
       int del_quantile = 0; //Will become "needed integer"
       CDFVEC.push_back(exp(-lambda[i % l_size]) / pow((1 + beta[i % b_size]), alpha[i % a_size])); //pre-load 0 value
       double cdf_curr_top = CDFVEC[0];
@@ -126,41 +123,44 @@ std::vector <double> qdelap_C(std::vector <double> p, std::vector <double> alpha
 }
 
 // [[Rcpp::export]]
-std::vector <double> rdelap_C(int p, double alpha, double beta, double lambda) {
-// The idea is to find the largest CDF point in the vector, and build counts up to that point.
-// Every other value is a lookup off of the largest vector.
+NumericVector rdelap_C(int n, NumericVector alpha, NumericVector beta,
+                              NumericVector lambda) {
+  int a_size = alpha.size();
+  int b_size = beta.size();
+  int l_size = lambda.size();
+  NumericVector rand_variates(n);
   RNGScope scope;
-  NumericVector RUNI = runif(p, 0.0, 1.0);
-  NumericVector::iterator MX = std::max_element(RUNI.begin(), RUNI.end());
-	double maxquantile = *MX;
-  double cdftop = 0.0;
-  std::vector <double> CDFVEC;
-  CDFVEC.push_back(exp(-lambda)/pow((1+beta), alpha)); //pre-load 0 value
-  int cap = 1; //Will be "max integer"
-  while (cdftop < maxquantile) {
-    double CCC = 0.0;
-  	for(int i = 0; i <= cap; i++) {
-			CCC += exp(lgamma(alpha+i)+i*log(beta)+(cap-i)*log(lambda)-lambda-lgamma(alpha)-lgamma(i+1)-(alpha+i)*log(1+beta)-lgamma(cap-i+1));			
-		}
-    CCC = CCC +  CDFVEC[cap-1];
-    CDFVEC.push_back(CCC);
-    cdftop = CDFVEC[cap];
-    ++cap;
-  }
-  std::vector <double> RETVEC(p);
-  std::vector <double>::iterator foundit;
-  for (int t = 0; t < p; t++) {
-      if (RUNI[t] == 0) {
-        RETVEC[t] = 0;
-      } else if (RUNI[t] == 1) {
-        RETVEC[t] = std::numeric_limits<double>::infinity();
+  NumericVector RUNI = runif(n, 0.0, 1.0);
+  if (1 == a_size && a_size == b_size && b_size == l_size) {
+    /* if parameters are all singletons (not vectors). then the idea is to find the largest CDF point in the vector
+     * and build counts up to that point. Every other value is a lookup off of the largest vector. Otherwise, each
+     * random variate has to be calculated individually which can be much slower.
+     */
+    NumericVector::iterator MX = std::max_element(RUNI.begin(), RUNI.end());
+	  double maxquantile = *MX;
+    NumericVector CDFVEC;
+    int del_quantile = 0; //Will become "needed integer"
+    CDFVEC.push_back(exp(-lambda[0]) / pow((1 + beta[0]), alpha[0])); //pre-load 0 value
+    double cdf_curr_top = CDFVEC[0];
+    while (cdf_curr_top < maxquantile) {
+      ++del_quantile;
+      CDFVEC.push_back(ddelap_C_S(del_quantile, alpha[0], beta[0], lambda[0], FALSE) +  CDFVEC[del_quantile - 1]);
+      cdf_curr_top = CDFVEC[del_quantile];
+    }
+    NumericVector::iterator foundit;
+    for (int i = 0; i < n; ++i) {
+      if (RUNI[i] == 0) {
+        rand_variates[i] = 0;
       } else {
-        foundit = std::upper_bound (CDFVEC.begin(), CDFVEC.end(), RUNI[t]);
+        foundit = std::upper_bound (CDFVEC.begin(), CDFVEC.end(), RUNI[i]);
         double spot = foundit - CDFVEC.begin();
-        RETVEC[t] = spot;
+        rand_variates[i] = spot;
 		  }
-  }
-	return (RETVEC);
+    }
+  } else {
+    rand_variates = qdelap_C(RUNI, alpha, beta, lambda, TRUE, FALSE);
+    }
+	return (rand_variates);
 }
 
 // [[Rcpp::export]]

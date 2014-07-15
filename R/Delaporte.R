@@ -4,12 +4,14 @@ ddelap <-
     DDLAP <- ddelap_C(x, alpha, beta, lambda, log)
     return(DDLAP)
   }
+
 pdelap <-
   function (q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE) {
     PDLAP <- double(length(q))
     PDLAP <- pdelap_C(q, alpha, beta, lambda, lower.tail, log.p)
     return(PDLAP)
   }
+
 qdelap <-
   function (p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exact = TRUE) {
     QDLAP <- double(length(p))
@@ -34,6 +36,7 @@ qdelap <-
     }  
     return(QDLAP)
   }
+
 rdelap <-
   function (n, alpha, beta, lambda, exact = TRUE) {
     RDLAP <- double(length(n))

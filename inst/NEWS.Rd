@@ -1,10 +1,24 @@
 \name{NEWS}
 \alias{NEWS}
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
+\section{Changes in version 2.2-0 (2014-07-15)}{
+  \subsection{New Features}{
+    \itemize{
+      \item Vectorized \code{d/p/q/rdelap}; \code{alpha}, \code{beta}, and \code{lambda} can now be vectors.
+      \item Added more robust tests.
+      \item Minor optimizations for speed.
+    }
+  }
+  \subsection{Bug Fixes}{
+    \itemize{
+      \item Corrected \code{lower.tail} and \code{log.p} which were not implemented properly.
+    }
+  }
+}
 \section{Changes in version 2.1-1 (2014-04-07)}{
   \subsection{Updates}{
     \itemize{
-      \item Adjusted unit test so it can be run more easily on 32 bit machine with limited memory
+      \item Adjusted unit test so it can be run more easily on 32 bit machine with limited memory.
       \item Fixed spelling and other prose.
     }
   }

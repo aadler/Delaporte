@@ -48,7 +48,7 @@ NumericVector pdelap_C(NumericVector q, NumericVector alpha, NumericVector beta,
   int l_size = lambda.size();
   NumericVector del_cdf(n);
   if (1 == a_size && a_size == b_size && b_size == l_size) {
-    /* if parameters are all singletons (not vectors) then the idea is to find the largest value in the vector
+    /* If parameters are all singletons (not vectors) then the idea is to find the largest value in the vector
      * and build the PDF up to that point. Every other value will be a lookup off of the largest vector.
      * Otherwise each entry will need to build its own value.
      */ 
@@ -88,7 +88,7 @@ NumericVector qdelap_C(NumericVector p, NumericVector alpha, NumericVector beta,
   int b_size = beta.size();
   int l_size = lambda.size();
   NumericVector adjusted_p = p;
-  NumericVector RETVEC(n);
+  NumericVector del_quantiles(n);
   if (lp == TRUE) {
     for (int i = 0; i < n; ++i) {
   	  adjusted_p[i] = exp(adjusted_p[i]);
@@ -101,25 +101,26 @@ NumericVector qdelap_C(NumericVector p, NumericVector alpha, NumericVector beta,
 	}
   for (int i = 0; i < n; ++i) {
     if (adjusted_p[i] < 0) {
-      RETVEC[i] = std::numeric_limits<double>::quiet_NaN();
+      del_quantiles[i] = std::numeric_limits<double>::quiet_NaN();
     } else if (adjusted_p[i] == 0) {
-      RETVEC[i] = 0;
+      del_quantiles[i] = 0;
     } else if (adjusted_p[i] >= 1) {
-      RETVEC[i] = std::numeric_limits<double>::infinity();
+      del_quantiles[i] = std::numeric_limits<double>::infinity();
     } else {
-      NumericVector CDFVEC;
-      int del_quantile = 0; //Will become "needed integer"
-      CDFVEC.push_back(exp(-lambda[i % l_size]) / pow((1 + beta[i % b_size]), alpha[i % a_size])); //pre-load 0 value
-      double cdf_curr_top = CDFVEC[0];
+      NumericVector del_cdf;
+      int del_quantile_s = 0; //Will become "needed integer"
+      del_cdf.push_back(exp(-lambda[i % l_size]) / pow((1 + beta[i % b_size]), alpha[i % a_size])); //pre-load 0 value
+      double cdf_curr_top = del_cdf[0];
       while (cdf_curr_top < adjusted_p[i]) {
-        ++del_quantile;
-        CDFVEC.push_back(ddelap_C_S(del_quantile, alpha[i % a_size], beta[i % b_size], lambda[i % l_size], FALSE) +  CDFVEC[del_quantile - 1]);
-        cdf_curr_top = CDFVEC[del_quantile];
+        ++del_quantile_s;
+        del_cdf.push_back(ddelap_C_S(del_quantile_s, alpha[i % a_size], beta[i % b_size], lambda[i % l_size], FALSE) +
+                                     del_cdf[del_quantile_s - 1]);
+        cdf_curr_top = del_cdf[del_quantile_s];
       }
-      RETVEC[i] = del_quantile;
+      del_quantiles[i] = del_quantile_s;
   	}
   }
-	return (RETVEC);
+	return (del_quantiles);
 }
 
 // [[Rcpp::export]]
@@ -174,13 +175,13 @@ NumericVector MoMdelap_C(NumericVector X){
   double M2 = 0;
 	double M3 = 0;
   for (int i = 0; i < n; i++) {
-	   double delta = X(i) - Mu_D;
-     double delta_i = delta / (i + 1);
-      double T1 = delta * delta_i * i;
-      Mu_D += delta_i;
-      M3 += (T1 * delta_i * (i - 1) - 3 * delta_i * M2);
-      M2 += T1;
-    }
+	  double delta = X(i) - Mu_D;
+    double delta_i = delta / (i + 1);
+    double T1 = delta * delta_i * i;
+    Mu_D += delta_i;
+    M3 += (T1 * delta_i * (i - 1) - 3 * delta_i * M2);
+    M2 += T1;
+  }
   double Var_D = M2 / nm1;
   double Skew_D = P * M3 / pow(M2, 1.5);
   double VmM_D = Var_D - Mu_D;

@@ -77,22 +77,19 @@ Avraham Adler \code{<Avraham.Adler@gmail.com>}
 A <- c(0, seq_len(50))
 PMF <- ddelap(A, alpha = 3, beta = 4, lambda = 10)
 CDF <- pdelap(A, alpha = 3, beta = 4, lambda = 10)
-summary(1 - cumsum(PMF) / CDF) #Relative Error
 
 ##Quantile
 A <- seq(0,.95, .05)
 qdelap(A, alpha = 3, beta = 4, lambda = 10)
-qdelap(A, alpha = 3, beta = 4, lambda = 10, exact = FALSE)
 A <- c(-1, A, 1, 2)
 qdelap(A, alpha = 3, beta = 4, lambda = 10)
-qdelap(A, alpha = 3, beta = 4, lambda = 10, exact = FALSE)
 
 ## Compare a Poisson, negative binomial, and three Delaporte distributions with the same mean:
 P <- rpois(25000, 25)                                  ## Will have the tightest spread
-DP1 <- rdelap(25000, alpha = 2, beta = 2, lambda = 21) ## Close to the Poisson
-DP2 <- rdelap(25000, alpha = 3, beta = 4, lambda = 13) ## In between
-DP3 <- rdelap(25000, alpha = 4, beta = 5, lambda = 5)  ## Close to the Negative Binomial
-NB <- rnbinom(25000, size = 5, mu = 25)                ## Will have the widest spread
+DP1 <- rdelap(10000, alpha = 2, beta = 2, lambda = 21) ## Close to the Poisson
+DP2 <- rdelap(10000, alpha = 3, beta = 4, lambda = 13) ## In between
+DP3 <- rdelap(10000, alpha = 4, beta = 5, lambda = 5)  ## Close to the Negative Binomial
+NB <- rnbinom(10000, size = 5, mu = 25)                ## Will have the widest spread
 mean(P);mean(NB);mean(DP1);mean(DP2);mean(DP3)         ## Means should all be near 25
 MoMdelap(DP1);MoMdelap(DP2);MoMdelap(DP3)              ## Estimates should be close to originals
 \dontshow{

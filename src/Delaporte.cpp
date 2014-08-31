@@ -62,7 +62,7 @@ NumericVector pdelap_C(NumericVector q, NumericVector alpha, NumericVector beta,
 	  for (int i = 0; i < n; ++i) {
 		  del_cdf[i] = single_cdf_vector[ceil(q[i])];
 	  }
-  } else { //Have to build full double summation chain for each entry as the parameters change. Much slower
+  } else { //Have to build full double summation chain for each entry as the parameters change, which is much slower.
     for (int i = 0; i < n; ++i) {
     del_cdf[i] = pdelap_C_S(q[i], alpha[i % a_size], beta[i % b_size], lambda[i % l_size]);
     }
@@ -151,7 +151,7 @@ NumericVector rdelap_C(int n, NumericVector alpha, NumericVector beta,
     NumericVector::iterator foundit;
     for (int i = 0; i < n; ++i) {
       if (RUNI[i] == 0) {
-        rand_variates[i] = 0;
+        rand_variates[i] = 0.0;
       } else {
         foundit = std::upper_bound (CDFVEC.begin(), CDFVEC.end(), RUNI[i]);
         double spot = foundit - CDFVEC.begin();
@@ -171,9 +171,9 @@ NumericVector MoMdelap_C(NumericVector X){
   int n = X.size();
   double nm1 = n - 1.0;
   double P = n * sqrt(nm1) / (n - 2.0);
-  double Mu_D = 0;
-  double M2 = 0;
-	double M3 = 0;
+  double Mu_D = 0.0;
+  double M2 = 0.0;
+	double M3 = 0.0;
   for (int i = 0; i < n; i++) {
 	  double delta = X(i) - Mu_D;
     double delta_i = delta / (i + 1);

@@ -46,7 +46,7 @@ rdelap <-
       NB <- rnbinom(max(1e7, n), mu = alpha * beta, size = alpha)
       P <- rpois(max(1e7, n), lambda = lambda)
       DP <- NB + P
-      if (n > 1e7) {
+      if (n >= 1e7) {
         RDLAP <- DP
       } else {
         RDLAP <- sample(x = DP, size = n, replace = TRUE)

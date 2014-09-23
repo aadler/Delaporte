@@ -4,6 +4,8 @@
 
 using namespace Rcpp;
 
+const double EPS = 2.3e-16;
+
 double ddelap_C_S(double x, double alpha, double beta, double lambda, bool lg) {
 	int k = ceil(x);
 	double del_pmf_s = 0.0;
@@ -70,6 +72,7 @@ NumericVector pdelap_C(NumericVector q, NumericVector alpha, NumericVector beta,
 	if (lt == FALSE) {
 	  for (int i = 0; i < n; ++i) {
 		  del_cdf[i] = 1.0 - del_cdf[i];
+      if (fabs(del_cdf[i]) < EPS) del_cdf[i] = 0.0; //trap precision errors
 		}
 	}
 	if (lp == TRUE) {

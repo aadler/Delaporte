@@ -17,7 +17,9 @@ test_that("Singleton pdelap functions", {
   expect_that(pdelap(SEQUENCE, 2, 1, 5), equals(VAL$PDELAP_2))
   expect_that(pdelap(SEQUENCE, 4, 5, 1, log.p = TRUE), equals(log(pdelap(SEQUENCE, 4, 5, 1))))
   expect_that(pdelap(seq_len(101) - 1, 8, 10, 6, lower.tail = FALSE), equals(1 - pdelap(seq_len(101) - 1, 8, 10, 6)))
+  expect_that(pdelap(6, 2.9647, 0.005/2.9647, 0.0057, lower.tail=FALSE), equals(0))
 })
+
 test_that("Vector pdelap functions", {
   expect_that(pdelap(SEQUENCE, c(1, 2, 3), c(4, 1, 2), c(2, 5, 7)), equals(VAL$PDELAP_Triple))
   expect_that(pdelap(seq_len(101) - 1, c(4, 9, 2), c(6, 12, 8), c(7, 14, 9), lower.tail = FALSE),

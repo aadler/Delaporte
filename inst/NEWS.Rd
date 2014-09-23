@@ -1,6 +1,14 @@
 \name{NEWS}
 \alias{NEWS}
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
+\section{Changes in version 2.2-1 (2014-09-24)}{
+  \subsection{Updates}{
+    \itemize{
+      \item Trapped machine precision issues when calling right-tailed version of cumulative distribution function.
+      \item Update documentation to reflect rounding procedure when non-integer passed as value.
+    }
+  }
+}
 \section{Changes in version 2.2-0 (2014-07-15)}{
   \subsection{New Features}{
     \itemize{

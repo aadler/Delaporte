@@ -2,7 +2,7 @@
 \alias{Delaporte-package}
 \docType{package}
 \title{
-Statistical functions for the Delaporte distribution
+Statistical Functions for the Delaporte Distribution
 }
 \description{
 Provides probability mass, distribution, quantile, random number generation, and method of moments estimation functions for the Delaporte distribution.
@@ -11,8 +11,8 @@ Provides probability mass, distribution, quantile, random number generation, and
 \tabular{ll}{
 Package: \tab Delaporte\cr
 Type: \tab Package\cr
-Version: \tab 2.2-1\cr
-Date: \tab 2014-09-24\cr
+Version: \tab 2.2-2\cr
+Date: \tab 2014-12-04\cr
 License: \tab GPL (>= 2) | LGPL (>= 3) \cr
 }
 Provides probability mass, distribution, quantile, random number generation, and method of moments estimation functions for the Delaporte distribution. It is used similarly to the distributions in \code{stats}.

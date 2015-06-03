@@ -9,91 +9,71 @@ using namespace Rcpp;
 NumericVector ddelap_C(NumericVector x, NumericVector alpha, NumericVector beta, NumericVector lambda, bool lg);
 RcppExport SEXP Delaporte_ddelap_C(SEXP xSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP lambdaSEXP, SEXP lgSEXP) {
 BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP );
-        Rcpp::traits::input_parameter< NumericVector >::type alpha(alphaSEXP );
-        Rcpp::traits::input_parameter< NumericVector >::type beta(betaSEXP );
-        Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP );
-        Rcpp::traits::input_parameter< bool >::type lg(lgSEXP );
-        NumericVector __result = ddelap_C(x, alpha, beta, lambda, lg);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< bool >::type lg(lgSEXP);
+    __result = Rcpp::wrap(ddelap_C(x, alpha, beta, lambda, lg));
+    return __result;
 END_RCPP
 }
 // pdelap_C
 NumericVector pdelap_C(NumericVector q, NumericVector alpha, NumericVector beta, NumericVector lambda, bool lt, bool lp);
 RcppExport SEXP Delaporte_pdelap_C(SEXP qSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP lambdaSEXP, SEXP ltSEXP, SEXP lpSEXP) {
 BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< NumericVector >::type q(qSEXP );
-        Rcpp::traits::input_parameter< NumericVector >::type alpha(alphaSEXP );
-        Rcpp::traits::input_parameter< NumericVector >::type beta(betaSEXP );
-        Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP );
-        Rcpp::traits::input_parameter< bool >::type lt(ltSEXP );
-        Rcpp::traits::input_parameter< bool >::type lp(lpSEXP );
-        NumericVector __result = pdelap_C(q, alpha, beta, lambda, lt, lp);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< NumericVector >::type q(qSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< bool >::type lt(ltSEXP);
+    Rcpp::traits::input_parameter< bool >::type lp(lpSEXP);
+    __result = Rcpp::wrap(pdelap_C(q, alpha, beta, lambda, lt, lp));
+    return __result;
 END_RCPP
 }
 // qdelap_C
 NumericVector qdelap_C(NumericVector p, NumericVector alpha, NumericVector beta, NumericVector lambda, bool lt, bool lp);
 RcppExport SEXP Delaporte_qdelap_C(SEXP pSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP lambdaSEXP, SEXP ltSEXP, SEXP lpSEXP) {
 BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< NumericVector >::type p(pSEXP );
-        Rcpp::traits::input_parameter< NumericVector >::type alpha(alphaSEXP );
-        Rcpp::traits::input_parameter< NumericVector >::type beta(betaSEXP );
-        Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP );
-        Rcpp::traits::input_parameter< bool >::type lt(ltSEXP );
-        Rcpp::traits::input_parameter< bool >::type lp(lpSEXP );
-        NumericVector __result = qdelap_C(p, alpha, beta, lambda, lt, lp);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< NumericVector >::type p(pSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< bool >::type lt(ltSEXP);
+    Rcpp::traits::input_parameter< bool >::type lp(lpSEXP);
+    __result = Rcpp::wrap(qdelap_C(p, alpha, beta, lambda, lt, lp));
+    return __result;
 END_RCPP
 }
 // rdelap_C
 NumericVector rdelap_C(int n, NumericVector alpha, NumericVector beta, NumericVector lambda);
 RcppExport SEXP Delaporte_rdelap_C(SEXP nSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP lambdaSEXP) {
 BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< int >::type n(nSEXP );
-        Rcpp::traits::input_parameter< NumericVector >::type alpha(alphaSEXP );
-        Rcpp::traits::input_parameter< NumericVector >::type beta(betaSEXP );
-        Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP );
-        NumericVector __result = rdelap_C(n, alpha, beta, lambda);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP);
+    __result = Rcpp::wrap(rdelap_C(n, alpha, beta, lambda));
+    return __result;
 END_RCPP
 }
 // MoMdelap_C
 NumericVector MoMdelap_C(NumericVector X);
 RcppExport SEXP Delaporte_MoMdelap_C(SEXP XSEXP) {
 BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< NumericVector >::type X(XSEXP );
-        NumericVector __result = MoMdelap_C(X);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< NumericVector >::type X(XSEXP);
+    __result = Rcpp::wrap(MoMdelap_C(X));
+    return __result;
 END_RCPP
 }

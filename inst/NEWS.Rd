@@ -1,6 +1,16 @@
 \name{NEWS}
 \alias{NEWS}
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
+
+\section{Changes in version 2.2-3 (TBD)}{
+  \subsection{Updates}{
+    \itemize{
+      \item Updated code in unit tests to reflect change in testthat package (move to 'expect_equal')
+      \item Minor tweaks to prose and grammar and expanded description
+    }
+  }
+}
+
 \section{Changes in version 2.2-2 (2014-12-04)}{
   \subsection{Updates}{
     \itemize{

@@ -59,7 +59,7 @@ The random variate generator, \code{rdelap}, also has multiple versions. When \c
   When using the \code{lower.tail = FALSE} or \code{log / log.p = TRUE} options, some accuracy may be lost at knot points or the tail ends of the  distributions due to the limitations of floating point representation.
 }
 \author{
-Avraham Adler \code{<Avraham.Adler@gmail.com>}
+Avraham Adler \email{Avraham.Adler@gmail.com}
 }
 \references{
   Johnson, Norman Lloyd, Kemp, Adrienne W. and Kotz, Samuel (2005) \emph{Univariate discrete distributions} (Third ed.). John Wiley & Sons. pp. 241--242. ISBN 978-0-471-27246-5.

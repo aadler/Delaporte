@@ -5,6 +5,9 @@ context("Testing ddelap")
 test_that("Singleton ddelap functions", {
   expect_equal(ddelap(SEQUENCE, 1, 4, 2), VAL$DDELAP_1)
   expect_equal(ddelap(SEQUENCE, 5, 3, 8, log = TRUE), log(ddelap(SEQUENCE, 5, 3, 8)))
+  expect_that(ddelap(SEQUENCE, 0, 4, 2), throws_error('All parameters must be strictly greater than 0.'))
+  expect_that(ddelap(SEQUENCE, 1, 0, 2), throws_error('All parameters must be strictly greater than 0.'))
+  expect_that(ddelap(SEQUENCE, 1, 4, 0), throws_error('All parameters must be strictly greater than 0.'))
 })
 test_that("Vector ddelap functions", {
   expect_equal(ddelap(SEQUENCE, c(1, 2, 3), c(4, 1, 2), c(2, 5, 7)), VAL$DDELAP_Triple)
@@ -18,6 +21,9 @@ test_that("Singleton pdelap functions", {
   expect_equal(pdelap(SEQUENCE, 4, 5, 1, log.p = TRUE), log(pdelap(SEQUENCE, 4, 5, 1)))
   expect_equal(pdelap(seq_len(101) - 1, 8, 10, 6, lower.tail = FALSE), 1 - pdelap(seq_len(101) - 1, 8, 10, 6))
   expect_equal(pdelap(6, 2.9647, 0.005/2.9647, 0.0057, lower.tail=FALSE), 0)
+  expect_that(pdelap(SEQUENCE, 0, 4, 2), throws_error('All parameters must be strictly greater than 0.'))
+  expect_that(pdelap(SEQUENCE, 1, 0, 2), throws_error('All parameters must be strictly greater than 0.'))
+  expect_that(pdelap(SEQUENCE, 1, 4, 0), throws_error('All parameters must be strictly greater than 0.'))
 })
 
 test_that("Vector pdelap functions", {
@@ -31,7 +37,11 @@ test_that("Singleton qdelap functions", {
   expect_equal(qdelap(.4, 1, 4, 2), 4)
   expect_equal(qdelap(0.4971031395336245, 4, 6, 3, lower.tail = TRUE), 25)
   expect_equal(qdelap(-0.255, 20, 15, 50, log.p = TRUE), 400)
+  expect_that(qdelap(.4, 0, 4, 2), throws_error('All parameters must be strictly greater than 0.'))
+  expect_that(qdelap(.4, 1, 0, 2), throws_error('All parameters must be strictly greater than 0.'))
+  expect_that(qdelap(.4, 1, 4, 0), throws_error('All parameters must be strictly greater than 0.'))
 })
+
 test_that("Vector qdelap functions", {
   expect_equal(qdelap(c(.4, .07), c(1, 2), c(4, 1), c(2, 5)), c(4, 3))
   expect_equal(qdelap(c(0.4971031395336245, 0.1374992163369109), c(4, 1), c(6, 9), c(3, 12), lower.tail = FALSE), c(25, 31))
@@ -41,6 +51,9 @@ context("Testing rdelap")
 test_that("Singleton rdelap functions", {
   DP1 <- rdelap(1e6, alpha = 10, beta = 2, lambda = 10) 
   DP2 <- rdelap(1e6, alpha = 2, beta = 14, lambda = 2, exact = FALSE)
+  expect_that(rdelap(10, 0, 4, 2), throws_error('All parameters must be strictly greater than 0.'))
+  expect_that(rdelap(10, 1, 0, 2), throws_error('All parameters must be strictly greater than 0.'))
+  expect_that(rdelap(10, 1, 4, 0), throws_error('All parameters must be strictly greater than 0.'))
   expect_that(abs((mean(DP1) / 30 - 1)) < 5e-3, is_true())
   expect_that(abs((mean(DP2) / 30 - 1)) < 5e-3, is_true())
 })

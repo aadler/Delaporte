@@ -31,6 +31,9 @@ qdelap <-
       p0 <- p[p == 0]
       pInf <- p[p >= 1]
       n <- min(10 ^ (ceiling(log(alpha * beta + lambda, 10)) + 5), 1e7)
+      # For next release; allowing time for deprecation.
+      # ShiftedGammas <- rgamma(n, shape = alpha, scale = beta)
+      # DP <- rpois(n, lambda = (ShiftedGammas + lambda))
       NB <- rnbinom(n, mu = alpha * beta, size = alpha)
       P <- rpois(n, lambda = lambda)
       DP <- NB + P
@@ -38,7 +41,7 @@ qdelap <-
       QNan <- rep.int(NaN, times = length(pNan))
       Q0 <- rep.int(0, times = length(p0))
       QInf <- rep.int(Inf, times = length(pInf))
-      QDLAP <- as.vector(c(QNan, Q0, QValid, QInf), mode = 'integer')
+      QDLAP <- as.vector(c(QNan, Q0, QValid, QInf), mode = 'numeric')
     }  
     return(QDLAP)
   }
@@ -51,6 +54,9 @@ rdelap <-
     if (exact) {
       RDLAP <- rdelap_C(n, alpha, beta, lambda)
     } else {
+      # For next release; allowing time for deprecation.
+      # ShiftedGammas <- rgamma(n, shape = alpha, scale = beta)
+      # RDLAP <- rpois(n, lambda = (ShiftedGammas + lambda))
       NB <- rnbinom(max(1e7, n), mu = alpha * beta, size = alpha)
       P <- rpois(max(1e7, n), lambda = lambda)
       DP <- NB + P

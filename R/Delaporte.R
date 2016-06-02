@@ -1,5 +1,7 @@
 ddelap <-
   function (x, alpha, beta, lambda, log = FALSE) {
+    if(any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0))
+      stop('All parameters must be strictly greater than 0.')
     DDLAP <- double(length(x))
     DDLAP <- ddelap_C(x, alpha, beta, lambda, log)
     return(DDLAP)
@@ -7,6 +9,8 @@ ddelap <-
 
 pdelap <-
   function (q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE) {
+    if(any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0))
+      stop('All parameters must be strictly greater than 0.')
     PDLAP <- double(length(q))
     PDLAP <- pdelap_C(q, alpha, beta, lambda, lower.tail, log.p)
     return(PDLAP)
@@ -14,6 +18,8 @@ pdelap <-
 
 qdelap <-
   function (p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exact = TRUE) {
+    if(any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0))
+      stop('All parameters must be strictly greater than 0.')
     QDLAP <- double(length(p))
     if (exact) {
       QDLAP <- qdelap_C(p, alpha, beta, lambda, lower.tail, log.p)
@@ -39,6 +45,8 @@ qdelap <-
 
 rdelap <-
   function (n, alpha, beta, lambda, exact = TRUE) {
+    if(any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0))
+      stop('All parameters must be strictly greater than 0.')
     RDLAP <- double(length(n))
     if (exact) {
       RDLAP <- rdelap_C(n, alpha, beta, lambda)
@@ -58,6 +66,7 @@ rdelap <-
 MoMdelap <- function (x) {
     MoMDLAP <- double(3)
     MoMDLAP <- MoMdelap_C(x)
-    if (any(MoMDLAP < 0)) stop ("Method of moments not appropriate for this data; results include negative parameters.")
+    if (any(MoMDLAP < 0))
+      stop ("Method of moments not appropriate for this data; results include negative parameters.")
     return(MoMDLAP)
   }

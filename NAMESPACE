@@ -1,4 +1,4 @@
 useDynLib(Delaporte)
 exportPattern("^[[:alpha:]]+")
 importFrom(Rcpp, evalCpp)
-importFrom(stats, rnbinom, rpois, quantile, rgamma)
+importFrom(stats, rnbinom, rpois, quantile)

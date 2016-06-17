@@ -44,12 +44,8 @@ Its cumulative distribution function, \code{pdelap}, is calculated through doubl
   for \eqn{n = 0, 1, 2, \ldots}; \eqn{\alpha, \beta, \lambda > 0}. For both the probability mass and distribution calculations, if a non-integer value is passed into the function, it is rounded up to the next integer. If only singleton values for the parameters are passed in, the function uses the shortcut of identifying the largest value passed to it, computes a vector of CDF values for all integers up to and including that value, and having the remaining results read from this vector. This requires only one double summation instead of \code{length(q)} such summations. If at least one of the parameters is itself a vector of length greater than 1, the function has to build the double summation for each entry in \code{q}.
   
 The quantile function, \code{qdelap}, has two versions. When \code{exact=TRUE}, the function builds a CDF vector and the first value for which the CDF is greater than or equal to \code{q} is returned as the quantile. While this procedure is accurate, for sufficiently large \eqn{\alpha, \beta}, or \eqn{\lambda} it can take a very long time . Therefore, when \code{exact=FALSE}, the function takes advantage of the Delaporte's definition as a counting distribution with both a Poisson and negative binomial component. It generates up to \eqn{10^7} variates from a negative binomial distribution with shape \eqn{\alpha} and scale \eqn{\beta} (size = \eqn{\alpha}, mean = \eqn{\alpha\beta}), and the same number of variates from a Poisson distribution with the mean \eqn{\lambda}. It then sums the two sets of variates and calls the \code{\link{quantile}} function on the result. The "exact" method is always more accurate and is also significantly faster for reasonable values of the parameters. Ad-hoc testing indicates that the "exact" method should always be used until \eqn{\alpha\beta + \lambda \approx 5000}{\alpha\beta + \lambda ~ 5000}. Both versions return \code{NaN} for quantiles \eqn{< 0}, \eqn{0} for quantiles \eqn{= 0}, and \code{Inf} for quantiles \eqn{\ge 1}.
-
-In the next release, when \code{exact=FALSE}, a much faster version of random variate generation based on Karlis & Xekalaki (2005) will be used. This will break reproducibility.
   
 The random variate generator, \code{rdelap}, also has multiple versions. When \code{exact=TRUE}, it uses inversion by creating a vector of \code{n} uniformly distributed random variates between \eqn{0} and \eqn{1}. If all the parameters are singletons, a single CDF vector is constructed as per the quantile function, and the entries corresponding to the uniform variates are read off of the constructed vector. If the parameters are themselves vectors, then it passes the entire uniform variate vector to \code{qdelap}, which is slower. When \code{exact=FALSE}, regardless of the length of the parameters, the larger of \code{n} or \eqn{10^7} variates from both a Poisson and negative binomial with the appropriate parameters are generated and summed. If \code{n} \eqn{< 10^7}, sampling with replacement is used to generate the \code{n} samples from the pool of \eqn{10^7} pseudo-Delaporte variates.
-
-In the next release, when \code{exact=FALSE}, a much faster version of random variate generation based on Karlis & Xekalaki (2005) will be used. This will break reproducibility.
 
 \code{MoMdelap} uses the definition of the Delaporte's mean, variance, and skew to calculate the method of moments estimates of \eqn{\alpha}, \eqn{\beta}, and \eqn{\lambda}, which it returns as a numeric vector. This estimate is also a reasonable starting point for maximum likelihood estimation using nonlinear optimizers such as \code{\link{optim}} or \code{\link[nloptr]{nloptr}}. If the data is clustered near 0, there are times when method of moments would result in a negative parameter (usually \eqn{\lambda}). In these cases \code{MoMdelap} will throw an error.
 }
@@ -66,11 +62,9 @@ In the next release, when \code{exact=FALSE}, a much faster version of random va
 Avraham Adler \email{Avraham.Adler@gmail.com}
 }
 \references{
-  Johnson, N. L., Kemp, A. W. and Kotz, S. (2005) \emph{Univariate discrete distributions} (Third ed.). John Wiley & Sons. pp. 241--242. ISBN 978-0-471-27246-5.
+  Johnson, Norman Lloyd, Kemp, Adrienne W. and Kotz, Samuel (2005) \emph{Univariate discrete distributions} (Third ed.). John Wiley & Sons. pp. 241--242. ISBN 978-0-471-27246-5.
   
-  Vose, D. (2008) \emph{Risk analysis: a quantitative guide} (Third, illustrated ed.). John Wiley & Sons. pp. 618--619 ISBN 978-0-470-51284-5
-  
-  Karlis, D. and Xekalaki, E. (2005) Mixed Poisson Distributions. \emph{International Statistical Review} \bold{73}(1), 35--58. \url{http://projecteuclid.org/euclid.isr/1112304811}
+  Vose, David (2008) \emph{Risk analysis: a quantitative guide} (Third, illustrated ed.). John Wiley & Sons. pp. 618--619 ISBN 978-0-470-51284-5
 }
 
 \seealso{

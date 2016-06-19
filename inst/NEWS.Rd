@@ -2,6 +2,15 @@
 \alias{NEWS}
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
 
+\section{Changes in version 3.0.0-9999 (2016-07-16)}{
+  \subsection{Changed}{
+    \itemize{
+      \item All distributional functions now return \code{NaN} where the passed \code{alpha}, \code{beta}, or \code{lambda} is close to 0 (less than machine epsilon). Within vectors, valid triplets should still return proper values.
+      
+    }
+  }
+}
+
 \section{Changes in version 2.3.1 (2016-06-16)}{
   \subsection{Changed}{
     \itemize{

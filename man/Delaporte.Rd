@@ -50,12 +50,12 @@ The random variate generator, \code{rdelap}, also has multiple versions. When \c
 \code{MoMdelap} uses the definition of the Delaporte's mean, variance, and skew to calculate the method of moments estimates of \eqn{\alpha}, \eqn{\beta}, and \eqn{\lambda}, which it returns as a numeric vector. This estimate is also a reasonable starting point for maximum likelihood estimation using nonlinear optimizers such as \code{\link{optim}} or \code{\link[nloptr]{nloptr}}. If the data is clustered near 0, there are times when method of moments would result in a negative parameter (usually \eqn{\lambda}). In these cases \code{MoMdelap} will throw an error.
 }
 \value{
-  \code{ddelap} gives the probability mass function, \code{pdelap} gives the cumulative distribution function, \code{qdelap} gives the quantile function, and \code{rdelap} generates random deviates.
+  \code{ddelap} gives the probability mass function, \code{pdelap} gives the cumulative distribution function, \code{qdelap} gives the quantile function, and \code{rdelap} generates random deviates. Values close to 0 (less than machine epsilon) for \eqn{\alpha, \beta} or \eqn{\lambda} will return \code{NaN} for that particular entry. Proper triplets within a set of vectors should still return valid values.
 
-  Invalid quantiles passed to \code{qdelap} will result in return values of
-  \code{NaN} or \code{Inf} as appropriate.
+  Invalid quantiles passed to \code{qdelap} will result in return values of \code{NaN} or \code{Inf} as appropriate.
   
   The length of the result is determined by \code{x} for \code{ddelap}, \code{q} for \code{pdelap}, \code{p} for \code{qdelap}, and \code{n} for \code{rdelap}. The distributional parameters (\eqn{\alpha, \beta, \lambda}) are recycled as necessary to the length of the result.
+  
   When using the \code{lower.tail = FALSE} or \code{log / log.p = TRUE} options, some accuracy may be lost at knot points or the tail ends of the  distributions due to the limitations of floating point representation.
 }
 \author{

@@ -13,8 +13,8 @@ Density, distribution, quantile, random variate generation, and method of moment
 \usage{
 ddelap(x, alpha, beta, lambda, log = FALSE)
 pdelap(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE)
-qdelap(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exact = TRUE)
-rdelap(n, alpha, beta, lambda, exact = TRUE)
+qdelap(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exact = TRUE, oldapprox = FALSE)
+rdelap(n, alpha, beta, lambda, exact = TRUE, oldapprox = FALSE)
 
 MoMdelap(x)
 }
@@ -33,6 +33,7 @@ MoMdelap(x)
   \item{lower.tail}{logical; if TRUE (default), probabilities are
     \eqn{P[X \le x]}, otherwise, \eqn{P[X > x]}.}
   \item{exact}{logical; if TRUE uses double summation to generate quantiles or random variates. Otherwise uses Poisson-negative binomial approximation.}
+  \item{oldapprox}{logical; if TRUE uses older and slower approximation code. Otherwise uses Shifted-Gamma approximation.}
 }
 \details{
   The Delaporte distribution with parameters \code{alpha}, \code{beta}, and \code{lambda} is a discrete probability distribution which can be considered the convolution of a negative binomial distribution with a Poisson distribution. Alternatively, it can be considered a counting distribution with both Poisson and negative binomial components. The Delaporte's probability mass function, called via \code{ddelap}, is:

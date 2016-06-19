@@ -86,5 +86,5 @@ test_that("MoMdelap functions", {
 })
 test_that("MoMdelap traps bad parameters", {
   TestData <- c(3,  2, 12, 11,  1,  7,  1,  4,  0, 4)
-  expect_that(MoMdelap(TestData), throws_error("Method of moments not appropriate for this data; results include negative parameters."))
+  expect_that(MoMdelap(TestData), throws_error("Method of moments not appropriate for this data; results include non-positive parameters."))
 })

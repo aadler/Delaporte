@@ -4,18 +4,22 @@
 
 using namespace Rcpp;
 
-const double EPS = 2.3e-16;
+const double EPS = 2.220446049250313e-16;
 
 double ddelap_C_S(double x, double alpha, double beta, double lambda, bool lg) {
 	int k = ceil(x);
 	double del_pmf_s = 0.0;
-	for(int i = 0; i <= k; ++i) { //using logs to prevent under/overflow
-		del_pmf_s += exp(lgamma(alpha + i) + i * log(beta) + (k - i) * log(lambda) -
-              lambda - lgamma(alpha) - lgamma(i + 1) - (alpha + i) * log1p(beta) -
-              lgamma(k - i + 1));  
-	}
-  if (lg == TRUE) del_pmf_s = log(del_pmf_s);
-	return (del_pmf_s);
+	if (alpha < EPS || beta < EPS || lambda < EPS) {
+	  return std::numeric_limits<double>::quiet_NaN();
+	} else {
+  	for(int i = 0; i <= k; ++i) { //using logs to prevent under/overflow
+  		del_pmf_s += exp(lgamma(alpha + i) + i * log(beta) + (k - i) * log(lambda) -
+                lambda - lgamma(alpha) - lgamma(i + 1) - (alpha + i) * log1p(beta) -
+                lgamma(k - i + 1));  
+  	}
+    if (lg == TRUE) del_pmf_s = log(del_pmf_s);
+  	return (del_pmf_s);
+  }
 }
 
 // [[Rcpp::export]]
@@ -34,11 +38,15 @@ NumericVector ddelap_C(NumericVector x, NumericVector alpha, NumericVector beta,
 
 double pdelap_C_S(double q, double alpha, double beta, double lambda) {
   int k = ceil(q);
-  double del_cdf_s = exp(-lambda) / pow((1 + beta), alpha);
-  for (int i = 1; i <= k; ++i) {
-    del_cdf_s += ddelap_C_S(i, alpha, beta, lambda, FALSE);
+  if (alpha < EPS || beta < EPS || lambda < EPS) {
+    return (std::numeric_limits<double>::quiet_NaN());
+  } else {
+    double del_cdf_s = exp(-lambda) / pow((1 + beta), alpha);
+    for (int i = 1; i <= k; ++i) {
+      del_cdf_s += ddelap_C_S(i, alpha, beta, lambda, FALSE);
+    }
+    return(del_cdf_s);
   }
-  return(del_cdf_s);
 }
 
 // [[Rcpp::export]]
@@ -54,16 +62,22 @@ NumericVector pdelap_C(NumericVector q, NumericVector alpha, NumericVector beta,
      * and build the PDF up to that point. Every other value will be a lookup off of the largest vector.
      * Otherwise each entry will need to build its own value.
      */ 
-	  NumericVector::iterator MX = std::max_element(q.begin(), q.end());
-	  int top = ceil(*MX);
-	  NumericVector single_cdf_vector(top + 1);
-	  single_cdf_vector[0] = exp(-lambda[0]) / pow((1 + beta[0]), alpha[0]);
-	  for (int i = 1; i <= top; ++i) {
-		  single_cdf_vector[i] = single_cdf_vector[i - 1] + ddelap_C_S(i, alpha[0], beta[0], lambda[0], FALSE);
-	  }
-	  for (int i = 0; i < n; ++i) {
-		  del_cdf[i] = single_cdf_vector[ceil(q[i])];
-	  }
+    if (alpha[0] < EPS || beta[0] < EPS || lambda[0] < EPS) {
+      for (int i = 0; i < n; ++i) {
+        del_cdf[i] = std::numeric_limits<double>::quiet_NaN();
+      }
+    } else {
+  	  NumericVector::iterator MX = std::max_element(q.begin(), q.end());
+  	  int top = ceil(*MX);
+  	  NumericVector single_cdf_vector(top + 1);
+  	  single_cdf_vector[0] = exp(-lambda[0]) / pow((1 + beta[0]), alpha[0]);
+  	  for (int i = 1; i <= top; ++i) {
+  		  single_cdf_vector[i] = single_cdf_vector[i - 1] + ddelap_C_S(i, alpha[0], beta[0], lambda[0], FALSE);
+  	  }
+  	  for (int i = 0; i < n; ++i) {
+  		  del_cdf[i] = single_cdf_vector[ceil(q[i])];
+  	  }
+    }
   } else { //Have to build full double summation chain for each entry as the parameters change, which is much slower.
     for (int i = 0; i < n; ++i) {
     del_cdf[i] = pdelap_C_S(q[i], alpha[i % a_size], beta[i % b_size], lambda[i % l_size]);
@@ -103,7 +117,7 @@ NumericVector qdelap_C(NumericVector p, NumericVector alpha, NumericVector beta,
 		}
 	}
   for (int i = 0; i < n; ++i) {
-    if (adjusted_p[i] < 0) {
+    if (adjusted_p[i] < 0 || alpha[i % a_size] < EPS || beta[i % b_size] < EPS || lambda[i % l_size] < EPS)  {
       del_quantiles[i] = std::numeric_limits<double>::quiet_NaN();
     } else if (adjusted_p[i] == 0) {
       del_quantiles[i] = 0;
@@ -140,26 +154,32 @@ NumericVector rdelap_C(int n, NumericVector alpha, NumericVector beta,
      * and build counts up to that point. Every other value is a lookup off of the largest vector. Otherwise, each
      * random variate has to be calculated individually which can be much slower.
      */
-    NumericVector::iterator MX = std::max_element(RUNI.begin(), RUNI.end());
-	  double maxquantile = *MX;
-    NumericVector CDFVEC;
-    int del_quantile = 0; //Will become "needed integer"
-    CDFVEC.push_back(exp(-lambda[0]) / pow((1 + beta[0]), alpha[0])); //pre-load 0 value
-    double cdf_curr_top = CDFVEC[0];
-    while (cdf_curr_top < maxquantile) {
-      ++del_quantile;
-      CDFVEC.push_back(ddelap_C_S(del_quantile, alpha[0], beta[0], lambda[0], FALSE) +  CDFVEC[del_quantile - 1]);
-      cdf_curr_top = CDFVEC[del_quantile];
-    }
-    NumericVector::iterator foundit;
-    for (int i = 0; i < n; ++i) {
-      if (RUNI[i] == 0) {
-        rand_variates[i] = 0.0;
-      } else {
-        foundit = std::upper_bound (CDFVEC.begin(), CDFVEC.end(), RUNI[i]);
-        double spot = foundit - CDFVEC.begin();
-        rand_variates[i] = spot;
-		  }
+    if (alpha[0] < EPS || beta[0] < EPS || lambda[0] < EPS) {
+      for (int i = 0; i < n; ++i) {
+        rand_variates[i] = std::numeric_limits<double>::quiet_NaN();
+      }
+    } else {
+      NumericVector::iterator MX = std::max_element(RUNI.begin(), RUNI.end());
+  	  double maxquantile = *MX;
+      NumericVector CDFVEC;
+      int del_quantile = 0; //Will become "needed integer"
+      CDFVEC.push_back(exp(-lambda[0]) / pow((1 + beta[0]), alpha[0])); //pre-load 0 value
+      double cdf_curr_top = CDFVEC[0];
+      while (cdf_curr_top < maxquantile) {
+        ++del_quantile;
+        CDFVEC.push_back(ddelap_C_S(del_quantile, alpha[0], beta[0], lambda[0], FALSE) +  CDFVEC[del_quantile - 1]);
+        cdf_curr_top = CDFVEC[del_quantile];
+      }
+      NumericVector::iterator foundit;
+      for (int i = 0; i < n; ++i) {
+        if (RUNI[i] == 0) {
+          rand_variates[i] = 0.0;
+        } else {
+          foundit = std::upper_bound (CDFVEC.begin(), CDFVEC.end(), RUNI[i]);
+          double spot = foundit - CDFVEC.begin();
+          rand_variates[i] = spot;
+  		  }
+      }
     }
   } else {
     rand_variates = qdelap_C(RUNI, alpha, beta, lambda, TRUE, FALSE);

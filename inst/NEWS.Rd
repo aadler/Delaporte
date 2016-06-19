@@ -5,11 +5,18 @@
 \section{Changes in version 3.0.0-9999 (2016-07-16)}{
   \subsection{Changed}{
     \itemize{
-      \item All distributional functions now return \code{NaN} where the passed \code{alpha}, \code{beta}, or \code{lambda} is close to 0 (less than machine epsilon). Within vectors, valid triplets should still return proper values.
+      \item The distributional functions now return \code{NaN} where the passed \code{alpha}, \code{beta}, or \code{lambda} is close to 0 (less than machine epsilon). Within vectors, valid triplets should still return proper values. The approximate versions of \code{qdelap} and \code{rdelap} do not handle 0's properly, and an error is thrown directing the user to the exact version
+      \item Faster versions of the approximate \code{qdelap} and \code{rdelap} have been implemented
       
     }
   }
+  \subsection{Deprecated}{
+    \itemize{
+      \item The old approximation versions of \code{qdelap} and \code{rdelap} can still be used by passing \code{oldapprox = TRUE}. This will be removed eventually.
+    }
+  }
 }
+
 
 \section{Changes in version 2.3.1 (2016-06-16)}{
   \subsection{Changed}{

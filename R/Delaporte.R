@@ -13,11 +13,13 @@ pdelap <-
   }
 
 qdelap <-
-  function (p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exact = TRUE) {
+  function (p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exact = TRUE, oldapprox = FALSE) {
     QDLAP <- double(length(p))
     if (exact) {
       QDLAP <- qdelap_C(p, alpha, beta, lambda, lower.tail, log.p)
     } else {
+      if(any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0))
+        stop('Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results')
       if (log.p) p <- exp(p)
       if (!lower.tail) p <- 1 - p
       pValid <- p[p > 0 & p < 1]
@@ -25,9 +27,14 @@ qdelap <-
       p0 <- p[p == 0]
       pInf <- p[p >= 1]
       n <- min(10 ^ (ceiling(log(alpha * beta + lambda, 10)) + 5), 1e7)
-      NB <- rnbinom(n, mu = alpha * beta, size = alpha)
-      P <- rpois(n, lambda = lambda)
-      DP <- NB + P
+      if (oldapprox) {
+        NB <- rnbinom(n, mu = alpha * beta, size = alpha)
+        P <- rpois(n, lambda = lambda)
+        DP <- NB + P
+      } else {
+        ShiftedGammas <- rgamma(n, shape = alpha, scale = beta)
+        DP <- rpois(n, lambda = (ShiftedGammas + lambda))
+      }
       QValid <- as.vector(quantile(DP, pValid, na.rm = TRUE, type = 8))
       QNan <- rep.int(NaN, times = length(pNan))
       Q0 <- rep.int(0, times = length(p0))
@@ -38,18 +45,25 @@ qdelap <-
   }
 
 rdelap <-
-  function (n, alpha, beta, lambda, exact = TRUE) {
+  function (n, alpha, beta, lambda, exact = TRUE, oldapprox = FALSE) {
     RDLAP <- double(length(n))
     if (exact) {
       RDLAP <- rdelap_C(n, alpha, beta, lambda)
     } else {
-      NB <- rnbinom(max(1e7, n), mu = alpha * beta, size = alpha)
-      P <- rpois(max(1e7, n), lambda = lambda)
-      DP <- NB + P
-      if (n >= 1e7) {
-        RDLAP <- DP
+      if(any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0))
+        stop('Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results')
+      if (oldapprox) {
+        NB <- rnbinom(max(1e7, n), mu = alpha * beta, size = alpha)
+        P <- rpois(max(1e7, n), lambda = lambda)
+        DP <- NB + P
+        if (n >= 1e7) {
+          RDLAP <- DP
+        } else {
+          RDLAP <- sample(x = DP, size = n, replace = TRUE)
+        }
       } else {
-        RDLAP <- sample(x = DP, size = n, replace = TRUE)
+        ShiftedGammas <- rgamma(n, shape = alpha, scale = beta)
+        RDLAP <- rpois(n, lambda = (ShiftedGammas + lambda))
       }
     }
     return(RDLAP)
@@ -58,6 +72,6 @@ rdelap <-
 MoMdelap <- function (x) {
     MoMDLAP <- double(3)
     MoMDLAP <- MoMdelap_C(x)
-    if (any(MoMDLAP < 0)) stop ("Method of moments not appropriate for this data; results include negative parameters.")
+    if (any(MoMDLAP <= 0)) stop ("Method of moments not appropriate for this data; results include non-positive parameters.")
     return(MoMDLAP)
   }

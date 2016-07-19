@@ -2,14 +2,19 @@
 \alias{NEWS}
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
 
-\section{Changes in version 3.0.0-9999 (2016-07-16)}{
+\section{Changes in version 3.0.0 (2016-07-19)}{
   \subsection{Changed}{
     \itemize{
-      \item The distributional functions now return \code{NaN} where the passed \code{alpha}, \code{beta}, or \code{lambda} is close to 0 (less than machine epsilon). Within vectors, valid triplets should still return proper values. The approximate versions of \code{qdelap} and \code{rdelap} do not handle 0's properly, and an error is thrown directing the user to the exact version
-      \item Faster versions of the approximate \code{qdelap} and \code{rdelap} have been implemented
+      \item The distributional functions now return \code{NaN} where the passed \code{alpha}, \code{beta}, or \code{lambda} is close to 0 (less than machine epsilon). Within vectors, valid triplets should still return proper values. The approximate versions of \code{qdelap} and \code{rdelap} do not handle 0 properly, and an error is thrown directing the user to the exact version. Thanks are due to Jonathan Cairns and Jin-Rui Xu for their help in testing.
+      \item Faster versions of the approximate \code{qdelap} and \code{rdelap} have been implemented.
       
     }
   }
+  \subsection{Added}{
+    \itemize{
+      \item Tests for near 0 handling on exact version.
+      }
+    }
   \subsection{Deprecated}{
     \itemize{
       \item The old approximation versions of \code{qdelap} and \code{rdelap} can still be used by passing \code{oldapprox = TRUE}. This will be removed eventually.
@@ -21,7 +26,7 @@
 \section{Changes in version 2.3.1 (2016-06-16)}{
   \subsection{Changed}{
     \itemize{
-      \item Reverted back to 2.2-3 as change to trapping zeros caused serious downstream issues. Will work on more elegant correction shortly (thanks to Mikhail Spivakov, Jonathan Cairns, and Jin-Rui Xu)
+      \item Reverted back to 2.2-3 as change to trapping zeros caused serious downstream issues. Will work on more elegant correction shortly (thanks to Mikhail Spivakov, Jonathan Cairns, and Jin-Rui Xu).
     }
   }
 }
@@ -40,7 +45,7 @@
   }
   \subsection{Fixed}{
     \itemize{
-      \item Check for any parameters not strictly greater than 0 (thanks to Mikhail Spivakov and Jonathan Cairns)
+      \item Check for any parameters not strictly greater than 0 (thanks to Mikhail Spivakov and Jonathan Cairns).
     }
   }
 }
@@ -48,9 +53,9 @@
 \section{Version 2.2-3 (2015-06-30)}{
   \subsection{Fixed}{
     \itemize{
-      \item Explicitly import code from package \code{\link{stats}}
-      \item Updated code in unit tests to reflect change in \code{\link{testthat}} package (move to \code{expect_equal})
-      \item Minor tweaks to prose and grammar and expanded description
+      \item Explicitly import code from package \code{\link{stats}}.
+      \item Updated code in unit tests to reflect change in \code{\link{testthat}} package (move to \code{expect_equal}).
+      \item Minor tweaks to prose and grammar and expanded description.
     }
   }
 }
@@ -124,9 +129,9 @@
 \section{Version 1.1-0 (2014-01-17)}{
   \subsection{Changed}{
     \itemize{
-      \item Change "Depends" to "LinkingTo" in line with CRAN philosophy on package dependencies
-      \item Update documentation to give rough estimate as to when "exact = FALSE" should be used (rarely)
-      \item Have R code be written in a consistent style
+      \item Change "Depends" to "LinkingTo" in line with CRAN philosophy on package dependencies.
+      \item Update documentation to give rough estimate as to when "exact = FALSE" should be used (rarely).
+      \item Have R code be written in a consistent style.
     }
   }
 }
@@ -134,8 +139,8 @@
 \section{Version 1.0-1 (2013-09-01)}{
   \subsection{Changed}{
     \itemize{
-      \item Update README now that CRAN uses it as well
-      \item Minor grammar and typography tweaks to documentation
+      \item Update README now that CRAN uses it as well.
+      \item Minor grammar and typography tweaks to documentation.
     }
   }
 }
@@ -143,7 +148,7 @@
 \section{Version 1.0-0 (2013-07-09)}{
   \subsection{Added}{
     \itemize{
-      \item Poisson-negative binomial approximation to quantile and random variate functions
+      \item Poisson-negative binomial approximation to quantile and random variate functions.
         \itemize{
           \item This greatly speeds up calculation for large \eqn{\alpha, \beta}, or \eqn{\lambda}.
         }
@@ -154,19 +159,19 @@
 \section{Version 0.1-2 (2013-04-10)}{
   \subsection{Added}{
     \itemize{
-      \item Converted NEWS to NEWS.Rd
-      \item Added repository and bug report URL to DESCRIPTION
+      \item Converted NEWS to NEWS.Rd.
+      \item Added repository and bug report URL to DESCRIPTION.
     }
   }  
   \subsection{Fixed}{
     \itemize{  
-      \item Help documentation corrections, comments, and tweaks
+      \item Help documentation corrections, comments, and tweaks.
     }  
   }
 }
 
 \section{Version 0.1-1 (2013-04-08)}{
   \itemize{
-    \item Initial version
+    \item Initial version.
   }
 }

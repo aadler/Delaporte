@@ -13,7 +13,7 @@ pdelap <-
   }
 
 qdelap <-
-  function (p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exact = TRUE, oldapprox = FALSE) {
+  function (p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exact = TRUE, old = FALSE) {
     QDLAP <- double(length(p))
     if (exact) {
       QDLAP <- qdelap_C(p, alpha, beta, lambda, lower.tail, log.p)
@@ -27,7 +27,7 @@ qdelap <-
       p0 <- p[p == 0]
       pInf <- p[p >= 1]
       n <- min(10 ^ (ceiling(log(alpha * beta + lambda, 10)) + 5), 1e7)
-      if (oldapprox) {
+      if (old) {
         NB <- rnbinom(n, mu = alpha * beta, size = alpha)
         P <- rpois(n, lambda = lambda)
         DP <- NB + P
@@ -45,14 +45,14 @@ qdelap <-
   }
 
 rdelap <-
-  function (n, alpha, beta, lambda, exact = TRUE, oldapprox = FALSE) {
+  function (n, alpha, beta, lambda, exact = TRUE, old = FALSE) {
     RDLAP <- double(length(n))
     if (exact) {
       RDLAP <- rdelap_C(n, alpha, beta, lambda)
     } else {
       if(any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0))
         stop('Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results')
-      if (oldapprox) {
+      if (old) {
         NB <- rnbinom(max(1e7, n), mu = alpha * beta, size = alpha)
         P <- rpois(max(1e7, n), lambda = lambda)
         DP <- NB + P

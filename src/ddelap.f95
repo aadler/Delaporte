@@ -33,4 +33,36 @@ integer(kind = c_int)                      :: i, k
 
 end function ddelap_f_s
 
+subroutine ddelap_f (x, nx, a, na, b, nb, l, nl, lg, ddpv) &
+                   bind(C, name="ddelap_f")
+
+integer(kind = c_int), intent(in), value          :: nx, na, nb, nl
+real(kind = c_double), intent(in), dimension(nx)  :: x
+real(kind = c_double), intent(out), dimension(nx) :: ddpv
+real(kind = c_double), intent(in), dimension(na)  :: a
+real(kind = c_double), intent(in), dimension(nb)  :: b
+real(kind = c_double), intent(in), dimension(nl)  :: l
+logical(kind = c_bool), intent(in)                :: lg
+real(kind = c_double), dimension(nx)              :: ax, bx, lx
+integer                                           :: i
+
+  call extend_v(a, nx, na, ax)
+  call extend_v(b, nx, nb, bx)
+  call extend_v(l, nx, nl, lx)
+  do i = 1, nx
+    ddpv(i) = ddelap_f_s(x(i), ax(i), bx(i), lx(i), lg)
+  end do
+
+end subroutine ddelap_f
+
+subroutine ev_f (x, nx, y, ny, z) bind(C, name="ev_f")
+integer(kind = c_int), intent(in), value           :: nx, ny
+real(kind = c_double), intent(in), dimension(nx)   :: x
+real(kind = c_double), intent(in), dimension(ny)   :: y
+real(kind = c_double), intent(out), dimension(nx)  :: z
+
+call extend_v(y, nx, ny, z)
+
+end subroutine ev_f
+
 end module delaporte_f

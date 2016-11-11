@@ -4,12 +4,12 @@
 #include <stdint.h>
 #include <math.h>
 
-double ddelap_f_s(double *x, double *alpha, double *beta, double *lambda);
+double ddelap_f_s(double *x, double *alpha, double *beta, double *lambda, int *lg);
 
-SEXP ddelap_f_s_wrap(SEXP x, SEXP alpha, SEXP beta, SEXP lambda){
+SEXP ddelap_f_s_wrap(SEXP x, SEXP alpha, SEXP beta, SEXP lambda, SEXP lg){
   SEXP ret;
   PROTECT(ret = allocVector(REALSXP, 1));
-  REAL(ret)[0] = ddelap_f_s(REAL(x), REAL(alpha), REAL(beta), REAL(lambda));
+  REAL(ret)[0] = ddelap_f_s(REAL(x), REAL(alpha), REAL(beta), REAL(lambda), LOGICAL(lg));
   UNPROTECT(1);
   return(ret);
 }

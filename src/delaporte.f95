@@ -118,6 +118,13 @@ end function ddelap_f_s
     ! ROUTINE: pdelap_f
     !
     ! DESCRIPTION: Vector-based CDF allowing parameter vector recycling and called from C
+    !              If parameters are all singletons (not vectors) then the idea is to find
+    !              the largest value in the vector and build the PDF up to that point.
+    !              Building the vector has each succesive value piggyback off of the prior
+    !              instead of calling p_delap_f_s each time which increases the speed
+    !              dramatically. Once created, remaining values are simple lookups off of
+    !              the singlevec vector. Otherwise, each entry will need to build its own
+    !              pmf value by calling p_delap_f_s on each entry.
     !------------------------------------------------------------------------------------
 
     subroutine pdelap_f (q, nq, a, na, b, nb, l, nl, lt, lg, pmfv) &

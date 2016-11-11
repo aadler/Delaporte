@@ -1,0 +1,22 @@
+#include <R.h>
+#include <Rinternals.h>
+#include <string.h>
+#include <stdint.h>
+#include <math.h>
+
+double ddelap_f_s(double *x, double *alpha, double *beta, double *lambda);
+
+SEXP ddelap_f_s_wrap(SEXP x, SEXP alpha, SEXP beta, SEXP lambda){
+  SEXP ret;
+  PROTECT(ret = allocVector(REALSXP, 1));
+  REAL(ret)[0] = ddelap_f_s(REAL(x), REAL(alpha), REAL(beta), REAL(lambda));
+  UNPROTECT(1);
+  return(ret);
+}
+
+void set_nan_(double *val)
+{
+  // *val = sqrt(-1.0);
+  int64_t x = 0x7FF0000000000001LL;
+  memcpy((void *) val, (void *) &x, 8);
+}

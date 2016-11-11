@@ -1,0 +1,11 @@
+
+C_OBJS = utils_and_wrappers.o
+FT_OBJS = utils.o lgamma.o ddelap.o
+
+OBJECTS = $(FT_OBJS) $(C_OBJS)
+
+all: $(SHLIB)
+$(SHLIB): $(OBJECTS)
+
+clean:
+	@rm -rf *.o *.mod *.d *.rc *.so *.dylib *.dll *.a *.lib $(SHLIB) $(OBJECTS)

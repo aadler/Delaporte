@@ -1,0 +1,14 @@
+Package: DelF
+Type: Package
+Title: Delaporte in Fortran
+Version: 0.0.1
+Authors@R: person("Avraham", "Adler", role = c("aut", "cre"), email =
+        "Avraham.Adler@gmail.com")
+Maintainer: Avraham Adler <Avraham.Adler@gmail.com>
+Description: Playground for testing linking Fortran to R via C. If successful, this will be merged into the current Delaporte package.
+License: Complicated for now, but not being released yet.
+Encoding: UTF-8
+LazyData: true
+NeedsCompilation: yes
+ByteCompile: yes
+SystemRequirements: Fortran 95

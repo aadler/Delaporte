@@ -23,7 +23,7 @@ void set_nan_(double *val)
 
 double gamln(double *x);
 
-SEXP gamln_wrapp(SEXP x){
+SEXP gamln_wrap(SEXP x){
   SEXP ret;
   PROTECT(ret = allocVector(REALSXP, 1));
   REAL(ret)[0] = gamln(REAL(x));

@@ -2,10 +2,12 @@ module utils
   use, intrinsic :: iso_c_binding, only: c_double, c_int
   implicit none
 
+  real(kind = c_double), parameter :: ONE = 1_c_double
+  real(kind = c_double), parameter :: EPS = 2.2204460492503131e-16_c_double
+
   contains
 
   elemental function log1p(x) result (y)
-    real(kind = c_double), parameter :: ONE = 1_c_double
     real(kind = c_double), intent(in) :: x
     real(kind = c_double) :: y, z
 

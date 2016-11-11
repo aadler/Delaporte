@@ -1,7 +1,7 @@
 module lgam
 
 ! Taken from bratio.f90 found at http://jblevins.org/mirror/amiller/#nswc
-! Both procedures apparently written by ALFRED H. MORRIS as part of the
+! Both procedures written by ALFRED H. MORRIS as part of the
 ! Naval Surface Warfare Center Mathematical Library and released in public domain
 
   use, intrinsic :: iso_c_binding, only: c_double, c_int
@@ -11,7 +11,7 @@ module lgam
 
   function gamln1 (a) result(fn_val)
   !-----------------------------------------------------------------------
-  !     EVALUATION OF LN(GAMMA(1 + A)) FOR -0.2 .LE. A .LE. 1.25
+  !     EVALUATION OF LN(GAMMA(1 + A)) FOR -0.2 <= A <= 1.25
   !-----------------------------------------------------------------------
   ! Modified to interact with C using Fortran 2003 by Avraham Adler, 2016-11-07
 
@@ -45,14 +45,14 @@ module lgam
                s5 = .116165475989616e-03_c_double
 
     if(a < 0.6_c_double) then
-      w = ((((((p6 * a + p5) * a + p4) * a + p3) * a + p2) * a + p1) * a + p0) / &
-          ((((((q6 * a + q5) * a + q4) * a + q3) * a + q2) * a + q1) * a + ONE)
-      fn_val = -a * w
+        w = ((((((p6 * a + p5) * a + p4) * a + p3) * a + p2) * a + p1) * a + p0) / &
+            ((((((q6 * a + q5) * a + q4) * a + q3) * a + q2) * a + q1) * a + ONE)
+        fn_val = -a * w
     else
-      x = a - ONE
-      w = (((((r5 * x + r4) * x + r3) * x + r2) * x + r1) * x + r0) / &
-          (((((s5 * x + s4) * x + s3) * x + s2) * x + s1) * x + ONE)
-      fn_val = x*w
+        x = a - ONE
+        w = (((((r5 * x + r4) * x + r3) * x + r2) * x + r1) * x + r0) / &
+            (((((s5 * x + s4) * x + s3) * x + s2) * x + s1) * x + ONE)
+        fn_val = x*w
     end if
 
   end function gamln1
@@ -82,22 +82,22 @@ module lgam
     integer(kind = c_int) :: i, n
 
     if (a <= 0.8_c_double) then
-      fn_val = gamln1(a) - log(a)
+        fn_val = gamln1(a) - log(a)
     else if(a <= 2.25_c_double) then
-      fn_val = gamln1(a - ONE)
+        fn_val = gamln1(a - ONE)
     else if (a < 10_c_double) then
-      n = a - 1.25_c_double
-      t = a
-      w = ONE
-      do  i = 1, n
-        t = t - ONE
-        w = t * w
-      end do
-      fn_val = gamln1(t - ONE) + log(w)
+        n = a - 1.25_c_double
+        t = a
+        w = ONE
+        do  i = 1, n
+            t = t - ONE
+            w = t * w
+        end do
+        fn_val = gamln1(t - ONE) + log(w)
     else
-      t = (ONE / a) ** 2
-      w = (((((c5 * t + c4) * t + c3) * t + c2) * t + c1) * t + c0) / a
-      fn_val = (d + w) + (a - 0.5_c_double) * (LOG(a) - ONE)
+        t = (ONE / a) ** 2
+        w = (((((c5 * t + c4) * t + c3) * t + c2) * t + c1) * t + c0) / a
+        fn_val = (d + w) + (a - 0.5_c_double) * (LOG(a) - ONE)
     end if
 
   end function gamln

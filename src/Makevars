@@ -1,6 +1,6 @@
 
 C_OBJS = utils_and_wrappers.o
-FT_OBJS = utils.o lgamma.o ddelap.o
+FT_OBJS = utils.o lgamma.o delaporte.o
 
 OBJECTS = $(FT_OBJS) $(C_OBJS)
 

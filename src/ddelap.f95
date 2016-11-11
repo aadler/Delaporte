@@ -85,4 +85,22 @@ end function ddelap_f_s
 
     end subroutine ddelap_f
 
+
+    !------------------------------------------------------------------------------------
+    ! FUNCTION: pdelap_f_s
+    !
+    ! DESCRIPTION: Calculate the Delaporte probability mass function for a single
+    !              observation and return the value or its log. Calculated through
+    !              explicit summation. Will coerce real observations to integer
+    !              by calling ceiling.
+    !------------------------------------------------------------------------------------
+
+    function pdelap_f_s (x, alpha, beta, lambda) result (cdf)
+    external set_nan                                              ! C-based Nan
+    real(kind = c_double)               :: cdf                    ! Result
+    real(kind = c_double), intent(in)   :: x, alpha, beta, lambda ! Observation & Parms
+    integer                             :: i, k                   ! Integers
+
+    end function pdelap_f_s
+
 end module delaporte

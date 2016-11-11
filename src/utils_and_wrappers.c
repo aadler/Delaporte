@@ -24,25 +24,3 @@ void set_nan_(double *val)
   int64_t x = 0x7FF0000000000001LL;
   memcpy((void *) val, (void *) &x, 8);
 }
-
-double gamln(double *x);
-
-SEXP gamln_wrap(SEXP x){
-  SEXP ret;
-  PROTECT(ret = allocVector(REALSXP, 1));
-  REAL(ret)[0] = gamln(REAL(x));
-  UNPROTECT(1);
-  return(ret);
-}
-
-void ev_f (double *restrict x, const int nx, double *restrict y, const int ny, double *z);
-
-SEXP ev_f_wrap(SEXP x, SEXP y){
-  const int nx = LENGTH(x);
-  const int ny = LENGTH(y);
-  SEXP z;
-  PROTECT(z = allocVector(REALSXP, nx));
-  ev_f(REAL(x), nx, REAL(y), ny, REAL(z));
-  UNPROTECT(1);
-  return(z);
-}

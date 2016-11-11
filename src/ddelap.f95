@@ -6,8 +6,8 @@ implicit none
 
 contains
 
-function ddelap_f_s (x, alpha, beta, lambda, lg) result (ddp) &
-                     bind(C, name="ddelap_f_s")
+function ddelap_f_s (x, alpha, beta, lambda, lg) result (ddp)
+
 external set_nan
 real(kind = c_double)                      :: ddp
 real(kind = c_double), intent(in)          :: x, alpha, beta, lambda
@@ -54,15 +54,5 @@ integer                                           :: i
   end do
 
 end subroutine ddelap_f
-
-subroutine ev_f (x, nx, y, ny, z) bind(C, name="ev_f")
-integer(kind = c_int), intent(in), value           :: nx, ny
-real(kind = c_double), intent(in), dimension(nx)   :: x
-real(kind = c_double), intent(in), dimension(ny)   :: y
-real(kind = c_double), intent(out), dimension(nx)  :: z
-
-call extend_v(y, nx, ny, z)
-
-end subroutine ev_f
 
 end module delaporte_f

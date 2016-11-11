@@ -20,3 +20,13 @@ void set_nan_(double *val)
   int64_t x = 0x7FF0000000000001LL;
   memcpy((void *) val, (void *) &x, 8);
 }
+
+double gamln(double *x);
+
+SEXP gamln_wrapp(SEXP x){
+  SEXP ret;
+  PROTECT(ret = allocVector(REALSXP, 1));
+  REAL(ret)[0] = gamln(REAL(x));
+  UNPROTECT(1);
+  return(ret);
+}

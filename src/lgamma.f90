@@ -1,4 +1,9 @@
 module lgam
+
+! Taken from bratio.f90 found at http://jblevins.org/mirror/amiller/#nswc
+! Both procedures apparently written by ALFRED H. MORRIS as part of the
+! Naval Surface Warfare Center Mathematical Library and released in public domain
+
 use, intrinsic :: iso_c_binding, only: c_double, c_int
 implicit none
 
@@ -8,7 +13,7 @@ FUNCTION gamln1 (a) RESULT(fn_val)
 !-----------------------------------------------------------------------
 !     EVALUATION OF LN(GAMMA(1 + A)) FOR -0.2 .LE. A .LE. 1.25
 !-----------------------------------------------------------------------
-! Slightly modified by Avraham Adler, 2016-11-07
+! Modified to interact with C using Fortran 2003 by Avraham Adler, 2016-11-07
 
 real(kind = c_double), intent(in) :: a
 real(kind = c_double)             :: fn_val
@@ -27,7 +32,7 @@ REAL (kind = c_double) :: w, x, &
              s1 = .124313399877507D+01,  s2 = .548042109832463D+00,  &
              s3 = .101552187439830D+00,  s4 = .713309612391000D-02,  &
              s5 = .116165475989616D-03
-!----------------------
+
 IF (a >= 0.6D0) GO TO 10
 w = ((((((p6*a + p5)*a + p4)*a + p3)*a + p2)*a + p1)*a + p0)/  &
     ((((((q6*a + q5)*a + q4)*a + q3)*a + q2)*a + q1)*a + 1.0D0)
@@ -41,7 +46,7 @@ fn_val = x*w
 RETURN
 END FUNCTION gamln1
 
-FUNCTION gamln (a) RESULT(fn_val)
+FUNCTION gamln (a) RESULT(fn_val) bind(C, name="gamln")
 !-----------------------------------------------------------------------
 !            EVALUATION OF LN(GAMMA(A)) FOR POSITIVE A
 !-----------------------------------------------------------------------
@@ -51,7 +56,7 @@ FUNCTION gamln (a) RESULT(fn_val)
 !--------------------------
 !     D = 0.5*(LN(2*PI) - 1)
 !--------------------------
-! Slightly modified by Avraham Adler, 2016-11-07
+! Modified to interact with C using Fortran 2003 by Avraham Adler, 2016-11-07
 
 real(kind = c_double), intent(in) :: a
 real(kind = c_double)             :: fn_val

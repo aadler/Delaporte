@@ -11,4 +11,4 @@ Encoding: UTF-8
 LazyData: true
 NeedsCompilation: yes
 ByteCompile: yes
-SystemRequirements: Fortran 95
+SystemRequirements: Fortran 2003

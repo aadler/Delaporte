@@ -37,7 +37,6 @@ contains
     external set_nan                                              ! C-based Nan
     real(kind = c_double)               :: pmf                    ! Result
     real(kind = c_double), intent(in)   :: x, alpha, beta, lambda ! Observation & Parms
-!    logical(kind = c_bool), intent(in)  :: lg                     ! Log flag
     integer                             :: i, k                   ! Integers
 
     if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. x < 0) then
@@ -52,9 +51,6 @@ contains
                       - (alpha + i) * log1p(beta) &
                       - gamln(k - i + ONE))
         end do
-!        if (lg) then
-!          pmf = log(pmf)
-!        end if
     end if
 
 end function ddelap_f_s
@@ -79,6 +75,7 @@ end function ddelap_f_s
             pmfv(i) = ddelap_f_s(x(i), a(mod(i - 1, na) + 1), b(mod(i - 1, nb) + 1), &
                                  l(mod(i - 1, nl) + 1))
         end do
+
         if (lg) then
             pmfv = log(pmfv)
         end if

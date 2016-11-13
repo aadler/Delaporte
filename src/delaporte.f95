@@ -55,11 +55,14 @@ contains
 
 end function ddelap_f_s
 
-    !------------------------------------------------------------------------------------
-    ! ROUTINE: ddelap_f
-    !
-    ! DESCRIPTION: Vector-based PMF allowing parameter vector recycling and called from C
-    !------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+! ROUTINE: ddelap_f
+!
+! DESCRIPTION: Vector-based PMF allowing parameter vector recycling and called from C.
+!              As Fortran starts its indices at 1, for the mod function to properly
+!              recycle the vectors, the index needs to be reduced by one, mod applied,
+!              and then increased by one again.
+!----------------------------------------------------------------------------------------
 
     subroutine ddelap_f (x, nx, a, na, b, nb, l, nl, lg, pmfv) &
                        bind(C, name="ddelap_f")
@@ -83,14 +86,13 @@ end function ddelap_f_s
     end subroutine ddelap_f
 
 
-    !------------------------------------------------------------------------------------
-    ! FUNCTION: pdelap_f_s
-    !
-    ! DESCRIPTION: Calculate the Delaporte probability mass function for a single
-    !              observation and return the value or its log. Calculated through
-    !              explicit summation. Will coerce real observations to integer
-    !              by calling ceiling.
-    !------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+! FUNCTION: pdelap_f_s
+!
+! DESCRIPTION: Calculate the Delaporte probability mass function for a single observation
+!              and return the value or its log. Calculated through explicit summation.
+!              Will coerce real observations to integer by calling ceiling.
+!----------------------------------------------------------------------------------------
 
     function pdelap_f_s (q, alpha, beta, lambda) result (cdf)
 
@@ -111,18 +113,18 @@ end function ddelap_f_s
 
     end function pdelap_f_s
 
-    !------------------------------------------------------------------------------------
-    ! ROUTINE: pdelap_f
-    !
-    ! DESCRIPTION: Vector-based CDF allowing parameter vector recycling and called from C
-    !              If parameters are all singletons (not vectors) then the idea is to find
-    !              the largest value in the vector and build the PDF up to that point.
-    !              Building the vector has each succesive value piggyback off of the prior
-    !              instead of calling p_delap_f_s each time which increases the speed
-    !              dramatically. Once created, remaining values are simple lookups off of
-    !              the singlevec vector. Otherwise, each entry will need to build its own
-    !              pmf value by calling p_delap_f_s on each entry.
-    !------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+! ROUTINE: pdelap_f
+!
+! DESCRIPTION: Vector-based CDF allowing parameter vector recycling and called from C. If
+!              parameters are all singletons (not vectors) then the idea is to find the
+!              largest value in the vector and build the PDF up to that point. Building
+!              the vector has each succesive value piggyback off of the prior instead of
+!              calling p_delap_f_s each time which increases the speed dramatically. Once
+!              created, remaining values are simple lookups off of the singlevec vector.
+!              Otherwise, each entry will need to build its own pmf value by calling
+!              p_delap_f_s on each entry.
+!----------------------------------------------------------------------------------------
 
     subroutine pdelap_f (q, nq, a, na, b, nb, l, nl, lt, lg, pmfv) &
                        bind(C, name="pdelap_f")

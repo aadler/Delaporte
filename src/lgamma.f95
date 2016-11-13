@@ -1,19 +1,35 @@
+!----------------------------------------------------------------------------------------
+!
+! MODULE: lgam
+!
+! AUTHOR: ALFRED H. MORRIS
+!         Modified for Fortran 2003 and use with C by
+!         Avraham Adler <Avraham.Adler@gmail.com>
+!
+! DESCRIPTION: Taken from bratio.f90 found at http://jblevins.org/mirror/amiller/#nswc
+!              Both procedures written by ALFRED H. MORRIS as part of the Naval Surface
+!              Warfare Center Mathematical Library and released in public domain.
+!
+! HISTORY:
+!          Version 0.1: 2016-11-11
+!                       Gently massaged into Fortran 2003
+!----------------------------------------------------------------------------------------
 module lgam
 
-! Taken from bratio.f90 found at http://jblevins.org/mirror/amiller/#nswc
-! Both procedures written by ALFRED H. MORRIS as part of the
-! Naval Surface Warfare Center Mathematical Library and released in public domain
 
-  use, intrinsic :: iso_c_binding, only: c_double, c_int
+
+  use, intrinsic :: iso_c_binding, only: c_double
   implicit none
 
   contains
 
+!----------------------------------------------------------------------------------------
+! FUNCTION: gamln1
+!
+! DESCRIPTION: EVALUATION OF LN(GAMMA(1 + A)) FOR -0.2 <= A <= 1.25
+!----------------------------------------------------------------------------------------
+
   function gamln1 (a) result(fn_val)
-  !-----------------------------------------------------------------------
-  !     EVALUATION OF LN(GAMMA(1 + A)) FOR -0.2 <= A <= 1.25
-  !-----------------------------------------------------------------------
-  ! Modified to interact with C using Fortran 2003 by Avraham Adler, 2016-11-07
 
     real(kind = c_double), parameter  :: ONE = 1_c_double
     real(kind = c_double), intent(in) :: a
@@ -57,17 +73,21 @@ module lgam
 
   end function gamln1
 
+!----------------------------------------------------------------------------------------
+! FUNCTION: gamln
+!
+! DESCRIPTION: EVALUATION OF LN(GAMMA(A)) FOR POSITIVE A
+!              WRITTEN BY ALFRED H. MORRIS
+!              NAVAL SURFACE WARFARE CENTER
+!              DAHLGREN, VIRGINIA
+!              Modified to interact with C using Fortran 2003
+!              by Avraham Adler <Avraham.Adler@gmail.com>, 2016-11-07
+!--------------------------
+!     D = 0.5*(LN(2*PI) - 1) {No idea what this means - AA}
+!--------------------------
+
+
   function gamln (a) result(fn_val) bind(C, name = "gamln")
-  !-----------------------------------------------------------------------
-  !            EVALUATION OF LN(GAMMA(A)) FOR POSITIVE A
-  !-----------------------------------------------------------------------
-  !     WRITTEN BY ALFRED H. MORRIS
-  !          NAVAL SURFACE WARFARE CENTER
-  !          DAHLGREN, VIRGINIA
-  !--------------------------
-  !     D = 0.5*(LN(2*PI) - 1)
-  !--------------------------
-  ! Modified to interact with C using Fortran 2003 by Avraham Adler, 2016-11-07
 
     real(kind = c_double), parameter  :: ONE = 1_c_double
     real(kind = c_double), intent(in) :: a
@@ -79,7 +99,7 @@ module lgam
                            c4 = .837308034031215e-03_c_double,  &
                            c5 = -.165322962780713e-02_c_double, &
                             d = .418938533204673_c_double, t, w
-    integer(kind = c_int) :: i, n
+    integer               :: i, n
 
     if (a <= 0.8_c_double) then
         fn_val = gamln1(a) - log(a)

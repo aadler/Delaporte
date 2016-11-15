@@ -20,7 +20,7 @@ module delaporte
 
     implicit none
     private
-    public :: ddelap_f, pdelap_f, qdelap_f               !Vectorized functions called from C
+    public :: ddelap_f, pdelap_f, qdelap_f, rdelap_f !Vectorized functions called from C
 
 contains
 
@@ -201,7 +201,7 @@ end function ddelap_f_s
 !----------------------------------------------------------------------------------------
 ! ROUTINE: qdelap_f
 !
-! DESCRIPTION: Vector-based quantile function with parameter vector recycling m C. If
+! DESCRIPTION: Vector-based quantile function with parameter vector recycling. If
 !              parameters are all singletons (not vectors) then the idea is to find the
 !              largest value in the vector and build the PDF up to that point. Building
 !              the vector has each succesive value piggyback off of the prior instead of
@@ -271,5 +271,36 @@ end function ddelap_f_s
         end if
 
     end subroutine qdelap_f
+
+!----------------------------------------------------------------------------------------
+! ROUTINE: rdelap_f
+!
+! DESCRIPTION: Vector-based random number generator with parameter vector recycling. If
+!              parameters are all singletons (not vectors) then the idea is to find the
+!              largest value in the vector and build the PDF up to that point. Building
+!              the vector has each succesive value piggyback off of the prior instead of
+!              calling p_delap_f_s each time which increases the speed dramatically. Once
+!              created, remaining values are lookups off of the singlevec vector.
+!              Otherwise, each entry will need to build its own pmf value by calling
+!              q_delap_f_s on each entry.
+!----------------------------------------------------------------------------------------
+
+    subroutine rdelap_f (n, a, na, b, nb, l, nl, vars) bind(C, name="rdelap_f")
+
+    external unifrnd
+
+    integer(kind = c_int), intent(in), value           :: n, na, nb, nl      ! Sizes
+    real(kind = c_double), intent(out), dimension(n)   :: vars               ! Result
+    real(kind = c_double), intent(in)                  :: a(na), b(nb), l(nl)! Parameters
+    real(kind = c_double), dimension(n)                :: p                  ! %iles
+    logical(kind = c_bool)                             :: lg, lt             ! Flags
+    integer(kind = c_int)                              :: i
+
+        call unifrnd(n, p)
+        lg = .FALSE.
+        lt = .TRUE.
+        call qdelap_f(p, n, a, na, b, nb, l, nl, lt, lg, vars)
+
+    end subroutine rdelap_f
 
 end module delaporte

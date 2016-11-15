@@ -1,5 +1,6 @@
 #include <R.h>
 #include <Rinternals.h>
+#include <Rmath.h>
 #include <string.h>
 #include <stdint.h>
 #include <math.h>
@@ -51,6 +52,30 @@ SEXP qdelap_f_wrap(SEXP p, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt, SEXP lg)
   UNPROTECT(1);
   return(ret);
 }
+
+void rdelap_f(int n, double *a, int na, double *b, int nb, double *l, int nl,
+              double *ret);
+
+
+SEXP rdelap_f_wrap(SEXP n, SEXP alpha, SEXP beta, SEXP lambda){
+  const int nn = INTEGER(n)[0];
+  const int na = LENGTH(alpha);
+  const int nb = LENGTH(beta);
+  const int nl = LENGTH(lambda);
+  SEXP ret;
+  PROTECT(ret = allocVector(REALSXP, nn));
+  rdelap_f(nn, REAL(alpha), na, REAL(beta), nb, REAL(lambda), nl, REAL(ret));
+  UNPROTECT(1);
+  return(ret);
+}
+
+void unifrnd_ (int *n, double *x){
+    GetRNGstate();
+    for (int i = 0; i < *n; ++i){
+        *(x + i) = unif_rand();
+    }
+    PutRNGstate();
+  }
 
 void set_nan_(double *val)
 {

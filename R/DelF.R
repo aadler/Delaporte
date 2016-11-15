@@ -21,3 +21,19 @@ qdelp <- function(p, alpha, beta, lambda, lt = TRUE, lg = FALSE){
   if(!is.double(lambda)) {storage.mode(lambda) <- 'double'}
   .Call('qdelap_f_wrap', p, alpha, beta, lambda, lt, lg, PACKAGE = 'DelF')
 }
+
+rdelp <- function(n, alpha, beta, lambda){
+  if(!is.integer(n)) {storage.mode(n) <- 'integer'}
+  if(!is.double(alpha)) {storage.mode(alpha) <- 'double'}
+  if(!is.double(beta)) {storage.mode(beta) <- 'double'}
+  if(!is.double(lambda)) {storage.mode(lambda) <- 'double'}
+  .Call('rdelap_f_wrap', n, alpha, beta, lambda, PACKAGE = 'DelF')
+}
+
+rdelp2 <- function(n, alpha, beta, lambda, lt = TRUE, lg = FALSE){
+  if(!is.double(alpha)) {storage.mode(alpha) <- 'double'}
+  if(!is.double(beta)) {storage.mode(beta) <- 'double'}
+  if(!is.double(lambda)) {storage.mode(lambda) <- 'double'}
+  p <- runif(n, min = 0, max = 1)
+  .Call('qdelap_f_wrap', p, alpha, beta, lambda, lt, lg, PACKAGE = 'DelF')
+}

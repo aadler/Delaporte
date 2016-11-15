@@ -37,7 +37,19 @@ SEXP pdelap_f_wrap(SEXP q, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt, SEXP lg)
 
 void set_nan_(double *val)
 {
-  // *val = sqrt(-1.0);
+  // *val = sqrt(-1.0); By Drew Schmidt
   int64_t x = 0x7FF0000000000001LL;
+  memcpy((void *) val, (void *) &x, 8);
+}
+
+void set_inf_(double *val) {
+  // *val = Inf Based on set_nan
+  int64_t x = 0x7FF0000000000000LL;
+  memcpy((void *) val, (void *) &x, 8);
+}
+
+void set_neginf_(double *val) {
+  // *val = Neg Inf Based on set_nan
+  int64_t x = 0xFFF0000000000000LL;
   memcpy((void *) val, (void *) &x, 8);
 }

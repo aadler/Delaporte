@@ -43,7 +43,7 @@ contains
         call set_nan(pmf)
     else
         k = ceiling(x)
-        pmf = 0_c_double
+        pmf = ZERO
         do i = 0, k, 1
             pmf = pmf + exp(gamln(alpha + i) + i * log(beta) &
                       + (k - i) * log(lambda) - lambda &
@@ -275,14 +275,13 @@ end function ddelap_f_s
 !----------------------------------------------------------------------------------------
 ! ROUTINE: rdelap_f
 !
-! DESCRIPTION: Vector-based random number generator with parameter vector recycling. If
-!              parameters are all singletons (not vectors) then the idea is to find the
-!              largest value in the vector and build the PDF up to that point. Building
-!              the vector has each succesive value piggyback off of the prior instead of
-!              calling p_delap_f_s each time which increases the speed dramatically. Once
-!              created, remaining values are lookups off of the singlevec vector.
-!              Otherwise, each entry will need to build its own pmf value by calling
-!              q_delap_f_s on each entry.
+! DESCRIPTION: Vector-based random number generator with parameter vector recycling. It
+!              Calls a C procedure to generate uniform random variates which jibe with
+!              R's own internals and then calls qdelap_f on the uniforms. This allows
+!              qdelap's singleton mode to activate if appropriate. This is the one routine
+!              slower in Fortran than C++, as the vector creation and pushback is more
+!              efficient in C++ STL than the ballet between allocate and move_alloc in
+!              Fortran. On vectors-valued parameters Fortran is faster than C++.
 !----------------------------------------------------------------------------------------
 
     subroutine rdelap_f (n, a, na, b, nb, l, nl, vars) bind(C, name="rdelap_f")
@@ -294,13 +293,50 @@ end function ddelap_f_s
     real(kind = c_double), intent(in)                  :: a(na), b(nb), l(nl)! Parameters
     real(kind = c_double), dimension(n)                :: p                  ! %iles
     logical(kind = c_bool)                             :: lg, lt             ! Flags
-    integer(kind = c_int)                              :: i
 
-        call unifrnd(n, p)
-        lg = .FALSE.
-        lt = .TRUE.
-        call qdelap_f(p, n, a, na, b, nb, l, nl, lt, lg, vars)
+    call unifrnd(n, p)
+    lt = .TRUE.
+    lg = .FALSE.
+    call qdelap_f(p, n, a, na, b, nb, l, nl, lt, lg, vars)
 
     end subroutine rdelap_f
+
+!----------------------------------------------------------------------------------------
+! ROUTINE: momdelap_f
+!
+! DESCRIPTION: Calculates method of moments estimates of parameters for a Delaporte
+!              distribution based on supplied vector.
+!----------------------------------------------------------------------------------------
+
+    subroutine momdelap_f (obs, n, params) bind(C, name="momdelap_f")
+
+    integer(kind = c_int), intent(in), value           :: n                  ! Sizes
+    real(kind = c_double), intent(in), dimension(n)    :: obs                ! Result
+    real(kind = c_double), intent(out), dimension(3)   :: params
+    integer(kind = c_int)                              :: i
+    real(kind = c_double)                              :: nm1, P, Mu_D, M2, M3, T1, delta
+    real(kind = c_double)                              :: delta_i, Var_D, Skew_D, VmM_D
+
+    nm1 = n - ONE
+    P = n * sqrt(nm1) / (n - 2_c_double)
+    Mu_D = ZERO
+    M2 = ZERO
+    M3 = ZERO
+    do i = 1, n
+        delta = obs(i) - Mu_D
+        delta_i = delta / i
+        T1 = delta * delta_i * (i - ONE)
+        Mu_D = Mu_D + delta_i
+        M3 = M3 + (T1 * delta_i * (i - 2) - 3 * delta_i * M2)
+        M2 = M2 + T1
+    end do
+    Var_D = M2 / nm1
+    Skew_D = P * M3 / (M2 **1.5)
+    VmM_D = Var_D - Mu_D
+    params(2) = 0.5 * (Skew_D * (Var_D ** 1.5) / VmM_D - 3)
+    params(1) = VmM_D / (params(2) ** 2)
+    params(3) = Mu_D - params(1) * params(2)
+
+    end subroutine momdelap_f
 
 end module delaporte

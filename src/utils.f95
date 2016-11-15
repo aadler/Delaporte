@@ -1,8 +1,9 @@
 module utils
-  use, intrinsic :: iso_c_binding, only: c_double, c_int
+  use, intrinsic :: iso_c_binding
   implicit none
 
   real(kind = c_double), parameter :: ONE = 1_c_double
+  real(kind = c_double), parameter :: ZERO = 0_c_double
   real(kind = c_double), parameter :: EPS = 2.2204460492503131e-16_c_double
 
   contains

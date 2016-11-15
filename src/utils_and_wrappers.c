@@ -3,7 +3,6 @@
 #include <Rmath.h>
 #include <string.h>
 #include <stdint.h>
-#include <math.h>
 
 void ddelap_f(double *x, int nx, double *a, int na, double *b, int nb, double *l, int nl,
               int *lg, double *ret);
@@ -65,6 +64,17 @@ SEXP rdelap_f_wrap(SEXP n, SEXP alpha, SEXP beta, SEXP lambda){
   SEXP ret;
   PROTECT(ret = allocVector(REALSXP, nn));
   rdelap_f(nn, REAL(alpha), na, REAL(beta), nb, REAL(lambda), nl, REAL(ret));
+  UNPROTECT(1);
+  return(ret);
+}
+
+void momdelap_f(double *x, int nx, double *ret);
+
+SEXP momdelap_f_wrap(SEXP x){
+  const int nx = LENGTH(x);
+  SEXP ret;
+  PROTECT(ret = allocVector(REALSXP, 3));
+  momdelap_f(REAL(x), nx, REAL(ret));
   UNPROTECT(1);
   return(ret);
 }

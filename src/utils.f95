@@ -17,6 +17,17 @@ module utils
 
   end function log1p
 
+  pure function position(x, a) result (k)
+      real(kind = c_double), intent(in)                :: x
+      real(kind = c_double), intent(in), dimension(:)  :: a
+      integer(kind = c_int)                            :: k
+
+      k = 1
+      do while (a(k) < x)
+          k = k + 1
+      end do
+  end function position
+
   subroutine extend_v(y, nx, ny, y_out)
     integer(kind = c_int), intent(in), value          :: nx, ny
     real(kind = c_double), dimension(ny), intent(in)  :: y

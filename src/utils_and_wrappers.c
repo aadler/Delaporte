@@ -35,12 +35,19 @@ SEXP pdelap_f_wrap(SEXP q, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt, SEXP lg)
   return(ret);
 }
 
-double qdelap_f_s (double *p, double *alpha, double *beta, double *lambda);
+void qdelap_f(double *p, int np, double *a, int na, double *b, int nb, double *l, int nl,
+              int *lt, int *lg, double *ret);
 
-SEXP qdelap_f_wrap(SEXP p, SEXP alpha, SEXP beta, SEXP lambda){
+
+SEXP qdelap_f_wrap(SEXP p, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt, SEXP lg){
+  const int np = LENGTH(p);
+  const int na = LENGTH(alpha);
+  const int nb = LENGTH(beta);
+  const int nl = LENGTH(lambda);
   SEXP ret;
-  PROTECT(ret = allocVector(REALSXP, 1));
-  REAL(ret)[0] = qdelap_f_s(REAL(p), REAL(alpha), REAL(beta), REAL(lambda));
+  PROTECT(ret = allocVector(REALSXP, np));
+  qdelap_f(REAL(p), np, REAL(alpha), na, REAL(beta), nb, REAL(lambda), nl,
+           LOGICAL(lt), LOGICAL(lg), REAL(ret));
   UNPROTECT(1);
   return(ret);
 }

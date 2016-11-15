@@ -20,7 +20,7 @@ module delaporte
 
     implicit none
     private
-    public :: ddelap_f, pdelap_f                     !Vectorized functions called from C
+    public :: ddelap_f, pdelap_f, qdelap_f               !Vectorized functions called from C
 
 contains
 
@@ -139,7 +139,7 @@ end function ddelap_f_s
 
         if(na == 1 .and. nb == na .and. nl == nb) then
             k = ceiling(maxval(q))
-            allocate (singlevec(k+1))
+            allocate (singlevec(k + 1))
             singlevec(1) = exp(-l(1)) / ((b(1) + ONE) ** a(1))
             do i = 2, k + 1
                 singlevec(i) = singlevec(i - 1) &
@@ -175,12 +175,12 @@ end function ddelap_f_s
 !              NaN and Inf.
 !----------------------------------------------------------------------------------------
 
-    function qdelap_f_s (p, alpha, beta, lambda) result (value) bind(C, name="qdelap_f_s")
+    function qdelap_f_s (p, alpha, beta, lambda) result (value)
 
     external set_nan
     external set_inf
-    real(kind = c_double), intent(in)   :: p, alpha, beta, lambda ! Observation & Parms
-    real(kind = c_double)               :: testcdf, value         ! Result and testvalue
+    real(kind = c_double), intent(in)   :: p, alpha, beta, lambda ! Percentile & Parms
+    real(kind = c_double)               :: testcdf, value         ! Result and testcdf
 
 
         if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. p < 0) then
@@ -198,8 +198,78 @@ end function ddelap_f_s
 
     end function qdelap_f_s
 
+!----------------------------------------------------------------------------------------
+! ROUTINE: qdelap_f
+!
+! DESCRIPTION: Vector-based quantile function with parameter vector recycling m C. If
+!              parameters are all singletons (not vectors) then the idea is to find the
+!              largest value in the vector and build the PDF up to that point. Building
+!              the vector has each succesive value piggyback off of the prior instead of
+!              calling p_delap_f_s each time which increases the speed dramatically. Once
+!              created, remaining values are lookups off of the singlevec vector.
+!              Otherwise, each entry will need to build its own pmf value by calling
+!              q_delap_f_s on each entry.
+!----------------------------------------------------------------------------------------
 
+    subroutine qdelap_f (p, np, a, na, b, nb, l, nl, lt, lg, obsv) &
+                       bind(C, name="qdelap_f")
+    external set_nan
+    external set_inf
+    integer(kind = c_int), intent(in), value           :: np, na, nb, nl     ! Sizes
+    real(kind = c_double), intent(inout), dimension(np):: p                  ! %iles
+    real(kind = c_double), intent(out), dimension(np)  :: obsv               ! Result
+    real(kind = c_double), intent(in)                  :: a(na), b(nb), l(nl)! Parameters
+    logical(kind = c_bool), intent(in)                 :: lg, lt             ! Flags
+    integer(kind = c_int)                              :: i, j               ! Integers
+    real(kind = c_double), allocatable, dimension(:)   :: svec, tvec         ! Results
+    real(kind = c_double)                              :: x                  ! current %
 
+        if (lg) then
+            p = exp(p)
+        end if
 
+        if (.not. lt) then
+            p = ONE - p
+        end if
+
+        if(na == 1 .and. nb == na .and. nl == nb) then
+            if (a(1) < EPS .or. b(1) < EPS .or. l(1) < EPS) then
+                do i = 1, np
+                    call set_nan(obsv(i))
+                end do
+            else
+                x = maxval(p, 1, p < 1)
+                i = 1
+                allocate (svec(i))
+                svec(1) = exp(-l(1)) / ((b(1) + ONE) ** a(1))
+                do
+                    if (svec(i) >= x) then
+                        exit
+                    end if
+                    i = i + 1
+                    allocate(tvec(1:i))
+                    tvec(1:i-1) = svec
+                    call move_alloc(tvec, svec)
+                    svec(i) = svec(i - 1) + ddelap_f_s(real(i - 1, c_double), a(1), b(1), l(1))
+                end do
+                do i = 1, np
+                    if (p(i) < 0) then
+                        call set_nan(obsv(i))
+                    else if (p(i) >= 1) then
+                        call set_inf(obsv(i))
+                    else
+                        obsv(i) = real(position(p(i), svec) - 1)
+                    end if
+                end do
+                deallocate(svec)
+            end if
+        else
+            do i = 1, np
+                obsv(i) = qdelap_f_s(p(i), a(mod(i - 1, na) + 1), b(mod(i - 1, nb) + 1), &
+                                     l(mod(i - 1, nl) + 1))
+            end do
+        end if
+
+    end subroutine qdelap_f
 
 end module delaporte

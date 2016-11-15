@@ -37,7 +37,7 @@ contains
     external set_nan                                              ! C-based Nan
     real(kind = c_double)               :: pmf                    ! Result
     real(kind = c_double), intent(in)   :: x, alpha, beta, lambda ! Observation & Parms
-    integer                             :: i, k                   ! Integers
+    integer(kind = c_int)               :: i, k                   ! Integers
 
     if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. x < 0) then
         call set_nan(pmf)
@@ -72,7 +72,7 @@ end function ddelap_f_s
     real(kind = c_double), intent(out), dimension(nx):: pmfv               ! Result
     real(kind = c_double), intent(in)                :: a(na), b(nb), l(nl)! Parameters
     logical(kind = c_bool), intent(in)               :: lg                 ! Log flag
-    integer                                          :: i                  ! Integer
+    integer(kind = c_int)                            :: i                  ! Integer
 
         do i = 1, nx
             pmfv(i) = ddelap_f_s(x(i), a(mod(i - 1, na) + 1), b(mod(i - 1, nb) + 1), &
@@ -99,7 +99,7 @@ end function ddelap_f_s
     external set_nan
     real(kind = c_double)               :: cdf                    ! Result
     real(kind = c_double), intent(in)   :: q, alpha, beta, lambda ! Observation & Parms
-    integer                             :: i, k                   ! Integers
+    integer(kind = c_int)               :: i, k                   ! Integers
 
         if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. q < 0) then
             call set_nan(cdf)
@@ -134,7 +134,7 @@ end function ddelap_f_s
     real(kind = c_double), intent(out), dimension(nq):: pmfv               ! Result
     real(kind = c_double), intent(in)                :: a(na), b(nb), l(nl)! Parameters
     logical(kind = c_bool), intent(in)               :: lg, lt             ! Log/Tail flags
-    integer                                          :: i, k               ! Integers
+    integer(kind = c_int)                            :: i, k               ! Integers
     real(kind = c_double), allocatable, dimension(:) :: singlevec          ! holds pmf
 
         if(na == 1 .and. nb == na .and. nl == nb) then
@@ -164,5 +164,42 @@ end function ddelap_f_s
         end if
 
     end subroutine pdelap_f
+
+
+!----------------------------------------------------------------------------------------
+! FUNCTION: qdelap_f_s
+!
+! DESCRIPTION: Calculate the Delaporte quantile function for a single observation and
+!              return the value. Calculated through explicit summation. Will coerce real
+!              observations to integer by calling ceiling but returns a real to handle
+!              NaN and Inf.
+!----------------------------------------------------------------------------------------
+
+    function qdelap_f_s (p, alpha, beta, lambda) result (value) bind(C, name="qdelap_f_s")
+
+    external set_nan
+    external set_inf
+    real(kind = c_double), intent(in)   :: p, alpha, beta, lambda ! Observation & Parms
+    real(kind = c_double)               :: testcdf, value         ! Result and testvalue
+
+
+        if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. p < 0) then
+            call set_nan(value)
+        else if (p >= 1) then
+            call set_inf(value)
+        else
+            value = 0
+            testcdf = exp(-lambda) / ((beta + ONE) ** alpha)
+            do while (p - testcdf > EPS)
+                value = value + 1
+                testcdf = testcdf + ddelap_f_s (real(value, c_double), alpha, beta, lambda)
+            end do
+        end if
+
+    end function qdelap_f_s
+
+
+
+
 
 end module delaporte

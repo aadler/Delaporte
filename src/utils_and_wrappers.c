@@ -35,6 +35,16 @@ SEXP pdelap_f_wrap(SEXP q, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt, SEXP lg)
   return(ret);
 }
 
+double qdelap_f_s (double *p, double *alpha, double *beta, double *lambda);
+
+SEXP qdelap_f_wrap(SEXP p, SEXP alpha, SEXP beta, SEXP lambda){
+  SEXP ret;
+  PROTECT(ret = allocVector(REALSXP, 1));
+  REAL(ret)[0] = qdelap_f_s(REAL(p), REAL(alpha), REAL(beta), REAL(lambda));
+  UNPROTECT(1);
+  return(ret);
+}
+
 void set_nan_(double *val)
 {
   // *val = sqrt(-1.0); By Drew Schmidt

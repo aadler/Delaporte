@@ -138,18 +138,24 @@ end function ddelap_f_s
     real(kind = c_double), allocatable, dimension(:) :: singlevec          ! holds pmf
 
         if(na == 1 .and. nb == na .and. nl == nb) then
-            k = ceiling(maxval(q))
-            allocate (singlevec(k + 1))
-            singlevec(1) = exp(-l(1)) / ((b(1) + ONE) ** a(1))
-            do i = 2, k + 1
-                singlevec(i) = singlevec(i - 1) &
-                               + ddelap_f_s (real(i - 1, c_double), a(1), b(1), l(1))
-            end do
-            do i = 1, nq
-                k = ceiling(q(i))
-                pmfv(i) = singlevec(k + 1)
-            end do
-            deallocate(singlevec)
+            if (a(1) < EPS .or. b(1) < EPS .or. l(1) < EPS) then
+                do i = 1, nq
+                    call set_nan(pmfv(i))
+                end do
+            else
+                k = ceiling(maxval(q))
+                allocate (singlevec(k + 1))
+                singlevec(1) = exp(-l(1)) / ((b(1) + ONE) ** a(1))
+                do i = 2, k + 1
+                    singlevec(i) = singlevec(i - 1) &
+                                   + ddelap_f_s (real(i - 1, c_double), a(1), b(1), l(1))
+                end do
+                do i = 1, nq
+                    k = ceiling(q(i))
+                    pmfv(i) = singlevec(k + 1)
+                end do
+                deallocate(singlevec)
+            end if
         else
             do i = 1, nq
                 pmfv(i) = pdelap_f_s(q(i), a(mod(i - 1, na) + 1), b(mod(i - 1, nb) + 1), &

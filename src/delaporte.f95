@@ -15,6 +15,7 @@
 !----------------------------------------------------------------------------------------
 module delaporte
     use, intrinsic :: iso_c_binding
+    use, intrinsic :: omp_lib
     use utils
     use lgam
 
@@ -74,10 +75,14 @@ end function ddelap_f_s
     logical(kind = c_bool), intent(in)               :: lg                 ! Log flag
     integer(kind = c_int)                            :: i                  ! Integer
 
+
+        !$omp parallel do simd
         do i = 1, nx
             pmfv(i) = ddelap_f_s(x(i), a(mod(i - 1, na) + 1), b(mod(i - 1, nb) + 1), &
                                  l(mod(i - 1, nl) + 1))
         end do
+        !$omp end parallel do simd
+
 
         if (lg) then
             pmfv = log(pmfv)
@@ -139,9 +144,11 @@ end function ddelap_f_s
 
         if(na == 1 .and. nb == na .and. nl == nb) then
             if (a(1) < EPS .or. b(1) < EPS .or. l(1) < EPS) then
+                !$omp parallel do simd
                 do i = 1, nq
                     call set_nan(pmfv(i))
                 end do
+                !$omp end parallel do simd
             else
                 k = ceiling(maxval(q))
                 allocate (singlevec(k + 1))
@@ -157,11 +164,14 @@ end function ddelap_f_s
                 deallocate(singlevec)
             end if
         else
+            !$omp parallel do simd
             do i = 1, nq
                 pmfv(i) = pdelap_f_s(q(i), a(mod(i - 1, na) + 1), b(mod(i - 1, nb) + 1), &
                                      l(mod(i - 1, nl) + 1))
             end do
+            !$omp end parallel do simd
         end if
+
         if (.not.(lt)) then
             pmfv = ONE - pmfv
         end if

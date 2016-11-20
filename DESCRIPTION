@@ -10,6 +10,5 @@ URL: https://bitbucket.org/aadler/delaporte
 BugReports: https://bitbucket.org/aadler/delaporte/issues
 Imports: stats
 Suggests: testthat
-Encoding: UTF-8
 ByteCompile: yes
 NeedsCompilation: yes

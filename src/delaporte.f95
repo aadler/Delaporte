@@ -9,9 +9,31 @@
 !              generation and method of moments functions as well.
 !
 ! HISTORY:
-!          Version 0.1: 2016-11-11
-!                       Initial porting from C++ code in Delaporte package
-!                       for R.
+!          Version 1.0: 2016-11-20
+!                       Porting from C++ code in Delaporte package for R.
+!
+! LICENSE:
+!   Copyright (c) 2016, Avraham Adler
+!   All rights reserved.
+!
+!   Redistribution and use in source and binary forms, with or without modification, are
+!   permitted provided that the following conditions are met:
+!       1. Redistributions of source code must retain the above copyright notice, this
+!          list of conditions and the following disclaimer.
+!       2. Redistributions in binary form must reproduce the above copyright notice,
+!          this list of conditions and the following disclaimer in the documentation
+!          and/or other materials provided with the distribution.
+!
+!   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+!   EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+!   OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+!   SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+!   INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+!   TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+!   BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+!   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+!   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+!   DAMAGE.
 !----------------------------------------------------------------------------------------
 module delaporte
     use, intrinsic :: iso_c_binding
@@ -21,7 +43,7 @@ module delaporte
 
     implicit none
     private
-    public :: ddelap_f, pdelap_f, qdelap_f, rdelap_f, momdelap_f !Vectorized called from C
+    public :: ddelap_f, pdelap_f, qdelap_f, rdelap_f, momdelap_f
 
 contains
 
@@ -139,7 +161,7 @@ end function ddelap_f_s
     real(kind = c_double), intent(in), dimension(nq) :: q                  ! Observations
     real(kind = c_double), intent(out), dimension(nq):: pmfv               ! Result
     real(kind = c_double), intent(in)                :: a(na), b(nb), l(nl)! Parameters
-    logical(kind = c_bool), intent(in)               :: lg, lt             ! Log/Tail flags
+    logical(kind = c_bool), intent(in)               :: lg, lt             ! Flags
     integer(kind = c_int)                            :: i, k               ! Integers
     real(kind = c_double), allocatable, dimension(:) :: singlevec          ! holds pmf
 
@@ -165,7 +187,7 @@ end function ddelap_f_s
         else
             !$omp parallel do simd
             do i = 1, nq
-                pmfv(i) = pdelap_f_s(q(i), a(mod(i - 1, na) + 1), b(mod(i - 1, nb) + 1), &
+                pmfv(i) = pdelap_f_s(q(i), a(mod(i - 1, na) + 1), b(mod(i - 1, nb) + 1),&
                                      l(mod(i - 1, nl) + 1))
             end do
             !$omp end parallel do simd
@@ -209,7 +231,8 @@ end function ddelap_f_s
             testcdf = exp(-lambda) / ((beta + ONE) ** alpha)
             do while (p - testcdf > EPS)
                 value = value + 1
-                testcdf = testcdf + ddelap_f_s (real(value, c_double), alpha, beta, lambda)
+                testcdf = testcdf + ddelap_f_s (real(value, c_double), alpha, beta, &
+                                                lambda)
             end do
         end if
 
@@ -267,7 +290,8 @@ end function ddelap_f_s
                     allocate(tvec(1:i))
                     tvec(1:i-1) = svec
                     call move_alloc(tvec, svec)
-                    svec(i) = svec(i - 1) + ddelap_f_s(real(i - 1, c_double), a(1), b(1), l(1))
+                    svec(i) = svec(i - 1) + ddelap_f_s(real(i - 1, c_double), a(1), &
+                                                       b(1), l(1))
                 end do
                 do i = 1, np
                     if (p(i) < 0) then
@@ -283,7 +307,7 @@ end function ddelap_f_s
         else
             !$omp parallel do simd
             do i = 1, np
-                obsv(i) = qdelap_f_s(p(i), a(mod(i - 1, na) + 1), b(mod(i - 1, nb) + 1), &
+                obsv(i) = qdelap_f_s(p(i), a(mod(i - 1, na) + 1), b(mod(i - 1, nb) + 1),&
                                      l(mod(i - 1, nl) + 1))
             end do
             !$omp end parallel do simd
@@ -297,10 +321,10 @@ end function ddelap_f_s
 ! DESCRIPTION: Vector-based random number generator with parameter vector recycling. It
 !              Calls a C procedure to generate uniform random variates which jibe with
 !              R's own internals and then calls qdelap_f on the uniforms. This allows
-!              qdelap's singleton mode to activate if appropriate. This is the one routine
-!              slower in Fortran than C++, as the vector creation and pushback is more
-!              efficient in C++ STL than the ballet between allocate and move_alloc in
-!              Fortran. On vectors-valued parameters Fortran is faster than C++.
+!              qdelap's singleton mode to activate if appropriate. This is the single
+!              routine slower in Fortran than C++, as the vector creation and pushback is
+!              more efficient in C++ STL than the ballet between allocate and move_alloc
+!              in Fortran. On vectors-valued parameters Fortran is faster than C++.
 !----------------------------------------------------------------------------------------
 
     subroutine rdelap_f (n, a, na, b, nb, l, nl, vars) bind(C, name="rdelap_f")

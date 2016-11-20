@@ -2,7 +2,17 @@
 \alias{NEWS}
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
 
-\section{Changes in version 3.0.0 (2016-07-19)}{
+\section{Changes in version 4.0.0 (2016-11-20)}{
+  \subsection{Changed}{
+    \itemize{
+      \item Back end code ported from C++ & Rcpp to Fortran and C. In most cases this alone showed an increase in speed. There should be no noticeable difference in results. Even random numbers generated with the same seeds should be the same as in previous packages.
+      \item OpenMP calls activated for systems which have it (including GCC 4.9.3 and subsequent) which allows parallel processing of certain loops resulting in further speed increases over and above those supplied by Fortran.
+      \item License changed from GPL2+/LGPL3+ to BSD-2 clause.
+    }
+  }
+}
+
+\section{Version 3.0.0 (2016-07-19)}{
   \subsection{Changed}{
     \itemize{
       \item The distributional functions now return \code{NaN} where the passed \code{alpha}, \code{beta}, or \code{lambda} is close to 0 (less than machine epsilon). Within vectors, valid triplets should still return proper values. The approximate versions of \code{qdelap} and \code{rdelap} do not handle 0 properly, and an error is thrown directing the user to the exact version. Thanks are due to Jonathan Cairns and Jin-Rui Xu for their help in testing.
@@ -22,8 +32,7 @@
   }
 }
 
-
-\section{Changes in version 2.3.1 (2016-06-16)}{
+\section{Version 2.3.1 (2016-06-16)}{
   \subsection{Changed}{
     \itemize{
       \item Reverted back to 2.2-3 as change to trapping zeros caused serious downstream issues. Will work on more elegant correction shortly (thanks to Mikhail Spivakov, Jonathan Cairns, and Jin-Rui Xu).
@@ -31,7 +40,7 @@
   }
 }
 
-\section{Changes in version 2.3.0 (2016-06-02)}{
+\section{Version 2.3.0 (2016-06-02)}{
   \subsection{Deprecated}{
     \itemize{
       \item In the next release (\strong{3.0.0}), passing FALSE to \code{exact} in \code{rdelap} and \code{qdelap} will use the method described in section 3.9 of Karlis & Xekalaki (2005) to generate approximately Delaporte random variates much more quickly for large \code{n} and large values of the parameters. However, when implemented, this will break reproduceability even for specifically set seeds. The new code is commented out in the function.
@@ -77,7 +86,7 @@
   }
 }
 
-\section{Changes in version 2.2-0 (2014-07-15)}{
+\section{Version 2.2-0 (2014-07-15)}{
   \subsection{Added}{
     \itemize{
       \item Vectorized \code{d/p/q/rdelap}; \code{alpha}, \code{beta}, and \code{lambda} can now be vectors.

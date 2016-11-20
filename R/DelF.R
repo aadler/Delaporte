@@ -72,8 +72,9 @@ rdelap <- function(n, alpha, beta, lambda, exact = TRUE, old = FALSE){
       RDLAP <- rpois(n, lambda = (ShiftedGammas + lambda))
     }
   } else {
-  .Call('rdelap_f_wrap', n, alpha, beta, lambda, PACKAGE = 'DelF')
+    RDLAP <- .Call('rdelap_f_wrap', n, alpha, beta, lambda, PACKAGE = 'DelF')
   }
+  return(RDLAP)
 }
 
 MoMdelap <- function(x){

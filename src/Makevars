@@ -7,8 +7,12 @@ C_OBJS = utils_and_wrappers.o
 FT_OBJS = utils.o lgamma.o delaporte.o
 OBJECTS = $(FT_OBJS) $(C_OBJS)
 
-all: $(SHLIB)
+all: clean $(SHLIB) cleanup
+
 $(SHLIB): $(OBJECTS)
 
 clean:
 	@rm -rf *.o *.mod *.d *.rc *.so *.dylib *.dll *.a *.lib $(SHLIB) $(OBJECTS)
+
+cleanup:
+		@rm -rf *.mod

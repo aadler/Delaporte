@@ -21,7 +21,7 @@ module delaporte
 
     implicit none
     private
-    public :: ddelap_f, pdelap_f, qdelap_f, rdelap_f !Vectorized functions called from C
+    public :: ddelap_f, pdelap_f, qdelap_f, rdelap_f, momdelap_f !Vectorized called from C
 
 contains
 
@@ -34,6 +34,7 @@ contains
 !----------------------------------------------------------------------------------------
 
     function ddelap_f_s (x, alpha, beta, lambda) result (pmf)
+    !$omp declare simd(ddelap_f_s) notinbranch
 
     external set_nan                                              ! C-based Nan
     real(kind = c_double)               :: pmf                    ! Result
@@ -45,7 +46,7 @@ contains
     else
         k = ceiling(x)
         pmf = ZERO
-        do i = 0, k, 1
+        do i = 0, k
             pmf = pmf + exp(gamln(alpha + i) + i * log(beta) &
                       + (k - i) * log(lambda) - lambda &
                       - gamln(alpha) - gamln(i + ONE) &
@@ -83,7 +84,6 @@ end function ddelap_f_s
         end do
         !$omp end parallel do simd
 
-
         if (lg) then
             pmfv = log(pmfv)
         end if
@@ -100,6 +100,7 @@ end function ddelap_f_s
 !----------------------------------------------------------------------------------------
 
     function pdelap_f_s (q, alpha, beta, lambda) result (cdf)
+    !$omp declare simd(pdelap_f_s) inbranch
 
     external set_nan
     real(kind = c_double)               :: cdf                    ! Result
@@ -144,11 +145,9 @@ end function ddelap_f_s
 
         if(na == 1 .and. nb == na .and. nl == nb) then
             if (a(1) < EPS .or. b(1) < EPS .or. l(1) < EPS) then
-                !$omp parallel do simd
                 do i = 1, nq
                     call set_nan(pmfv(i))
                 end do
-                !$omp end parallel do simd
             else
                 k = ceiling(maxval(q))
                 allocate (singlevec(k + 1))
@@ -175,6 +174,7 @@ end function ddelap_f_s
         if (.not.(lt)) then
             pmfv = ONE - pmfv
         end if
+
         if (lg) then
             pmfv = log(pmfv)
         end if
@@ -192,6 +192,7 @@ end function ddelap_f_s
 !----------------------------------------------------------------------------------------
 
     function qdelap_f_s (p, alpha, beta, lambda) result (value)
+    !$omp declare simd(qdelap_f_s) inbranch
 
     external set_nan
     external set_inf
@@ -280,10 +281,12 @@ end function ddelap_f_s
                 deallocate(svec)
             end if
         else
+            !$omp parallel do simd
             do i = 1, np
                 obsv(i) = qdelap_f_s(p(i), a(mod(i - 1, na) + 1), b(mod(i - 1, nb) + 1), &
                                      l(mod(i - 1, nl) + 1))
             end do
+            !$omp end parallel do simd
         end if
 
     end subroutine qdelap_f

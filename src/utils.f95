@@ -29,16 +29,4 @@ module utils
       end do
   end function position
 
-  subroutine extend_v(y, nx, ny, y_out)
-    integer(kind = c_int), intent(in), value          :: nx, ny
-    real(kind = c_double), dimension(ny), intent(in)  :: y
-    real(kind = c_double), dimension(nx), intent(out) :: y_out
-
-    if (ny >= nx) then
-      y_out = y(1:nx)
-    else
-      y_out = reshape(y, [nx], y)
-    end if
-  end subroutine extend_v
-
 end module utils

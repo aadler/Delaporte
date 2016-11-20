@@ -4,5 +4,8 @@
 src/*.o
 src/*.so
 src/*.dll
+src/*.mod
 Read-and-delete-me
 README.html
+.Ruserdata
+

@@ -15,4 +15,4 @@ clean:
 	@rm -rf *.o *.mod *.d *.rc *.so *.dylib *.dll *.a *.lib $(SHLIB) $(OBJECTS)
 
 cleanup:
-		@rm -rf *.mod
+		@rm -rf *.mod *.o

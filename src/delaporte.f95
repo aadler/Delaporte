@@ -257,7 +257,7 @@ end function ddelap_f_s
     real(kind = c_double), intent(out), dimension(np)  :: obsv               ! Result
     real(kind = c_double), intent(in)                  :: a(na), b(nb), l(nl)! Parameters
     logical(kind = c_bool), intent(in)                 :: lg, lt             ! Flags
-    integer(kind = c_int)                              :: i, j               ! Integers
+    integer(kind = c_int)                              :: i                  ! Integers
     real(kind = c_double), allocatable, dimension(:)   :: svec, tvec         ! Results
     real(kind = c_double)                              :: x                  ! current %
 

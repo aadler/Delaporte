@@ -3,7 +3,7 @@ ddelap <- function(x, alpha, beta, lambda, log = FALSE){
   if(!is.double(alpha)) {storage.mode(alpha) <- 'double'}
   if(!is.double(beta)) {storage.mode(beta) <- 'double'}
   if(!is.double(lambda)) {storage.mode(lambda) <- 'double'}
-  .Call('ddelap_f_wrap', x, alpha, beta, lambda, log, PACKAGE = 'Delaporte')
+  .Call('ddelap_C', x, alpha, beta, lambda, log, PACKAGE = 'Delaporte')
 }
 
 pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE){
@@ -11,7 +11,7 @@ pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE){
   if(!is.double(alpha)) {storage.mode(alpha) <- 'double'}
   if(!is.double(beta)) {storage.mode(beta) <- 'double'}
   if(!is.double(lambda)) {storage.mode(lambda) <- 'double'}
-  .Call('pdelap_f_wrap', q, alpha, beta, lambda, lower.tail, log.p, PACKAGE = 'Delaporte')
+  .Call('pdelap_C', q, alpha, beta, lambda, lower.tail, log.p, PACKAGE = 'Delaporte')
 }
 
 qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exact = TRUE, old = FALSE){
@@ -21,7 +21,7 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exa
   if(!is.double(lambda)) {storage.mode(lambda) <- 'double'}
   QDLAP <- double(length(p))
   if (exact) {
-    QDLAP <- .Call('qdelap_f_wrap', p, alpha, beta, lambda, lower.tail, log.p, PACKAGE = 'Delaporte')
+    QDLAP <- .Call('qdelap_C', p, alpha, beta, lambda, lower.tail, log.p, PACKAGE = 'Delaporte')
   } else {
     if(any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0))
       stop('Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results')
@@ -72,7 +72,7 @@ rdelap <- function(n, alpha, beta, lambda, exact = TRUE, old = FALSE){
       RDLAP <- rpois(n, lambda = (ShiftedGammas + lambda))
     }
   } else {
-    RDLAP <- .Call('rdelap_f_wrap', n, alpha, beta, lambda, PACKAGE = 'Delaporte')
+    RDLAP <- .Call('rdelap_C', n, alpha, beta, lambda, PACKAGE = 'Delaporte')
   }
   return(RDLAP)
 }
@@ -80,7 +80,7 @@ rdelap <- function(n, alpha, beta, lambda, exact = TRUE, old = FALSE){
 MoMdelap <- function(x){
   if(!is.double(x)) {storage.mode(x) <- 'double'}
   MoMDLAP <- double(3)
-  MoMDLAP <- .Call('momdelap_f_wrap', x, PACKAGE = 'Delaporte')
+  MoMDLAP <- .Call('MoMdelap_C', x, PACKAGE = 'Delaporte')
   if (any(MoMDLAP <= 0)) stop ("Method of moments not appropriate for this data; results include non-positive parameters.")
   return(MoMDLAP)
 }

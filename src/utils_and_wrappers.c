@@ -24,7 +24,7 @@
 void ddelap_f(double *x, int nx, double *a, int na, double *b, int nb, double *l, int nl,
               int *lg, double *ret);
 
-SEXP ddelap_f_wrap(SEXP x, SEXP alpha, SEXP beta, SEXP lambda, SEXP lg){
+SEXP ddelap_C(SEXP x, SEXP alpha, SEXP beta, SEXP lambda, SEXP lg){
   const int nx = LENGTH(x);
   const int na = LENGTH(alpha);
   const int nb = LENGTH(beta);
@@ -39,7 +39,7 @@ SEXP ddelap_f_wrap(SEXP x, SEXP alpha, SEXP beta, SEXP lambda, SEXP lg){
 void pdelap_f(double *q, int nq, double *a, int na, double *b, int nb, double *l, int nl,
               int *lt, int *lg, double *ret);
 
-SEXP pdelap_f_wrap(SEXP q, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt, SEXP lg){
+SEXP pdelap_C(SEXP q, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt, SEXP lg){
   const int nq = LENGTH(q);
   const int na = LENGTH(alpha);
   const int nb = LENGTH(beta);
@@ -56,7 +56,7 @@ void qdelap_f(double *p, int np, double *a, int na, double *b, int nb, double *l
               int *lt, int *lg, double *ret);
 
 
-SEXP qdelap_f_wrap(SEXP p, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt, SEXP lg){
+SEXP qdelap_C(SEXP p, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt, SEXP lg){
   const int np = LENGTH(p);
   const int na = LENGTH(alpha);
   const int nb = LENGTH(beta);
@@ -73,7 +73,7 @@ void rdelap_f(int n, double *a, int na, double *b, int nb, double *l, int nl,
               double *ret);
 
 
-SEXP rdelap_f_wrap(SEXP n, SEXP alpha, SEXP beta, SEXP lambda){
+SEXP rdelap_C(SEXP n, SEXP alpha, SEXP beta, SEXP lambda){
   const int nn = INTEGER(n)[0];
   const int na = LENGTH(alpha);
   const int nb = LENGTH(beta);
@@ -87,7 +87,7 @@ SEXP rdelap_f_wrap(SEXP n, SEXP alpha, SEXP beta, SEXP lambda){
 
 void momdelap_f(double *x, int nx, double *ret);
 
-SEXP momdelap_f_wrap(SEXP x){
+SEXP MoMdelap_C(SEXP x){
   const int nx = LENGTH(x);
   SEXP ret;
   PROTECT(ret = allocVector(REALSXP, 3));

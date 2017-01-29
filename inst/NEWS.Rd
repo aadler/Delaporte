@@ -2,7 +2,7 @@
 \alias{NEWS}
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
 
-\section{Changes in version 4.0.0 (2016-11-20)}{
+\section{Changes in version 4.0.0 (2017-01-29)}{
   \subsection{Changed}{
     \itemize{
       \item Back end code ported from C++ & Rcpp to Fortran and C. In most cases this alone showed an increase in speed. There should be no noticeable difference in results. Even random numbers generated with the same seeds should be the same as in previous packages.

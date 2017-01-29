@@ -56,7 +56,6 @@ contains
 !----------------------------------------------------------------------------------------
 
     function ddelap_f_s (x, alpha, beta, lambda) result (pmf)
-    !$omp declare simd(ddelap_f_s) notinbranch
 
     external set_nan                                              ! C-based Nan
     real(kind = c_double)               :: pmf                    ! Result
@@ -99,12 +98,12 @@ end function ddelap_f_s
     integer(kind = c_int)                            :: i                  ! Integer
 
 
-        !$omp parallel do simd
+        !$omp parallel do default(shared) private(i)
         do i = 1, nx
             pmfv(i) = ddelap_f_s(x(i), a(mod(i - 1, na) + 1), b(mod(i - 1, nb) + 1), &
                                  l(mod(i - 1, nl) + 1))
         end do
-        !$omp end parallel do simd
+        !$omp end parallel do
 
         if (lg) then
             pmfv = log(pmfv)
@@ -122,7 +121,6 @@ end function ddelap_f_s
 !----------------------------------------------------------------------------------------
 
     function pdelap_f_s (q, alpha, beta, lambda) result (cdf)
-    !$omp declare simd(pdelap_f_s) inbranch
 
     external set_nan
     real(kind = c_double)               :: cdf                    ! Result
@@ -185,12 +183,12 @@ end function ddelap_f_s
                 deallocate(singlevec)
             end if
         else
-            !$omp parallel do simd
+            !$omp parallel do default(shared) private(i)
             do i = 1, nq
                 pmfv(i) = pdelap_f_s(q(i), a(mod(i - 1, na) + 1), b(mod(i - 1, nb) + 1),&
                                      l(mod(i - 1, nl) + 1))
             end do
-            !$omp end parallel do simd
+            !$omp end parallel do
         end if
 
         if (.not.(lt)) then
@@ -214,7 +212,6 @@ end function ddelap_f_s
 !----------------------------------------------------------------------------------------
 
     function qdelap_f_s (p, alpha, beta, lambda) result (value)
-    !$omp declare simd(qdelap_f_s) inbranch
 
     external set_nan
     external set_inf
@@ -305,12 +302,12 @@ end function ddelap_f_s
                 deallocate(svec)
             end if
         else
-            !$omp parallel do simd
+            !$omp parallel do default(shared) private(i)
             do i = 1, np
                 obsv(i) = qdelap_f_s(p(i), a(mod(i - 1, na) + 1), b(mod(i - 1, nb) + 1),&
                                      l(mod(i - 1, nl) + 1))
             end do
-            !$omp end parallel do simd
+            !$omp end parallel do
         end if
 
     end subroutine qdelap_f

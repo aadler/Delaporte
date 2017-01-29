@@ -55,7 +55,6 @@ module lgam
 !----------------------------------------------------------------------------------------
 
   function gamln1 (a) result(fn_val)
-  !$omp declare simd(gamln1)
 
     real(kind = c_double), parameter  :: ONE = 1_c_double
     real(kind = c_double), intent(in) :: a
@@ -114,7 +113,6 @@ module lgam
 
 
   function gamln (a) result(fn_val)
-  !$omp declare simd(gamln)
 
     real(kind = c_double), intent(in) :: a
     real(kind = c_double)             :: fn_val

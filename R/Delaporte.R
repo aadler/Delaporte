@@ -33,6 +33,9 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exa
     pInf <- p[p >= 1]
     n <- min(10 ^ (ceiling(log(alpha * beta + lambda, 10)) + 5), 1e7)
     if (old) {
+      .Deprecated(msg = 'If not using exact, use old = FALSE. The "old" option may be removed at any time and exact = FALSE will default to the new method.',
+                  old = 'old = TRUE',
+                  new = 'old = FALSE')
       NB <- rnbinom(n, mu = alpha * beta, size = alpha)
       P <- rpois(n, lambda = lambda)
       DP <- NB + P
@@ -59,6 +62,9 @@ rdelap <- function(n, alpha, beta, lambda, exact = TRUE, old = FALSE){
     if(any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0))
       stop('Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results')
     if (old) {
+      .Deprecated(msg = 'If not using exact, use old = FALSE. The "old" option may be removed at any time and exact = FALSE will default to the new method.',
+                  old = 'old = TRUE',
+                  new = 'old = FALSE')
       NB <- rnbinom(max(1e7, n), mu = alpha * beta, size = alpha)
       P <- rpois(max(1e7, n), lambda = lambda)
       DP <- NB + P

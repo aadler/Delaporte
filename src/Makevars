@@ -1,18 +1,22 @@
 PKG_CFLAGS = $(SHLIB_OPENMP_CFLAGS)
-PKG_FFLAGS = $(SHLIB_OPENMP_FFLAGS)
-PKG_FCFLAGS = $(SHLIB_OPENMP_FCFLAGS)
+PKG_FFLAGS = $(SHLIB_OPENMP_FFLAGS) 
+PKG_FCFLAGS = $(SHLIB_OPENMP_FCFLAGS) 
 PKG_LIBS = $(SHLIB_OPENMP_CFLAGS) $(FLIBS)
 
 C_OBJS = utils_and_wrappers.o
-FT_OBJS = utils.o lgamma.o delaporte.o
-OBJECTS = $(FT_OBJS) $(C_OBJS)
+FT_OBJS = utils.o lgamma.o
 
 all: clean $(SHLIB) cleanup
 
-$(SHLIB): $(OBJECTS)
+utils.mod: utils.o
+lgamma.o: utils.mod
+lgamma.mod: lgamma.o
+delaporte.o: utils.mod lgamma.mod
+
+$(SHLIB): $(FT_OBJS) delaporte.o $(C_OBJS)
 
 clean:
 	@rm -rf *.o *.mod *.d *.rc *.so *.dylib *.dll *.a *.lib $(SHLIB) $(OBJECTS)
 
 cleanup:
-		@rm -rf *.mod *.o
+	@rm -rf *.mod *.o

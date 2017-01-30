@@ -37,7 +37,7 @@
 !----------------------------------------------------------------------------------------
 module delaporte
     use, intrinsic :: iso_c_binding
-    use, intrinsic :: omp_lib
+    !$use omp_lib
     use utils
     use lgam
 

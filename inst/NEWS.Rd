@@ -2,10 +2,11 @@
 \alias{NEWS}
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
 
-\section{Changes in version 4.0.1 (2017-01-30)}{
+\section{Changes in version 4.0.2 (2017-01-30)}{
   \subsection{Changed}{
     \itemize{
       \item Emergency fix to address parallel make and other non-gcc issues.
+      \item Version 4.0.1 did not completely address one issue.
     }
   }
 }

@@ -2,10 +2,10 @@
 \alias{NEWS}
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
 
-\section{Version 5.0.0-9999 (2017-99-99)}{
+\section{Version 5.0.0-9999 (TBD)}{
   \subsection{Removed}{
     \itemize{
-      \item Older implementations of \code{qdelap} and \code{rdelap} approximations are now defunct. Only the new faster approximation based on section 3.9 of Karlis & Xekalaki (2005) remains.
+      \item Older implementation of \code{qdelap} and \code{rdelap} approximations is now defunct. Only the new faster approximation based on section 3.9 of Karlis & Xekalaki (2005) remains.
     }
   }
   \subsection{Added}{
@@ -31,7 +31,7 @@
   }
   \subsection{Fixed}{
     \itemize{
-      \item Includes various emergency fixes to address parallel make and other compilation issues in versions 4.0.0–4.0.2.
+      \item Includes various emergency fixes to address parallel make and other compilation issues in versions 4.0.0--4.0.2.
     }
   }
 }

@@ -2,22 +2,55 @@
 \alias{NEWS}
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
 
-\section{Changes in version 4.0.3 (2017-01-30)}{
+\section{Version 5.0.0-9999 (2017-99-99)}{
+  \subsection{Removed}{
+    \itemize{
+      \item Older implementations of \code{qdelap} and \code{rdelap} approximations are now defunct. Only the new faster approximation based on section 3.9 of Karlis & Xekalaki (2005) remains.
+    }
+  }
+  \subsection{Added}{
+    \itemize{
+      \item Specified, clarified, and added many more unit tests.
+    }
+  }
   \subsection{Changed}{
     \itemize{
-      \item Emergency fix to address parallel make and other non-gcc issues.
-      \item Versions 4.0.1 & 4.0.2 did not completely address the issues.
+      \item Use R_NaN and INFINITY instead of memcpy for setting Inf and NaN in C code. Still need to use C as version of gfortran used on Windows does not have IEEE intrinsics.
+      \item Older NEWS entries refactored for accuracy
     }
   }
 }
 
-\section{Changes in version 4.0.0 (2017-01-29)}{
+\section{Version 4.0.3 (2017-01-30)}{
   \subsection{Changed}{
     \itemize{
-      \item Back end code ported from C++ & Rcpp to Fortran and C. In most cases this alone showed an increase in speed. There should be no noticeable difference in results. Even random numbers generated with the same seeds should be the same as in previous packages.
-      \item OpenMP calls activated for systems which have it (including GCC 4.9.3 and subsequent) which allows parallel processing of certain loops resulting in further speed increases over and above those supplied by Fortran.
+      \item Back end code ported from C++ & Rcpp to Fortran and C. In most cases this alone showed an increase in speed. There should be no noticeable difference in results. Random numbers generated with the same seeds should be the same as in previous packages.
+      \item OpenMP calls activated for systems which have it which allows parallel processing of certain loops resulting in further speed increases over and above those supplied by Fortran. OpenMP compatibility is approximately version 3.1; no SIMD instructions are used.
       \item License changed from GPL2+/LGPL3+ to BSD-2 clause.
     }
+  }
+  \subsection{Fixed}{
+    \itemize{
+      \item Includes various emergency fixes to address parallel make and other compilation issues in versions 4.0.0–4.0.2.
+    }
+  }
+}
+
+\section{Version 4.0.2 (2017-01-30) [YANKED]}{
+  \itemize{
+    \item Did not build properly on some systems using a parallel make.
+  }
+}
+
+\section{Version 4.0.1 (2017-01-30) [YANKED]}{
+  \itemize{
+    \item Did not build properly on Fedora using Clang.
+  }
+}
+
+\section{Version 4.0.0 (2017-01-29) [YANKED]}{
+  \itemize{
+    \item Did not build properly on various platforms such as Fedora and Solaris
   }
 }
 
@@ -25,18 +58,17 @@
   \subsection{Changed}{
     \itemize{
       \item The distributional functions now return \code{NaN} where the passed \code{alpha}, \code{beta}, or \code{lambda} is close to 0 (less than machine epsilon). Within vectors, valid triplets should still return proper values. The approximate versions of \code{qdelap} and \code{rdelap} do not handle 0 properly, and an error is thrown directing the user to the exact version. Thanks are due to Jonathan Cairns and Jin-Rui Xu for their help in testing.
-      \item Faster versions of the approximate \code{qdelap} and \code{rdelap} have been implemented.
-      
+      }
     }
-  }
   \subsection{Added}{
     \itemize{
+      \item Faster versions of the approximate \code{qdelap} and \code{rdelap} have been implemented.
       \item Tests for near 0 handling on exact version.
       }
     }
   \subsection{Deprecated}{
     \itemize{
-      \item The old approximation versions of \code{qdelap} and \code{rdelap} can still be used by passing \code{oldapprox = TRUE}. This will be removed eventually.
+      \item The old approximation versions of \code{qdelap} and \code{rdelap} can still be used by passing \code{old = TRUE}. This will be removed eventually.
     }
   }
 }

@@ -1,8 +1,6 @@
 #include <R.h>
 #include <Rinternals.h>
 #include <Rmath.h>
-#include <string.h>
-#include <stdint.h>
 
 //  Copyright (c) 2016, Avraham Adler
 //  All rights reserved.
@@ -106,19 +104,9 @@ void unifrnd_ (int *n, double *x){
 
 void set_nan_(double *val)
 {
-  // *val = sqrt(-1.0); By Drew Schmidt - 2016
-  int64_t x = 0x7FF0000000000001LL;
-  memcpy((void *) val, (void *) &x, 8);
+  *val = R_NaN;
 }
 
 void set_inf_(double *val) {
-  // *val = Inf Based on set_nan
-  int64_t x = 0x7FF0000000000000LL;
-  memcpy((void *) val, (void *) &x, 8);
-}
-
-void set_neginf_(double *val) {
-  // *val = Neg Inf Based on set_nan
-  int64_t x = 0xFFF0000000000000LL;
-  memcpy((void *) val, (void *) &x, 8);
+  *val = INFINITY;
 }

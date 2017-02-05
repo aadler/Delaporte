@@ -34,23 +34,20 @@
 !----------------------------------------------------------------------------------------
 
 module utils
-  use, intrinsic :: iso_c_binding
-  implicit none
+    use, intrinsic :: iso_c_binding, only: c_double
+    implicit none
 
-  real(kind = c_double), parameter :: ZERO = 0._c_double
-  real(kind = c_double), parameter :: HALF = 0.5_c_double
-  real(kind = c_double), parameter :: ONE = 1._c_double
-  real(kind = c_double), parameter :: THRHAL = 1.5_c_double
-  real(kind = c_double), parameter :: TWO = 2._c_double
-  real(kind = c_double), parameter :: THREE = 3._c_double
-  real(kind = c_double), parameter :: FOUR = 4._c_double
-  real(kind = c_double), parameter :: TWELVE = 12._c_double
-  real(kind = c_double), parameter :: SQRTPI = 0.9189385332046727417803297_c_double
-  real(kind = c_double), parameter :: EPS = 2.2204460492503131e-16_c_double
-  real(kind = c_double), parameter :: NAN = TRANSFER(z'7FF0000000000001', ONE)
-  real(kind = c_double), parameter :: INFTY = TRANSFER(z'7FF0000000000000', ONE)
-
-  contains
+    real(kind = c_double), parameter :: ZERO = 0._c_double
+    real(kind = c_double), parameter :: HALF = 0.5_c_double
+    real(kind = c_double), parameter :: ONE = 1._c_double
+    real(kind = c_double), parameter :: THREEHALFS = 1.5_c_double
+    real(kind = c_double), parameter :: TWO = 2._c_double
+    real(kind = c_double), parameter :: THREE = 3._c_double
+    real(kind = c_double), parameter :: EPS = 2.2204460492503131e-16_c_double
+    real(kind = c_double), parameter :: NAN = TRANSFER(z'7FF0000000000001', ONE)
+    real(kind = c_double), parameter :: INFTY = TRANSFER(z'7FF0000000000000', ONE)
+  
+contains
 
 !----------------------------------------------------------------------------------------
 ! FUNCTION: log1p
@@ -59,16 +56,16 @@ module utils
 !----------------------------------------------------------------------------------------
 
 
-  elemental function log1p(x) result (y)
+    elemental function log1p(x) result(y)
 
-    real(kind = c_double), intent(in) :: x
-    real(kind = c_double) :: y, z
+        real(kind = c_double), intent(in) :: x
+        real(kind = c_double) :: y, z
 
 
-    z = x + ONE
-    y = log(z) - ((z - ONE) - x) / z
+        z = x + ONE
+        y = log(z) - ((z - ONE) - x) / z   !Serves to eliminate catastrophic subtraction
 
-  end function log1p
+    end function log1p
   
 !----------------------------------------------------------------------------------------
 ! FUNCTION: Position
@@ -77,15 +74,16 @@ module utils
 !              singleton versions of pdelap and qdelap.
 !----------------------------------------------------------------------------------------  
 
-  pure function position(x, a) result (k)
-      real(kind = c_double), intent(in)                :: x
-      real(kind = c_double), intent(in), dimension(:)  :: a
-      integer(kind = c_int)                            :: k
+    pure function position(x, a) result (k)
+        real(kind = c_double), intent(in)                :: x
+        real(kind = c_double), intent(in), dimension(:)  :: a
+        integer                                          :: k
 
-      k = 1
-      do while (a(k) < x)
-          k = k + 1
-      end do
-  end function position
+        k = 1
+        do while (a(k) < x)
+            k = k + 1
+        end do
+        
+    end function position
 
 end module utils

@@ -55,7 +55,7 @@ contains
 !              Will coerce real observations to integer by calling ceiling.
 !----------------------------------------------------------------------------------------
 
-    elemental function ddelap_f_s (x, alpha, beta, lambda) result (pmf)
+    elemental function ddelap_f_s(x, alpha, beta, lambda) result(pmf)
 
     real(kind = c_double)               :: pmf                    ! Result
     real(kind = c_double), intent(in)   :: x, alpha, beta, lambda ! Observation & Parms
@@ -86,7 +86,7 @@ end function ddelap_f_s
 !              and then increased by one again.
 !----------------------------------------------------------------------------------------
 
-    subroutine ddelap_f (x, nx, a, na, b, nb, l, nl, lg, pmfv) bind(C, name="ddelap_f")
+    subroutine ddelap_f(x, nx, a, na, b, nb, l, nl, lg, pmfv) bind(C, name="ddelap_f")
 
     integer(kind = c_int), intent(in), value         :: nx, na, nb, nl     ! Sizes
     real(kind = c_double), intent(in), dimension(nx) :: x                  ! Observations
@@ -109,7 +109,6 @@ end function ddelap_f_s
 
     end subroutine ddelap_f
 
-
 !----------------------------------------------------------------------------------------
 ! FUNCTION: pdelap_f_s
 !
@@ -118,7 +117,7 @@ end function ddelap_f_s
 !              Will coerce real observations to integer by calling ceiling.
 !----------------------------------------------------------------------------------------
 
-    elemental function pdelap_f_s (q, alpha, beta, lambda) result (cdf)
+    elemental function pdelap_f_s(q, alpha, beta, lambda) result(cdf)
 
     real(kind = c_double)               :: cdf                    ! Result
     real(kind = c_double), intent(in)   :: q, alpha, beta, lambda ! Observation & Parms
@@ -149,15 +148,15 @@ end function ddelap_f_s
 !              p_delap_f_s on each entry.
 !----------------------------------------------------------------------------------------
 
-    subroutine pdelap_f (q, nq, a, na, b, nb, l, nl, lt, lg, pmfv) &
-                       bind(C, name="pdelap_f")
+    subroutine pdelap_f(q, nq, a, na, b, nb, l, nl, lt, lg, pmfv) &
+                        bind(C, name="pdelap_f")
 
     integer(kind = c_int), intent(in), value         :: nq, na, nb, nl     ! Sizes
     real(kind = c_double), intent(in), dimension(nq) :: q                  ! Observations
     real(kind = c_double), intent(out), dimension(nq):: pmfv               ! Result
     real(kind = c_double), intent(in)                :: a(na), b(nb), l(nl)! Parameters
     logical(kind = c_bool), intent(in)               :: lg, lt             ! Flags
-    integer(kind = c_int)                            :: i, k               ! Integers
+    integer                                          :: i, k               ! Integers
     real(kind = c_double), allocatable, dimension(:) :: singlevec          ! holds pmf
 
         if(na == 1 .and. nb == na .and. nl == nb) then
@@ -196,7 +195,6 @@ end function ddelap_f_s
 
     end subroutine pdelap_f
 
-
 !----------------------------------------------------------------------------------------
 ! FUNCTION: qdelap_f_s
 !
@@ -206,7 +204,7 @@ end function ddelap_f_s
 !              NaN and Inf.
 !----------------------------------------------------------------------------------------
 
-    elemental function qdelap_f_s (p, alpha, beta, lambda) result (value)
+    elemental function qdelap_f_s(p, alpha, beta, lambda) result(value)
 
     real(kind = c_double), intent(in)   :: p, alpha, beta, lambda ! Percentile & Parms
     real(kind = c_double)               :: testcdf, value         ! Result and testcdf
@@ -248,7 +246,7 @@ end function ddelap_f_s
     real(kind = c_double), intent(out), dimension(np)  :: obsv               ! Result
     real(kind = c_double), intent(in)                  :: a(na), b(nb), l(nl)! Parameters
     logical(kind = c_bool), intent(in)                 :: lg, lt             ! Flags
-    integer(kind = c_int)                              :: i                  ! Integers
+    integer                                            :: i                  ! Integer
     real(kind = c_double), allocatable, dimension(:)   :: svec, tvec         ! Results
     real(kind = c_double)                              :: x                  ! current %
 
@@ -266,7 +264,7 @@ end function ddelap_f_s
             else
                 x = maxval(p, 1, p < 1)
                 i = 1
-                allocate (svec(i))
+                allocate(svec(i))
                 svec(1) = exp(-l(1)) / ((b(1) + ONE) ** a(1))
                 do
                     if (svec(i) >= x) then
@@ -313,7 +311,7 @@ end function ddelap_f_s
 !              in Fortran. On vectors-valued parameters Fortran is faster than C++.
 !----------------------------------------------------------------------------------------
 
-    subroutine rdelap_f (n, a, na, b, nb, l, nl, vars) bind(C, name="rdelap_f")
+    subroutine rdelap_f(n, a, na, b, nb, l, nl, vars) bind(C, name="rdelap_f")
 
     external unifrnd
 
@@ -323,10 +321,10 @@ end function ddelap_f_s
     real(kind = c_double), dimension(n)                :: p                  ! %iles
     logical(kind = c_bool)                             :: lg, lt             ! Flags
 
-    call unifrnd(n, p)
-    lt = .TRUE.
-    lg = .FALSE.
-    call qdelap_f(p, n, a, na, b, nb, l, nl, lt, lg, vars)
+        call unifrnd(n, p)
+        lt = .TRUE.
+        lg = .FALSE.
+        call qdelap_f(p, n, a, na, b, nb, l, nl, lt, lg, vars)
 
     end subroutine rdelap_f
 
@@ -334,37 +332,38 @@ end function ddelap_f_s
 ! ROUTINE: momdelap_f
 !
 ! DESCRIPTION: Calculates method of moments estimates of parameters for a Delaporte
-!              distribution based on supplied vector.
+!              distribution based on supplied vector. Based on algorithms of Welford, 
+!              Knuth, and Cook. https://www.johndcook.com/blog/skewness_kurtosis/
 !----------------------------------------------------------------------------------------
 
     subroutine momdelap_f (obs, n, params) bind(C, name="momdelap_f")
 
-    integer(kind = c_int), intent(in), value           :: n                  ! Sizes
-    real(kind = c_double), intent(in), dimension(n)    :: obs                ! Result
-    real(kind = c_double), intent(out), dimension(3)   :: params
-    integer(kind = c_int)                              :: i
+    integer(kind = c_int), intent(in), value           :: n             ! Sizes
+    real(kind = c_double), intent(in), dimension(n)    :: obs           ! Observations
+    real(kind = c_double), intent(out), dimension(3)   :: params        ! Result triplet
+    integer                                            :: i
     real(kind = c_double)                              :: nm1, P, Mu_D, M2, M3, T1, delta
     real(kind = c_double)                              :: delta_i, Var_D, Skew_D, VmM_D
 
-    nm1 = n - ONE
-    P = n * sqrt(nm1) / (n - TWO)
-    Mu_D = ZERO
-    M2 = ZERO
-    M3 = ZERO
-    do i = 1, n
-        delta = obs(i) - Mu_D
-        delta_i = delta / i
-        T1 = delta * delta_i * (i - ONE)
-        Mu_D = Mu_D + delta_i
-        M3 = M3 + (T1 * delta_i * (i - TWO) - THREE * delta_i * M2)
-        M2 = M2 + T1
-    end do
-    Var_D = M2 / nm1
-    Skew_D = P * M3 / (M2 ** THRHAL)
-    VmM_D = Var_D - Mu_D
-    params(2) = HALF * (Skew_D * (Var_D ** THRHAL) / VmM_D - THREE)
-    params(1) = VmM_D / (params(2) ** 2)
-    params(3) = Mu_D - params(1) * params(2)
+        nm1 = n - ONE
+        P = n * sqrt(nm1) / (n - TWO)
+        Mu_D = ZERO
+        M2 = ZERO
+        M3 = ZERO
+        do i = 1, n
+            delta = obs(i) - Mu_D
+            delta_i = delta / i
+            T1 = delta * delta_i * (i - ONE)
+            Mu_D = Mu_D + delta_i
+            M3 = M3 + (T1 * delta_i * (i - TWO) - THREE * delta_i * M2)
+            M2 = M2 + T1
+        end do
+        Var_D = M2 / nm1
+        Skew_D = P * M3 / (M2 ** THREEHALFS)
+        VmM_D = Var_D - Mu_D
+        params(2) = HALF * (Skew_D * (Var_D ** THREEHALFS) / VmM_D - THREE)
+        params(1) = VmM_D / (params(2) ** 2)
+        params(3) = Mu_D - params(1) * params(2)
 
     end subroutine momdelap_f
 

@@ -14,7 +14,8 @@
 !          Version 1.0: 2016-11-20
 !                       Gently massaged into Fortran 2003
 !          Version 1.1: 2017-02-04
-!                       Adjusted code slightly to become elemental
+!                       Adjusted code slightly to become elemental by explicitly
+!                       declaring parameters as such.
 ! LICENSE: The original is a work of the US government and thus in the public domain.
 !          The updated code below is released under the BSD-2 License below:
 !
@@ -44,11 +45,11 @@ module lgam
 
 
 
-  use, intrinsic :: iso_c_binding, only: c_double
-  use utils
-  implicit none
+    use, intrinsic :: iso_c_binding, only: c_double
+    use utils
+    implicit none
 
-  contains
+contains
 
 !----------------------------------------------------------------------------------------
 ! FUNCTION: gamln1
@@ -56,49 +57,49 @@ module lgam
 ! DESCRIPTION: EVALUATION OF LN(GAMMA(1 + A)) FOR -0.2 <= A <= 1.25
 !----------------------------------------------------------------------------------------
 
-  elemental function gamln1 (a) result(fn_val)
+    elemental function gamln1(a) result(fn_val)
 
     real(kind = c_double), intent(in) :: a
     real(kind = c_double)             :: fn_val
     real(kind = c_double)             :: w, x
     real(kind = c_double), parameter  :: &
-               p0 =  .577215664901533_c_double,     &
-               p1 =  .844203922187225_c_double,     &
-               p2 = -.168860593646662_c_double,     &
-               p3 = -.780427615533591_c_double,     &
-               p4 = -.402055799310489_c_double,     &
-               p5 = -.673562214325671e-01_c_double, &
-               p6 = -.271935708322958e-02_c_double, &
-               q1 =  .288743195473681e+01_c_double, &
-               q2 =  .312755088914843e+01_c_double, &
-               q3 =  .156875193295039e+01_c_double, &
-               q4 =  .361951990101499_c_double,     &
-               q5 =  .325038868253937e-01_c_double, &
-               q6 =  .667465618796164e-03_c_double, &
-               r0 = .422784335098467_c_double,      &
-               r1 = .848044614534529_c_double,      &
-               r2 = .565221050691933_c_double,      &
-               r3 = .156513060486551_c_double,      &
-               r4 = .170502484022650e-01_c_double,  &
-               r5 = .497958207639485e-03_c_double,  &
-               s1 = .124313399877507e+01_c_double,  &
-               s2 = .548042109832463_c_double,      &
-               s3 = .101552187439830_c_double,      &
-               s4 = .713309612391000e-02_c_double,  &
-               s5 = .116165475989616e-03_c_double
+        P0 =  .577215664901533_c_double,     &
+        P1 =  .844203922187225_c_double,     &
+        P2 = -.168860593646662_c_double,     &
+        P3 = -.780427615533591_c_double,     &
+        P4 = -.402055799310489_c_double,     &
+        P5 = -.673562214325671e-01_c_double, &
+        P6 = -.271935708322958e-02_c_double, &
+        Q1 =  .288743195473681e+01_c_double, &
+        Q2 =  .312755088914843e+01_c_double, &
+        Q3 =  .156875193295039e+01_c_double, &
+        Q4 =  .361951990101499_c_double,     &
+        Q5 =  .325038868253937e-01_c_double, &
+        Q6 =  .667465618796164e-03_c_double, &
+        R0 = .422784335098467_c_double,      &
+        R1 = .848044614534529_c_double,      &
+        R2 = .565221050691933_c_double,      &
+        R3 = .156513060486551_c_double,      &
+        R4 = .170502484022650e-01_c_double,  &
+        R5 = .497958207639485e-03_c_double,  &
+        S1 = .124313399877507e+01_c_double,  &
+        S2 = .548042109832463_c_double,      &
+        S3 = .101552187439830_c_double,      &
+        S4 = .713309612391000e-02_c_double,  &
+        S5 = .116165475989616e-03_c_double
 
-    if(a < 0.6_c_double) then
-        w = ((((((p6 * a + p5) * a + p4) * a + p3) * a + p2) * a + p1) * a + p0) / &
-            ((((((q6 * a + q5) * a + q4) * a + q3) * a + q2) * a + q1) * a + ONE)
-        fn_val = -a * w
-    else
-        x = a - ONE
-        w = (((((r5 * x + r4) * x + r3) * x + r2) * x + r1) * x + r0) / &
-            (((((s5 * x + s4) * x + s3) * x + s2) * x + s1) * x + ONE)
-        fn_val = x*w
-    end if
+        if(a < 0.6_c_double) then
+            w = ((((((P6 * a + P5) * a + P4) * a + P3) * a + P2) * a + P1) * a + P0) / &
+                ((((((Q6 * a + Q5) * a + Q4) * a + Q3) * a + Q2) * a + Q1) * a + ONE)
+            fn_val = -a * w
+        else
+            x = a - ONE
+            w = (((((R5 * x + R4) * x + R3) * x + R2) * x + R1) * x + R0) / &
+                (((((S5 * x + S4) * x + S3) * x + S2) * x + S1) * x + ONE)
+            fn_val = x * w
+        end if
 
-  end function gamln1
+    end function gamln1
 
 !----------------------------------------------------------------------------------------
 ! FUNCTION: gamln
@@ -113,40 +114,39 @@ module lgam
 !     D = 0.5*(LN(2*PI) - 1)
 !--------------------------
 
-
-  elemental function gamln (a) result(fn_val)
+    elemental function gamln(a) result(fn_val)
 
     real(kind = c_double), intent(in) :: a
     real(kind = c_double)             :: fn_val, t, w
     real(kind = c_double), parameter  :: &
-              c0 = 0.833333333333333e-01_c_double, &
-              c1 = -.277777777760991e-02_c_double, &
-              c2 = .793650666825390e-03_c_double,  &
-              c3 = -.595202931351870e-03_c_double, &
-              c4 = .837308034031215e-03_c_double,  &
-              c5 = -.165322962780713e-02_c_double, &
-              d = .418938533204673_c_double
+        C0 = 0.833333333333333e-01_c_double, &
+        C1 = -.277777777760991e-02_c_double, &
+        C2 = .793650666825390e-03_c_double,  &
+        C3 = -.595202931351870e-03_c_double, &
+        C4 = .837308034031215e-03_c_double,  &
+        C5 = -.165322962780713e-02_c_double, &
+        D = .418938533204673_c_double
     integer                           :: i, n
 
-    if (a <= 0.8_c_double) then
-        fn_val = gamln1(a) - log(a)
-    else if(a <= 2.25_c_double) then
-        fn_val = gamln1((a - HALF) - HALF)
-    else if (a < 10_c_double) then
-        n = a - 1.25_c_double
-        t = a
-        w = ONE
-        do  i = 1, n
-            t = t - ONE
-            w = t * w
-        end do
-        fn_val = gamln1(t - ONE) + log(w)
-    else
-        t = (ONE / a) ** 2
-        w = (((((c5 * t + c4) * t + c3) * t + c2) * t + c1) * t + c0) / a
-        fn_val = (d + w) + (a - HALF) * (LOG(a) - ONE)
-    end if
+        if (a <= 0.8_c_double) then
+            fn_val = gamln1(a) - log(a)
+        else if(a <= 2.25_c_double) then
+            fn_val = gamln1((a - HALF) - HALF)
+        else if (a < 10_c_double) then
+            n = int(a - 1.25_c_double)
+            t = a
+            w = ONE
+            do  i = 1, n
+                t = t - ONE
+                w = t * w
+            end do
+            fn_val = gamln1(t - ONE) + log(w)
+        else
+            t = (ONE / a) ** 2
+            w = (((((C5 * t + C4) * t + C3) * t + C2) * t + C1) * t + C0) / a
+            fn_val = (D + w) + (a - HALF) * (LOG(a) - ONE)
+        end if
 
-  end function gamln
+    end function gamln
 
 end module lgam

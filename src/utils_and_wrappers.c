@@ -95,9 +95,9 @@ SEXP MoMdelap_C(SEXP x){
 }
 
 void unifrnd_ (int *n, double *x){
-    GetRNGstate();
-    for (int i = 0; i < *n; ++i){
-        *(x + i) = unif_rand();
-    }
-    PutRNGstate();
+  GetRNGstate();
+  for (int i = 0; i < *n; ++i){
+    *(x + i) = unif_rand();
   }
+  PutRNGstate();
+}

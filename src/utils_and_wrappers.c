@@ -101,12 +101,3 @@ void unifrnd_ (int *n, double *x){
     }
     PutRNGstate();
   }
-
-void set_nan_(double *val)
-{
-  *val = R_NaN;
-}
-
-void set_inf_(double *val) {
-  *val = INFINITY;
-}

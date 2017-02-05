@@ -55,15 +55,14 @@ contains
 !              Will coerce real observations to integer by calling ceiling.
 !----------------------------------------------------------------------------------------
 
-    function ddelap_f_s (x, alpha, beta, lambda) result (pmf)
+    elemental function ddelap_f_s (x, alpha, beta, lambda) result (pmf)
 
-    external set_nan                                              ! C-based Nan
     real(kind = c_double)               :: pmf                    ! Result
     real(kind = c_double), intent(in)   :: x, alpha, beta, lambda ! Observation & Parms
     integer(kind = c_int)               :: i, k                   ! Integers
 
-    if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. x < 0) then
-        call set_nan(pmf)
+    if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. x < ZERO) then
+        pmf = NAN
     else
         k = ceiling(x)
         pmf = ZERO
@@ -87,8 +86,7 @@ end function ddelap_f_s
 !              and then increased by one again.
 !----------------------------------------------------------------------------------------
 
-    subroutine ddelap_f (x, nx, a, na, b, nb, l, nl, lg, pmfv) &
-                       bind(C, name="ddelap_f")
+    subroutine ddelap_f (x, nx, a, na, b, nb, l, nl, lg, pmfv) bind(C, name="ddelap_f")
 
     integer(kind = c_int), intent(in), value         :: nx, na, nb, nl     ! Sizes
     real(kind = c_double), intent(in), dimension(nx) :: x                  ! Observations
@@ -104,7 +102,7 @@ end function ddelap_f_s
                                  l(mod(i - 1, nl) + 1))
         end do
         !$omp end parallel do
-
+        
         if (lg) then
             pmfv = log(pmfv)
         end if
@@ -120,15 +118,14 @@ end function ddelap_f_s
 !              Will coerce real observations to integer by calling ceiling.
 !----------------------------------------------------------------------------------------
 
-    function pdelap_f_s (q, alpha, beta, lambda) result (cdf)
+    elemental function pdelap_f_s (q, alpha, beta, lambda) result (cdf)
 
-    external set_nan
     real(kind = c_double)               :: cdf                    ! Result
     real(kind = c_double), intent(in)   :: q, alpha, beta, lambda ! Observation & Parms
     integer(kind = c_int)               :: i, k                   ! Integers
 
-        if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. q < 0) then
-            call set_nan(cdf)
+        if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. q < ZERO) then
+            cdf = NAN
         else
             k = ceiling(q)
             cdf = exp(-lambda) / ((beta + ONE) ** alpha)
@@ -165,9 +162,7 @@ end function ddelap_f_s
 
         if(na == 1 .and. nb == na .and. nl == nb) then
             if (a(1) < EPS .or. b(1) < EPS .or. l(1) < EPS) then
-                do i = 1, nq
-                    call set_nan(pmfv(i))
-                end do
+                pmfv = NAN
             else
                 k = ceiling(maxval(q))
                 allocate (singlevec(k + 1))
@@ -211,23 +206,20 @@ end function ddelap_f_s
 !              NaN and Inf.
 !----------------------------------------------------------------------------------------
 
-    function qdelap_f_s (p, alpha, beta, lambda) result (value)
+    elemental function qdelap_f_s (p, alpha, beta, lambda) result (value)
 
-    external set_nan
-    external set_inf
     real(kind = c_double), intent(in)   :: p, alpha, beta, lambda ! Percentile & Parms
     real(kind = c_double)               :: testcdf, value         ! Result and testcdf
 
-
-        if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. p < 0) then
-            call set_nan(value)
-        else if (p >= 1) then
-            call set_inf(value)
+        if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. p < ZERO) then
+            value = NAN
+        else if (p >= ONE) then
+            value = INFTY
         else
-            value = 0
+            value = ZERO
             testcdf = exp(-lambda) / ((beta + ONE) ** alpha)
             do while (p - testcdf > EPS)
-                value = value + 1
+                value = value + ONE
                 testcdf = testcdf + ddelap_f_s (real(value, c_double), alpha, beta, &
                                                 lambda)
             end do
@@ -250,8 +242,7 @@ end function ddelap_f_s
 
     subroutine qdelap_f (p, np, a, na, b, nb, l, nl, lt, lg, obsv) &
                        bind(C, name="qdelap_f")
-    external set_nan
-    external set_inf
+
     integer(kind = c_int), intent(in), value           :: np, na, nb, nl     ! Sizes
     real(kind = c_double), intent(inout), dimension(np):: p                  ! %iles
     real(kind = c_double), intent(out), dimension(np)  :: obsv               ! Result
@@ -271,9 +262,7 @@ end function ddelap_f_s
 
         if(na == 1 .and. nb == na .and. nl == nb) then
             if (a(1) < EPS .or. b(1) < EPS .or. l(1) < EPS) then
-                do i = 1, np
-                    call set_nan(obsv(i))
-                end do
+                obsv = NAN
             else
                 x = maxval(p, 1, p < 1)
                 i = 1
@@ -291,10 +280,10 @@ end function ddelap_f_s
                                                        b(1), l(1))
                 end do
                 do i = 1, np
-                    if (p(i) < 0) then
-                        call set_nan(obsv(i))
-                    else if (p(i) >= 1) then
-                        call set_inf(obsv(i))
+                    if (p(i) < ZERO) then
+                        obsv(i) = NAN
+                    else if (p(i) >= ONE) then
+                        obsv(i) = INFTY
                     else
                         obsv(i) = real(position(p(i), svec) - 1)
                     end if
@@ -358,7 +347,7 @@ end function ddelap_f_s
     real(kind = c_double)                              :: delta_i, Var_D, Skew_D, VmM_D
 
     nm1 = n - ONE
-    P = n * sqrt(nm1) / (n - 2_c_double)
+    P = n * sqrt(nm1) / (n - TWO)
     Mu_D = ZERO
     M2 = ZERO
     M3 = ZERO
@@ -367,13 +356,13 @@ end function ddelap_f_s
         delta_i = delta / i
         T1 = delta * delta_i * (i - ONE)
         Mu_D = Mu_D + delta_i
-        M3 = M3 + (T1 * delta_i * (i - 2) - 3 * delta_i * M2)
+        M3 = M3 + (T1 * delta_i * (i - TWO) - THREE * delta_i * M2)
         M2 = M2 + T1
     end do
     Var_D = M2 / nm1
-    Skew_D = P * M3 / (M2 **1.5)
+    Skew_D = P * M3 / (M2 ** THRHAL)
     VmM_D = Var_D - Mu_D
-    params(2) = 0.5 * (Skew_D * (Var_D ** 1.5) / VmM_D - 3)
+    params(2) = HALF * (Skew_D * (Var_D ** THRHAL) / VmM_D - THREE)
     params(1) = VmM_D / (params(2) ** 2)
     params(3) = Mu_D - params(1) * params(2)
 

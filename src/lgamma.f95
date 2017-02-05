@@ -13,6 +13,8 @@
 ! HISTORY:
 !          Version 1.0: 2016-11-20
 !                       Gently massaged into Fortran 2003
+!          Version 1.1: 2017-02-04
+!                       Adjusted code slightly to become elemental
 ! LICENSE: The original is a work of the US government and thus in the public domain.
 !          The updated code below is released under the BSD-2 License below:
 !
@@ -54,12 +56,12 @@ module lgam
 ! DESCRIPTION: EVALUATION OF LN(GAMMA(1 + A)) FOR -0.2 <= A <= 1.25
 !----------------------------------------------------------------------------------------
 
-  function gamln1 (a) result(fn_val)
+  elemental function gamln1 (a) result(fn_val)
 
-    real(kind = c_double), parameter  :: ONE = 1_c_double
     real(kind = c_double), intent(in) :: a
     real(kind = c_double)             :: fn_val
-    real(kind = c_double) :: w, x, &
+    real(kind = c_double)             :: w, x
+    real(kind = c_double), parameter  :: &
                p0 =  .577215664901533_c_double,     &
                p1 =  .844203922187225_c_double,     &
                p2 = -.168860593646662_c_double,     &
@@ -108,27 +110,28 @@ module lgam
 !              Modified to interact with C using Fortran 2003
 !              by Avraham Adler <Avraham.Adler@gmail.com>, 2016-11-07
 !--------------------------
-!     D = 0.5*(LN(2*PI) - 1) {No idea what this means - AA}
+!     D = 0.5*(LN(2*PI) - 1)
 !--------------------------
 
 
-  function gamln (a) result(fn_val)
+  elemental function gamln (a) result(fn_val)
 
     real(kind = c_double), intent(in) :: a
-    real(kind = c_double)             :: fn_val
-    real(kind = c_double) :: c0 = 0.833333333333333e-01_c_double, &
-                           c1 = -.277777777760991e-02_c_double, &
-                           c2 = .793650666825390e-03_c_double,  &
-                           c3 = -.595202931351870e-03_c_double, &
-                           c4 = .837308034031215e-03_c_double,  &
-                           c5 = -.165322962780713e-02_c_double, &
-                            d = .418938533204673_c_double, t, w
-    integer               :: i, n
+    real(kind = c_double)             :: fn_val, t, w
+    real(kind = c_double), parameter  :: &
+              c0 = 0.833333333333333e-01_c_double, &
+              c1 = -.277777777760991e-02_c_double, &
+              c2 = .793650666825390e-03_c_double,  &
+              c3 = -.595202931351870e-03_c_double, &
+              c4 = .837308034031215e-03_c_double,  &
+              c5 = -.165322962780713e-02_c_double, &
+              d = .418938533204673_c_double
+    integer                           :: i, n
 
     if (a <= 0.8_c_double) then
         fn_val = gamln1(a) - log(a)
     else if(a <= 2.25_c_double) then
-        fn_val = gamln1(a - ONE)
+        fn_val = gamln1((a - HALF) - HALF)
     else if (a < 10_c_double) then
         n = a - 1.25_c_double
         t = a
@@ -141,7 +144,7 @@ module lgam
     else
         t = (ONE / a) ** 2
         w = (((((c5 * t + c4) * t + c3) * t + c2) * t + c1) * t + c0) / a
-        fn_val = (d + w) + (a - 0.5_c_double) * (LOG(a) - ONE)
+        fn_val = (d + w) + (a - HALF) * (LOG(a) - ONE)
     end if
 
   end function gamln

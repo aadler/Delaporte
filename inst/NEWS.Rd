@@ -11,11 +11,12 @@
   \subsection{Added}{
     \itemize{
       \item Specified, clarified, and added many more unit tests.
+      \item Added warning in README for Sun Sparc users.
     }
   }
   \subsection{Changed}{
     \itemize{
-      \item Use R_NaN and INFINITY instead of memcpy for setting Inf and NaN in C code. Still need to use C as version of gfortran used on Windows does not have IEEE intrinsics.
+      \item Use bit-representation of NaN and INF to remove need to call C for setting these values. This allows the log-gamma, and singleton d/p/qdelap functions to be elemental.
       \item Older NEWS entries refactored for accuracy
     }
   }

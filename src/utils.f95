@@ -37,9 +37,18 @@ module utils
   use, intrinsic :: iso_c_binding
   implicit none
 
-  real(kind = c_double), parameter :: ONE = 1_c_double
-  real(kind = c_double), parameter :: ZERO = 0_c_double
+  real(kind = c_double), parameter :: ZERO = 0._c_double
+  real(kind = c_double), parameter :: HALF = 0.5_c_double
+  real(kind = c_double), parameter :: ONE = 1._c_double
+  real(kind = c_double), parameter :: THRHAL = 1.5_c_double
+  real(kind = c_double), parameter :: TWO = 2._c_double
+  real(kind = c_double), parameter :: THREE = 3._c_double
+  real(kind = c_double), parameter :: FOUR = 4._c_double
+  real(kind = c_double), parameter :: TWELVE = 12._c_double
+  real(kind = c_double), parameter :: SQRTPI = 0.9189385332046727417803297_c_double
   real(kind = c_double), parameter :: EPS = 2.2204460492503131e-16_c_double
+  real(kind = c_double), parameter :: NAN = TRANSFER(z'7FF0000000000001', ONE)
+  real(kind = c_double), parameter :: INFTY = TRANSFER(z'7FF0000000000000', ONE)
 
   contains
 

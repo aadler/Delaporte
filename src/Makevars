@@ -4,15 +4,17 @@ PKG_FCFLAGS = $(SHLIB_OPENMP_FCFLAGS)
 PKG_LIBS = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_FCFLAGS)
 
 C_OBJS = utils_and_wrappers.o
-FT_OBJS = utils.o lgamma.o
+FT_OBJS = utils.o lgamma.o lgam2.o
 
 .NOTPARALLEL: all
 all: clean $(SHLIB) cleanup
 
 utils.mod: utils.o
 lgamma.o: utils.mod
-lgamma.mod: lgamma.o
-delaporte.o: utils.mod lgamma.mod
+lgam.mod: lgamma.o
+lgam2.o: utils.mod
+lgam2.mod: lgam2.o
+delaporte.o: utils.mod lgam.mod
 
 $(SHLIB): $(FT_OBJS) delaporte.o $(C_OBJS)
 

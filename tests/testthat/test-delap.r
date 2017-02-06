@@ -1,4 +1,4 @@
-VAL <- data.frame(read.csv(file = "./RawTest.csv", header = TRUE, colClasses = 'double'))
+VAL <- data.frame(read.csv(file = "./RawTest.csv", header = TRUE))
 SEQUENCE <- seq_len(37) - 1
 
 context("Testing ddelap")

@@ -308,7 +308,11 @@ end function ddelap_f_s
 !              qdelap's singleton mode to activate if appropriate. This is the single
 !              routine slower in Fortran than C++, as the vector creation and pushback is
 !              more efficient in C++ STL than the ballet between allocate and move_alloc
-!              in Fortran. On vectors-valued parameters Fortran is faster than C++.
+!              in Fortran. On vectors-valued parameters Fortran is faster than C++. 
+!              Technically this is a slowdown in qdelap, not rdelap, but the C++ version
+!              of qdelap did not use the vector lookup trick; it was only programmed in
+!              rdelap, wheras now the Fortran version of qdelap uses the trick for a net
+!              speedup. Only rdelap suffers slightly.
 !----------------------------------------------------------------------------------------
 
     subroutine rdelap_f(n, a, na, b, nb, l, nl, vars) bind(C, name="rdelap_f")

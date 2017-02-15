@@ -52,7 +52,8 @@ contains
 !
 ! DESCRIPTION: Calculate the Delaporte probability mass function for a single observation
 !              and return the value or its log. Calculated through explicit summation.
-!              Will coerce real observations to integer by calling ceiling.
+!              Follows R convention that real observations are errors and have 0 density
+!              so calls floor to build to last integer.
 !----------------------------------------------------------------------------------------
 
     elemental function ddelap_f_s(x, alpha, beta, lambda) result(pmf)
@@ -64,7 +65,7 @@ contains
     if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. x < ZERO) then
         pmf = NAN
     else
-        k = ceiling(x)
+        k = floor(x)
         pmf = ZERO
         do i = 0, k
             pmf = pmf + exp(gamln(alpha + i) + i * log(beta) &
@@ -83,11 +84,13 @@ end function ddelap_f_s
 ! DESCRIPTION: Vector-based PMF allowing parameter vector recycling and called from C.
 !              As Fortran starts its indices at 1, for the mod function to properly
 !              recycle the vectors, the index needs to be reduced by one, mod applied,
-!              and then increased by one again.
+!              and then increased by one again. Follows R convention that real
+!              observations are errors and have 0 density so returns 0 for non-integer
+!              without calling summation loop.
 !----------------------------------------------------------------------------------------
 
     subroutine ddelap_f(x, nx, a, na, b, nb, l, nl, lg, pmfv) bind(C, name="ddelap_f")
-
+    
     integer(kind = c_int), intent(in), value         :: nx, na, nb, nl     ! Sizes
     real(kind = c_double), intent(in), dimension(nx) :: x                  ! Observations
     real(kind = c_double), intent(out), dimension(nx):: pmfv               ! Result
@@ -98,8 +101,12 @@ end function ddelap_f_s
 
         !$omp parallel do default(shared) private(i)
         do i = 1, nx
-            pmfv(i) = ddelap_f_s(x(i), a(mod(i - 1, na) + 1), b(mod(i - 1, nb) + 1), &
-                                 l(mod(i - 1, nl) + 1))
+            if (x(i) > floor(x(i))) then
+                pmfv(i) = ZERO
+            else
+                pmfv(i) = ddelap_f_s(x(i), a(mod(i - 1, na) + 1), &
+                                     b(mod(i - 1, nb) + 1), l(mod(i - 1, nl) + 1))
+            end if
         end do
         !$omp end parallel do
         
@@ -114,7 +121,8 @@ end function ddelap_f_s
 !
 ! DESCRIPTION: Calculate the Delaporte probability mass function for a single observation
 !              and return the value or its log. Calculated through explicit summation.
-!              Will coerce real observations to integer by calling ceiling.
+!              Follows R convention that real observations are errors and have 0 density
+!              so calls floor to build to last integer.
 !----------------------------------------------------------------------------------------
 
     elemental function pdelap_f_s(q, alpha, beta, lambda) result(cdf)
@@ -126,7 +134,7 @@ end function ddelap_f_s
         if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. q < ZERO) then
             cdf = NAN
         else
-            k = ceiling(q)
+            k = floor(q)
             cdf = exp(-lambda) / ((beta + ONE) ** alpha)
             do i = 1, k
                 cdf = cdf + ddelap_f_s (real(i, c_double), alpha, beta, lambda)
@@ -163,7 +171,7 @@ end function ddelap_f_s
             if (a(1) < EPS .or. b(1) < EPS .or. l(1) < EPS) then
                 pmfv = NAN
             else
-                k = ceiling(maxval(q))
+                k = floor(maxval(q))
                 allocate (singlevec(k + 1))
                 singlevec(1) = exp(-l(1)) / ((b(1) + ONE) ** a(1))
                 do i = 2, k + 1
@@ -171,7 +179,7 @@ end function ddelap_f_s
                                    + ddelap_f_s (real(i - 1, c_double), a(1), b(1), l(1))
                 end do
                 do i = 1, nq
-                    k = ceiling(q(i))
+                    k = floor(q(i))
                     pmfv(i) = singlevec(k + 1)
                 end do
                 deallocate(singlevec)
@@ -199,9 +207,8 @@ end function ddelap_f_s
 ! FUNCTION: qdelap_f_s
 !
 ! DESCRIPTION: Calculate the Delaporte quantile function for a single observation and
-!              return the value. Calculated through explicit summation. Will coerce real
-!              observations to integer by calling ceiling but returns a real to handle
-!              NaN and Inf.
+!              return the value. Calculated through explicit summation. Returns NaN and
+!              Inf. where appropriate
 !----------------------------------------------------------------------------------------
 
     elemental function qdelap_f_s(p, alpha, beta, lambda) result(value)
@@ -216,9 +223,9 @@ end function ddelap_f_s
         else
             value = ZERO
             testcdf = exp(-lambda) / ((beta + ONE) ** alpha)
-            do while (p - testcdf > EPS)
+            do while (p > testcdf)
                 value = value + ONE
-                testcdf = testcdf + ddelap_f_s (real(value, c_double), alpha, beta, &
+                testcdf = testcdf + ddelap_f_s(real(value, c_double), alpha, beta, &
                                                 lambda)
             end do
         end if

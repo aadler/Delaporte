@@ -3,6 +3,9 @@ ddelap <- function(x, alpha, beta, lambda, log = FALSE){
   if(!is.double(alpha)) {storage.mode(alpha) <- 'double'}
   if(!is.double(beta)) {storage.mode(beta) <- 'double'}
   if(!is.double(lambda)) {storage.mode(lambda) <- 'double'}
+  if(any(x > floor(x))) {
+    warning("Non-integers passed to ddelap. These will have 0 probability.")
+  }
   .Call(ddelap_C, x, alpha, beta, lambda, log)
 }
 

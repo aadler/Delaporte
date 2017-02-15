@@ -28,6 +28,10 @@ test_that("Vector NaN", {
   expect_identical(is.nan(ddelap(seq_len(3), c(0, 1, 2), c(1, 0, 2), c(1, 2, 0))), rep(TRUE, 3))
   expect_identical(is.nan(ddelap(seq_len(3), c(-3, 1, 2), c(1, -5, 2), c(1, 2, -0.1))), rep(TRUE, 3))
 })
+test_that("Non-integer warning", {
+  expect_warning(ddelap(1.1, 1, 2, 3), "Non-integers passed to ddelap. These will have 0 probability.")
+  expect_warning(ddelap(c(1, 1.1, 1.2, 3), c(1, 1), 2, 3), "Non-integers passed to ddelap. These will have 0 probability.")
+})  
   
 context("Testing pdelap")
 test_that("Singleton function accuracy", {
@@ -77,13 +81,13 @@ test_that("Singleton function accuracy", {
   expect_equal(qdelap(.4, 1, 4, 2), 4)
 })
 test_that("Singleton lower.tail", {
-  expect_equal(qdelap(0.4971031395336245, 4, 6, 3, lower.tail = TRUE), 25)
+  expect_equal(qdelap(0.49, 4, 6, 3, lower.tail = TRUE), 25)
 })
 test_that("Singleton log.p", {
   expect_equal(qdelap(-0.255, 20, 15, 50, log.p = TRUE), 400)
 })
 test_that("Singleton lower.tail & log.p", {
-  expect_equal(qdelap(-0.69895775020315487, 4, 6, 3, lower.tail = TRUE, log.p = TRUE), 25)
+  expect_equal(qdelap(-0.7, 4, 6, 3, lower.tail = TRUE, log.p = TRUE), 25)
 })
 test_that("Singleton Nan", {
   expect_true(is.nan(qdelap(.05, 0, 1, 2)))
@@ -102,7 +106,7 @@ test_that("Vector function accuracy", {
   expect_equal(qdelap(c(.4, .07), c(1, 2), c(4, 1), c(2, 5)), c(4, 3))
 })
 test_that("Vector lower.tail", {
-  expect_equal(qdelap(c(0.4971031395336245, 0.1374992163369109), c(4, 1), c(6, 9), c(3, 12), lower.tail = FALSE), c(25, 31))
+  expect_equal(qdelap(c(0.49, 0.131), c(4, 1), c(6, 9), c(3, 12), lower.tail = FALSE), c(25, 31))
 })
 test_that("Vector log.p", {
   expect_equal(qdelap(c(-0.9162907318741550, -2.6592600369327779), c(1, 2), c(4, 1), c(2, 5), log.p = TRUE), c(4, 3))

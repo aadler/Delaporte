@@ -3,6 +3,15 @@
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
 
 \section{Version 5.0.0-9999 (TBD)}{
+  \subsection{Changed}{
+    \itemize{
+      \item Changed handling of non-integers to be in line with R convention that they have 0 probability instead of being considered the next integer. \code{ddelap} will return 0 for each non-integral value and will pass one warning, unlike base R which passes one warning per non-integral value. \code{qdelap} will just return the value for the last integer and no warnings, similar to base R.
+      \item Use bit-representation of NaN and INF to remove need to call C for setting these values. This allows the log-gamma, and singleton d/p/qdelap functions to be elemental.
+      \item Explicitly cast \code{n} as an integer in loggamma routine. This should suppres warning on OSX mavericks.
+      \item Removed \code{colClasses = 'double'} from tests. This should solve Sun Sparc issues.
+      \item Older NEWS entries refactored for accuracy
+    }
+  }
   \subsection{Removed}{
     \itemize{
       \item Older implementation of \code{qdelap} and \code{rdelap} approximations is now defunct. Only the new faster approximation based on section 3.9 of Karlis & Xekalaki (2005) remains.
@@ -11,13 +20,6 @@
   \subsection{Added}{
     \itemize{
       \item Specified, clarified, and added many more unit tests.
-      \item Added warning in README for Sun Sparc users.
-    }
-  }
-  \subsection{Changed}{
-    \itemize{
-      \item Use bit-representation of NaN and INF to remove need to call C for setting these values. This allows the log-gamma, and singleton d/p/qdelap functions to be elemental.
-      \item Older NEWS entries refactored for accuracy
     }
   }
 }

@@ -78,3 +78,7 @@ MoMdelap <- function(x){
   if (any(MoMDLAP <= 0)) stop ("Method of moments not appropriate for this data; results include non-positive parameters.")
   return(MoMDLAP)
 }
+
+.onUnload <- function (libpath) {
+  library.dynam.unload("Delaporte", libpath)
+}

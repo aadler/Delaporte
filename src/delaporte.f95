@@ -245,7 +245,7 @@ end function ddelap_f_s
 !              q_delap_f_s on each entry.
 !----------------------------------------------------------------------------------------
 
-    subroutine qdelap_f (p, np, a, na, b, nb, l, nl, lt, lg, obsv) &
+    subroutine qdelap_f(p, np, a, na, b, nb, l, nl, lt, lg, obsv) &
                        bind(C, name="qdelap_f")
 
     integer(kind = c_int), intent(in), value           :: np, na, nb, nl     ! Sizes
@@ -347,7 +347,7 @@ end function ddelap_f_s
 !              Knuth, and Cook. https://www.johndcook.com/blog/skewness_kurtosis/
 !----------------------------------------------------------------------------------------
 
-    subroutine momdelap_f (obs, n, params) bind(C, name="momdelap_f")
+    subroutine momdelap_f(obs, n, params) bind(C, name="momdelap_f")
 
     integer(kind = c_int), intent(in), value           :: n             ! Sizes
     real(kind = c_double), intent(in), dimension(n)    :: obs           ! Observations

@@ -1,3 +1,3 @@
-useDynLib(Delaporte, ddelap_C, pdelap_C, qdelap_C, rdelap_C, MoMdelap_C)
+useDynLib(Delaporte, .registration = TRUE)
 exportPattern("^[[:alpha:]]+")
 importFrom(stats, rnbinom, rpois, quantile, rgamma)

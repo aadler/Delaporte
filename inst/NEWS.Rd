@@ -2,19 +2,33 @@
 \alias{NEWS}
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
 
+\section{Future Considerations}{
+  \subsection{Enhancements}{
+    \itemize{
+      \item If the idiosyncracies of R's internal C/Fortran based warnings can be unraveled, the warnings may be brought even more into line with base R.
+      \item Investigate \dQuote{closed-form} version which uses confluent hypergeometric function of the second kind as per Wolfram alpha. Depending on its implementation, it \emph{may} be faster than summing from 0 for large numbers.
+    }
+  }
+}
+
 \section{Version 5.0.0-9999 (TBD)}{
   \subsection{Changed}{
     \itemize{
       \item Changed handling of non-integers to be in line with R convention that they have 0 probability instead of being considered the next integer. \code{ddelap} will return 0 for each non-integral value and will pass one warning, unlike base R which passes one warning per non-integral value. \code{qdelap} will just return the value for the last integer and no warnings, similar to base R.
       \item Use bit-representation of NaN and INF to remove need to call C for setting these values. This allows the log-gamma, and singleton d/p/qdelap functions to be elemental.
-      \item Explicitly cast \code{n} as an integer in loggamma routine. This should suppres warning on OSX mavericks.
+      \item Older NEWS entries refactored for accuracy.
+    }
+  }
+  \subsection{Fixed}{
+    \itemize{
       \item Removed \code{colClasses = 'double'} from tests. This should solve Sun Sparc issues.
-      \item Older NEWS entries refactored for accuracy
+      \item Explicitly cast \code{n} as an integer in loggamma routine. This should suppres warning on OSX mavericks.
     }
   }
   \subsection{Removed}{
     \itemize{
-      \item Older implementation of \code{qdelap} and \code{rdelap} approximations is now defunct. Only the new faster approximation based on section 3.9 of Karlis & Xekalaki (2005) remains.
+      \item Older implementation of \code{qdelap} and \code{rdelap} approximations is now defunct. Only the new faster approximation based on section 3.9 of Karlis & Xekalaki (2005) remains. The next minor version may remove the \code{.Defunct} calls and the references to the old version in the documentation.
+      \item Removed \code{colClasses = 'double'} from tests. This should solve Sun Sparc issues.
     }
   }
   \subsection{Added}{

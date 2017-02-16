@@ -130,6 +130,11 @@ test_that("Vector Inf", {
   expect_identical(is.infinite(qdelap(seq_len(2), 3, 1, 2)), rep(TRUE, 2))
   expect_identical(is.infinite(qdelap(seq_len(3), c(2, 1, 2), c(1, 6, 2), c(1, 2, 0.4))), rep(TRUE, 3))
 })
+test_that("Approximate throws error when 0 is passed", {
+  expect_error(qdelap(0.1, 0, 2, 3, exact = FALSE), 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results')
+  expect_error(qdelap(0.1, 1, 0, 3, exact = FALSE), 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results')
+  expect_error(qdelap(0.1, 1, 2, 0, exact = FALSE), 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results')
+})
 
 context("Testing rdelap")
 DP1 <- rdelap(1e6, alpha = 10, beta = 2, lambda = 10) 
@@ -176,6 +181,11 @@ test_that("Vector size", {
   expect_length(rdelap(8, c(4, 2), c(1, 2, 3, 4), 2), 8)
   expect_length(rdelap(0, c(4, 2), c(1, 2, 3, 4), 2), 0)
   expect_error(rdelap(-1, c(4, 2), c(1, 2, 3, 4), 2), "negative length vectors are not allowed")
+})
+test_that("Approximate throws error when 0 is passed", {
+  expect_error(rdelap(8, 0, 2, 3, exact = FALSE), 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results')
+  expect_error(rdelap(8, 1, 0, 3, exact = FALSE), 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results')
+  expect_error(rdelap(8, 1, 2, 0, exact = FALSE), 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results')
 })
 
 context("Testing MoMdelap")

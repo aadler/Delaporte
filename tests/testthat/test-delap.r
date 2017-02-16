@@ -31,6 +31,7 @@ test_that("Vector NaN", {
 test_that("Non-integer warning", {
   expect_warning(ddelap(1.1, 1, 2, 3), "Non-integers passed to ddelap. These will have 0 probability.")
   expect_warning(ddelap(c(1, 1.1, 1.2, 3), c(1, 1), 2, 3), "Non-integers passed to ddelap. These will have 0 probability.")
+  expect_warning(ddelap(seq(2, 3, .1), c(1, 1), 2, 3), "Non-integers passed to ddelap. These will have 0 probability.")
 })  
   
 context("Testing pdelap")

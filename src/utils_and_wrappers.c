@@ -1,5 +1,6 @@
 #include <R.h>
 #include <Rinternals.h>
+#include <stdlib.h> // for NULL
 #include <Rmath.h>
 #include <R_ext/Rdynload.h>
 
@@ -103,7 +104,7 @@ void unifrnd_ (int *n, double *x){
   PutRNGstate();
 }
 
-static const R_CallMethodDef callMethods[] = {
+static const R_CallMethodDef CallEntries[] = {
     {"ddelap_C",    (DL_FUNC) &ddelap_C,   5},
     {"pdelap_C",    (DL_FUNC) &pdelap_C,   6},
     {"qdelap_C",    (DL_FUNC) &qdelap_C,   6},
@@ -112,8 +113,9 @@ static const R_CallMethodDef callMethods[] = {
     {NULL,                    NULL,        0}
 };
 
-void R_init_Delaporte(DllInfo *info) {
-  R_registerRoutines(info, NULL, callMethods, NULL, NULL);
+void R_init_Delaporte(DllInfo *dll) {
+  R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+  R_useDynamicSymbols(dll, FALSE);
   
   R_RegisterCCallable("Delaporte", "ddelap_C",  (DL_FUNC) &ddelap_C);
   R_RegisterCCallable("Delaporte", "pdelap_C",  (DL_FUNC) &pdelap_C);

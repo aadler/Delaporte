@@ -4,9 +4,6 @@
 
 The author is grateful to [Drew Schmidt](https://github.com/wrathematics) both generally for his writings on R, C++, and Fortran and specifically for help with this project.
 
-# Warning
-**As of this time, this package may not return valid results on Sun Sparc machines. If you need to use this package on a Sun Sparc machine, please use version 3.0.0.**
-
 ####Note
  - This project attempts to follow [Semantic Versioning](http://semver.org/)
  - This project attempts to follow the changelog system at [Keep a CHANGELOG](http://keepachangelog.com/)

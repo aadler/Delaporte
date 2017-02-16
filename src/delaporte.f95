@@ -119,10 +119,10 @@ end function ddelap_f_s
 !----------------------------------------------------------------------------------------
 ! FUNCTION: pdelap_f_s
 !
-! DESCRIPTION: Calculate the Delaporte probability mass function for a single observation
-!              and return the value or its log. Calculated through explicit summation.
-!              Follows R convention that real observations are errors and have 0 density
-!              so calls floor to build to last integer.
+! DESCRIPTION: Calculate the Delaporte cumulative distribution function for a single
+!              observation and return the value or its log. Calculated through explicit
+!              summation. Follows R convention that real observations are errors and have
+!              0 density so calls floor to build to last integer.
 !----------------------------------------------------------------------------------------
 
     elemental function pdelap_f_s(q, alpha, beta, lambda) result(cdf)
@@ -137,7 +137,7 @@ end function ddelap_f_s
             k = floor(q)
             cdf = exp(-lambda) / ((beta + ONE) ** alpha)
             do i = 1, k
-                cdf = cdf + ddelap_f_s (real(i, c_double), alpha, beta, lambda)
+                cdf = cdf + ddelap_f_s(real(i, c_double), alpha, beta, lambda)
             end do
         end if
 
@@ -176,7 +176,7 @@ end function ddelap_f_s
                 singlevec(1) = exp(-l(1)) / ((b(1) + ONE) ** a(1))
                 do i = 2, k + 1
                     singlevec(i) = singlevec(i - 1) &
-                                   + ddelap_f_s (real(i - 1, c_double), a(1), b(1), l(1))
+                                   + ddelap_f_s(real(i - 1, c_double), a(1), b(1), l(1))
                 end do
                 do i = 1, nq
                     k = floor(q(i))
@@ -193,7 +193,7 @@ end function ddelap_f_s
             !$omp end parallel do
         end if
 
-        if (.not.(lt)) then
+        if (.not. lt) then
             pmfv = ONE - pmfv
         end if
 

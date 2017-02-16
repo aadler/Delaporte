@@ -52,7 +52,7 @@ contains
 !----------------------------------------------------------------------------------------
 ! FUNCTION: log1p
 !
-! DESCRIPTION: GFortran 4.9.3 does not have 1og1p as an intrinsic. This serves as such.
+! DESCRIPTION: Fortran (2003/8) does not have 1og1p as an intrinsic. This serves as such.
 !----------------------------------------------------------------------------------------
 
 
@@ -74,7 +74,8 @@ contains
 !              singleton versions of pdelap and qdelap.
 !----------------------------------------------------------------------------------------  
 
-    pure function position(x, a) result (k)
+    pure function position(x, a) result(k)
+    
         real(kind = c_double), intent(in)                :: x
         real(kind = c_double), intent(in), dimension(:)  :: a
         integer                                          :: k

@@ -8,7 +8,8 @@
 !
 ! DESCRIPTION: Taken from bratio.f90 found at http://jblevins.org/mirror/amiller/#nswc
 !              Both procedures written by ALFRED H. MORRIS as part of the Naval Surface
-!              Warfare Center Mathematical Library and released in public domain.
+!              Warfare Center Mathematical Library and released in public domain. While
+!              Fortran 2008 has an intrinsic GAMMA and LOG_GAMMA, Fortran 2003 does not.
 !
 ! HISTORY:
 !          Version 1.0: 2016-11-20
@@ -42,8 +43,6 @@
 !   DAMAGE.
 !----------------------------------------------------------------------------------------
 module lgam
-
-
 
     use, intrinsic :: iso_c_binding, only: c_double
     use utils

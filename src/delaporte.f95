@@ -356,17 +356,18 @@ end function ddelap_f_s
     real(kind = c_double)                              :: nm1, P, Mu_D, M2, M3, T1, delta
     real(kind = c_double)                              :: delta_i, Var_D, Skew_D, VmM_D
 
-        nm1 = n - ONE
-        P = n * sqrt(nm1) / (n - TWO)
+        nm1 = real(n, c_double) - ONE
+        P = real(n, c_double) * sqrt(nm1) / real((n - TWO), c_double)
         Mu_D = ZERO
         M2 = ZERO
         M3 = ZERO
         do i = 1, n
             delta = obs(i) - Mu_D
-            delta_i = delta / i
-            T1 = delta * delta_i * (i - ONE)
+            delta_i = delta / real(i, c_double)
+            T1 = delta * delta_i * (real(i, c_double) - ONE)
             Mu_D = Mu_D + delta_i
-            M3 = M3 + (T1 * delta_i * (i - TWO) - THREE * delta_i * M2)
+            M3 = M3 + (T1 * delta_i * (real(i, c_double) - TWO) &
+                       - THREE * delta_i * M2)
             M2 = M2 + T1
         end do
         Var_D = M2 / nm1

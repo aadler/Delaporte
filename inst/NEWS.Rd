@@ -5,7 +5,6 @@
 \section{Future Considerations}{
   \subsection{Enhancements}{
     \itemize{
-      \item If the idiosyncracies of R's internal C/Fortran based warnings can be unraveled, the warnings may be brought even more into line with base R.
       \item Investigate \dQuote{closed-form} version which uses confluent hypergeometric function of the second kind as per Wolfram alpha. Depending on its implementation, it \emph{may} be faster than summing from 0 for large numbers.
     }
   }

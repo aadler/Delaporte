@@ -8,6 +8,7 @@
 !
 ! HISTORY:
 !          Version 1.0: 2016-11-20
+!          Version 1.1: 2017-03-01
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -52,7 +53,7 @@ contains
 !----------------------------------------------------------------------------------------
 ! FUNCTION: log1p
 !
-! DESCRIPTION: Fortran (2003/8) does not have 1og1p as an intrinsic. This serves as such.
+! DESCRIPTION: Fortran (2003/8) does not have log1p as an intrinsic. This serves as such.
 !----------------------------------------------------------------------------------------
 
 
@@ -70,8 +71,8 @@ contains
 !----------------------------------------------------------------------------------------
 ! FUNCTION: Position
 !
-! DESCRIPTION: Returns the position in vector a of greatest number less than x. Used in
-!              singleton versions of pdelap and qdelap.
+! DESCRIPTION: Returns the position in ordered vector 'a' of the smallest number greater
+!              than 'x'. Used in singleton versions of pdelap and qdelap.
 !----------------------------------------------------------------------------------------  
 
     pure function position(x, a) result(k)

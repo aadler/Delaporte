@@ -2,19 +2,14 @@
 \alias{NEWS}
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
 
-\section{Future Considerations}{
-  \subsection{Enhancements}{
-    \itemize{
-      \item Investigate \dQuote{closed-form} version which uses confluent hypergeometric function of the second kind as per Wolfram alpha. Depending on its implementation, it \emph{may} be faster than summing from 0 for large numbers.
-    }
-  }
-}
-
 \section{Version 5.0.0-9999 (TBD)}{
   \subsection{Changed}{
     \itemize{
       \item Changed handling of non-integers to be in line with R convention that they have 0 probability instead of being considered the next integer. \code{ddelap} will return 0 for each non-integral value and will pass one warning, unlike base R which passes one warning per non-integral value. \code{qdelap} will just return the value for the last integer and no warnings, similar to base R.
       \item Use bit-representation of NaN and INF to remove need to call C for setting these values. This allows the log-gamma, and singleton d/p/qdelap functions to be elemental.
+      \item Changed registration of the C SEXP functions seen by the package to use \code{R_CallMethodDef} as now preferred by CRAN.
+      \item Explicitly listed the five C SEXP functions seen by the package as R_RegisterCCallable for potential downstream package use.
+      \item Corrected some prose in documentation page.
       \item Older NEWS entries refactored for accuracy.
     }
   }

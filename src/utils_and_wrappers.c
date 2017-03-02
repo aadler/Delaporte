@@ -55,7 +55,6 @@ extern SEXP pdelap_C(SEXP q, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt, SEXP l
 void qdelap_f(double *p, int np, double *a, int na, double *b, int nb, double *l, int nl,
               int *lt, int *lg, double *ret);
 
-
 extern SEXP qdelap_C(SEXP p, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt, SEXP lg){
   const int np = LENGTH(p);
   const int na = LENGTH(alpha);
@@ -71,7 +70,6 @@ extern SEXP qdelap_C(SEXP p, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt, SEXP l
 
 void rdelap_f(int n, double *a, int na, double *b, int nb, double *l, int nl,
               double *ret);
-
 
 extern SEXP rdelap_C(SEXP n, SEXP alpha, SEXP beta, SEXP lambda){
   const int nn = INTEGER(n)[0];

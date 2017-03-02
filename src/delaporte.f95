@@ -11,6 +11,8 @@
 ! HISTORY:
 !          Version 1.0: 2016-11-20
 !                       Porting from C++ code in Delaporte package for R.
+!          Version 1.1: 2017-03-01
+!                       Various tweaks.
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -35,6 +37,7 @@
 !   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 !   DAMAGE.
 !----------------------------------------------------------------------------------------
+
 module delaporte
     use, intrinsic :: iso_c_binding
     !$use omp_lib
@@ -58,25 +61,25 @@ contains
 
     elemental function ddelap_f_s(x, alpha, beta, lambda) result(pmf)
 
-    real(kind = c_double)               :: pmf                    ! Result
     real(kind = c_double), intent(in)   :: x, alpha, beta, lambda ! Observation & Parms
-    integer(kind = c_int)               :: i, k                   ! Integers
+    real(kind = c_double)               :: pmf                    ! Result
+    integer                             :: i, k                   ! Integers
 
-    if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. x < ZERO) then
-        pmf = NAN
-    else
-        k = floor(x)
-        pmf = ZERO
-        do i = 0, k
-            pmf = pmf + exp(gamln(alpha + i) + i * log(beta) &
-                      + (k - i) * log(lambda) - lambda &
-                      - gamln(alpha) - gamln(i + ONE) &
-                      - (alpha + i) * log1p(beta) &
-                      - gamln(k - i + ONE))
-        end do
-    end if
+      if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. x < ZERO) then
+          pmf = NAN
+      else
+          k = floor(x)
+          pmf = ZERO
+          do i = 0, k
+              pmf = pmf + exp(gamln(alpha + i) + i * log(beta) &
+                        + (k - i) * log(lambda) - lambda &
+                        - gamln(alpha) - gamln(i + ONE) &
+                        - (alpha + i) * log1p(beta) &
+                        - gamln(k - i + ONE))
+          end do
+      end if
 
-end function ddelap_f_s
+    end function ddelap_f_s
 
 !----------------------------------------------------------------------------------------
 ! ROUTINE: ddelap_f
@@ -96,8 +99,7 @@ end function ddelap_f_s
     real(kind = c_double), intent(out), dimension(nx):: pmfv               ! Result
     real(kind = c_double), intent(in)                :: a(na), b(nb), l(nl)! Parameters
     logical(kind = c_bool), intent(in)               :: lg                 ! Log flag
-    integer(kind = c_int)                            :: i                  ! Integer
-
+    integer                                          :: i                  ! Integer
 
         !$omp parallel do default(shared) private(i)
         do i = 1, nx
@@ -129,7 +131,7 @@ end function ddelap_f_s
 
     real(kind = c_double)               :: cdf                    ! Result
     real(kind = c_double), intent(in)   :: q, alpha, beta, lambda ! Observation & Parms
-    integer(kind = c_int)               :: i, k                   ! Integers
+    integer                             :: i, k                   ! Integers
 
         if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. q < ZERO) then
             cdf = NAN
@@ -164,9 +166,9 @@ end function ddelap_f_s
     real(kind = c_double), intent(out), dimension(nq):: pmfv               ! Result
     real(kind = c_double), intent(in)                :: a(na), b(nb), l(nl)! Parameters
     logical(kind = c_bool), intent(in)               :: lg, lt             ! Flags
-    integer                                          :: i, k               ! Integers
     real(kind = c_double), allocatable, dimension(:) :: singlevec          ! holds pmf
-
+    integer                                          :: i, k               ! Integers
+    
         if(na == 1 .and. nb == na .and. nl == nb) then
             if (a(1) < EPS .or. b(1) < EPS .or. l(1) < EPS) then
                 pmfv = NAN
@@ -253,9 +255,9 @@ end function ddelap_f_s
     real(kind = c_double), intent(out), dimension(np)  :: obsv               ! Result
     real(kind = c_double), intent(in)                  :: a(na), b(nb), l(nl)! Parameters
     logical(kind = c_bool), intent(in)                 :: lg, lt             ! Flags
-    integer                                            :: i                  ! Integer
     real(kind = c_double), allocatable, dimension(:)   :: svec, tvec         ! Results
     real(kind = c_double)                              :: x                  ! current %
+    integer                                            :: i                  ! Integer
 
         if (lg) then
             p = exp(p)
@@ -352,12 +354,12 @@ end function ddelap_f_s
     integer(kind = c_int), intent(in), value           :: n             ! Sizes
     real(kind = c_double), intent(in), dimension(n)    :: obs           ! Observations
     real(kind = c_double), intent(out), dimension(3)   :: params        ! Result triplet
-    integer                                            :: i
     real(kind = c_double)                              :: nm1, P, Mu_D, M2, M3, T1, delta
     real(kind = c_double)                              :: delta_i, Var_D, Skew_D, VmM_D
+    integer                                            :: i
 
         nm1 = real(n, c_double) - ONE
-        P = real(n, c_double) * sqrt(nm1) / real((n - TWO), c_double)
+        P = real(n, c_double) * sqrt(nm1) / (real(n, c_double) - TWO)
         Mu_D = ZERO
         M2 = ZERO
         M3 = ZERO

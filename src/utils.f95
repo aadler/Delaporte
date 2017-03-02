@@ -56,7 +56,6 @@ contains
 ! DESCRIPTION: Fortran (2003/8) does not have log1p as an intrinsic. This serves as such.
 !----------------------------------------------------------------------------------------
 
-
     elemental function log1p(x) result(y)
 
         real(kind = c_double), intent(in) :: x

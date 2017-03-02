@@ -131,7 +131,7 @@ contains
             fn_val = gamln1(a) - log(a)
         else if(a <= 2.25_c_double) then
             fn_val = gamln1((a - HALF) - HALF)
-        else if (a < 10_c_double) then
+        else if (a < 10._c_double) then
             n = int(a - 1.25_c_double)
             t = a
             w = ONE

@@ -59,14 +59,16 @@ contains
 !              so calls floor to build to last integer.
 !----------------------------------------------------------------------------------------
 
-    elemental function ddelap_f_s(x, alpha, beta, lambda) result(pmf)
+    function ddelap_f_s(x, alpha, beta, lambda) result(pmf)
 
+    external set_nan
+    
     real(kind = c_double), intent(in)   :: x, alpha, beta, lambda ! Observation & Parms
     real(kind = c_double)               :: pmf                    ! Result
     integer                             :: i, k                   ! Integers
 
       if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. x < ZERO) then
-          pmf = NAN
+          call set_nan(pmf)
       else
           k = floor(x)
           pmf = ZERO
@@ -127,14 +129,16 @@ contains
 !              0 density so calls floor to build to last integer.
 !----------------------------------------------------------------------------------------
 
-    elemental function pdelap_f_s(q, alpha, beta, lambda) result(cdf)
+    function pdelap_f_s(q, alpha, beta, lambda) result(cdf)
+    
+    external set_nan
 
     real(kind = c_double)               :: cdf                    ! Result
     real(kind = c_double), intent(in)   :: q, alpha, beta, lambda ! Observation & Parms
     integer                             :: i, k                   ! Integers
 
         if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. q < ZERO) then
-            cdf = NAN
+            call set_nan(cdf)
         else
             k = floor(q)
             cdf = exp(-lambda) / ((beta + ONE) ** alpha)
@@ -160,6 +164,8 @@ contains
 
     subroutine pdelap_f(q, nq, a, na, b, nb, l, nl, lt, lg, pmfv) &
                         bind(C, name="pdelap_f")
+                        
+    external set_nan                        
 
     integer(kind = c_int), intent(in), value         :: nq, na, nb, nl     ! Sizes
     real(kind = c_double), intent(in), dimension(nq) :: q                  ! Observations
@@ -171,7 +177,9 @@ contains
     
         if(na == 1 .and. nb == na .and. nl == nb) then
             if (a(1) < EPS .or. b(1) < EPS .or. l(1) < EPS) then
-                pmfv = NAN
+                do i = 1, nq
+                    call set_nan(pmfv(i))
+                end do
             else
                 k = floor(maxval(q))
                 allocate (singlevec(k + 1))
@@ -213,15 +221,18 @@ contains
 !              Inf. where appropriate
 !----------------------------------------------------------------------------------------
 
-    elemental function qdelap_f_s(p, alpha, beta, lambda) result(value)
+    function qdelap_f_s(p, alpha, beta, lambda) result(value)
+    
+    external set_nan
+    external set_inf
 
     real(kind = c_double), intent(in)   :: p, alpha, beta, lambda ! Percentile & Parms
     real(kind = c_double)               :: testcdf, value         ! Result and testcdf
 
         if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. p < ZERO) then
-            value = NAN
+            call set_nan(value)
         else if (p >= ONE) then
-            value = INFTY
+            call set_inf(value)
         else
             value = ZERO
             testcdf = exp(-lambda) / ((beta + ONE) ** alpha)
@@ -250,6 +261,9 @@ contains
     subroutine qdelap_f(p, np, a, na, b, nb, l, nl, lt, lg, obsv) &
                        bind(C, name="qdelap_f")
 
+    external set_nan
+    external set_inf
+    
     integer(kind = c_int), intent(in), value           :: np, na, nb, nl     ! Sizes
     real(kind = c_double), intent(inout), dimension(np):: p                  ! %iles
     real(kind = c_double), intent(out), dimension(np)  :: obsv               ! Result
@@ -269,7 +283,9 @@ contains
 
         if(na == 1 .and. nb == na .and. nl == nb) then
             if (a(1) < EPS .or. b(1) < EPS .or. l(1) < EPS) then
-                obsv = NAN
+                do i = 1, np
+                    call set_nan(obsv(i))
+                end do
             else
                 x = maxval(p, 1, p < 1)
                 i = 1
@@ -288,9 +304,9 @@ contains
                 end do
                 do i = 1, np
                     if (p(i) < ZERO) then
-                        obsv(i) = NAN
+                        call set_nan(obsv(i))
                     else if (p(i) >= ONE) then
-                        obsv(i) = INFTY
+                        call set_inf (obsv(i))
                     else
                         obsv(i) = real(position(p(i), svec) - 1)
                     end if

@@ -2,6 +2,14 @@
 \alias{NEWS}
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
 
+\section{Version 5.0.1 (2017-03-05)}{
+  \subsection{Changed}{
+    \itemize{
+      \item Solaris, being big-endian, appears unable to use the same bit-mask transfer for NaN and INF as any other R platform. Therefore, the package has to revert to calling C to call the R magic words which should recognize the platform.
+    }
+  }
+}
+
 \section{Version 5.0.0 (2017-03-05)}{
   \subsection{Changed}{
     \itemize{

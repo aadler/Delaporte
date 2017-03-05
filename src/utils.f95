@@ -45,9 +45,7 @@ module utils
     real(kind = c_double), parameter :: TWO = 2._c_double
     real(kind = c_double), parameter :: THREE = 3._c_double
     real(kind = c_double), parameter :: EPS = 2.2204460492503131e-16_c_double
-    real(kind = c_double), parameter :: NAN = TRANSFER(z'7FF0000000000001', ONE)
-    real(kind = c_double), parameter :: INFTY = TRANSFER(z'7FF0000000000000', ONE)
-  
+
 contains
 
 !----------------------------------------------------------------------------------------

@@ -102,6 +102,13 @@ void unifrnd_ (int *n, double *x){
   PutRNGstate();
 }
 
+void set_nan_(double *val){
+    *val = R_NaN;
+}
+void set_inf_(double *val){
+    *val = INFINITY;
+}
+
 static const R_CallMethodDef CallEntries[] = {
     {"ddelap_C",    (DL_FUNC) &ddelap_C,   5},
     {"pdelap_C",    (DL_FUNC) &pdelap_C,   6},

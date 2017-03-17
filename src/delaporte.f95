@@ -100,7 +100,7 @@ contains
     real(kind = c_double), intent(in), dimension(nx) :: x                  ! Observations
     real(kind = c_double), intent(out), dimension(nx):: pmfv               ! Result
     real(kind = c_double), intent(in)                :: a(na), b(nb), l(nl)! Parameters
-    logical(kind = c_bool), intent(in)               :: lg                 ! Log flag
+    integer(kind = c_int), intent(in)                :: lg                 ! Log flag
     integer                                          :: i                  ! Integer
 
         !$omp parallel do default(shared) private(i)
@@ -114,7 +114,7 @@ contains
         end do
         !$omp end parallel do
         
-        if (lg) then
+        if (lg == 1) then
             pmfv = log(pmfv)
         end if
 
@@ -171,7 +171,7 @@ contains
     real(kind = c_double), intent(in), dimension(nq) :: q                  ! Observations
     real(kind = c_double), intent(out), dimension(nq):: pmfv               ! Result
     real(kind = c_double), intent(in)                :: a(na), b(nb), l(nl)! Parameters
-    logical(kind = c_bool), intent(in)               :: lg, lt             ! Flags
+    integer(kind = c_int), intent(in)                :: lg, lt             ! Flags
     real(kind = c_double), allocatable, dimension(:) :: singlevec          ! holds pmf
     integer                                          :: i, k               ! Integers
     
@@ -203,11 +203,11 @@ contains
             !$omp end parallel do
         end if
 
-        if (.not. lt) then
+        if (lt == 0) then
             pmfv = ONE - pmfv
         end if
 
-        if (lg) then
+        if (lg == 1) then
             pmfv = log(pmfv)
         end if
 
@@ -268,16 +268,16 @@ contains
     real(kind = c_double), intent(inout), dimension(np):: p                  ! %iles
     real(kind = c_double), intent(out), dimension(np)  :: obsv               ! Result
     real(kind = c_double), intent(in)                  :: a(na), b(nb), l(nl)! Parameters
-    logical(kind = c_bool), intent(in)                 :: lg, lt             ! Flags
+    integer(kind = c_int), intent(in)                  :: lg, lt             ! Flags
     real(kind = c_double), allocatable, dimension(:)   :: svec, tvec         ! Results
     real(kind = c_double)                              :: x                  ! current %
     integer                                            :: i                  ! Integer
 
-        if (lg) then
+        if (lg == 1) then
             p = exp(p)
         end if
 
-        if (.not. lt) then
+        if (lt == 0) then
             p = ONE - p
         end if
 
@@ -348,11 +348,11 @@ contains
     real(kind = c_double), intent(out), dimension(n)   :: vars               ! Result
     real(kind = c_double), intent(in)                  :: a(na), b(nb), l(nl)! Parameters
     real(kind = c_double), dimension(n)                :: p                  ! %iles
-    logical(kind = c_bool)                             :: lg, lt             ! Flags
+    integer(kind = c_int)                              :: lg, lt             ! Flags
 
         call unifrnd(n, p)
-        lt = .TRUE.
-        lg = .FALSE.
+        lt = 1
+        lg = 0
         call qdelap_f(p, n, a, na, b, nb, l, nl, lt, lg, vars)
 
     end subroutine rdelap_f

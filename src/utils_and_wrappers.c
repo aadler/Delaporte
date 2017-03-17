@@ -31,7 +31,7 @@ extern SEXP ddelap_C(SEXP x, SEXP alpha, SEXP beta, SEXP lambda, SEXP lg){
   const int nl = LENGTH(lambda);
   SEXP ret;
   PROTECT(ret = allocVector(REALSXP, nx));
-  ddelap_f(REAL(x), nx, REAL(alpha), na, REAL(beta), nb, REAL(lambda), nl, LOGICAL(lg), REAL(ret));
+  ddelap_f(REAL(x), nx, REAL(alpha), na, REAL(beta), nb, REAL(lambda), nl, INTEGER(lg), REAL(ret));
   UNPROTECT(1);
   return(ret);
 }
@@ -47,7 +47,7 @@ extern SEXP pdelap_C(SEXP q, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt, SEXP l
   SEXP ret;
   PROTECT(ret = allocVector(REALSXP, nq));
   pdelap_f(REAL(q), nq, REAL(alpha), na, REAL(beta), nb, REAL(lambda), nl,
-           LOGICAL(lt), LOGICAL(lg), REAL(ret));
+           INTEGER(lt), INTEGER(lg), REAL(ret));
   UNPROTECT(1);
   return(ret);
 }
@@ -63,7 +63,7 @@ extern SEXP qdelap_C(SEXP p, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt, SEXP l
   SEXP ret;
   PROTECT(ret = allocVector(REALSXP, np));
   qdelap_f(REAL(p), np, REAL(alpha), na, REAL(beta), nb, REAL(lambda), nl,
-           LOGICAL(lt), LOGICAL(lg), REAL(ret));
+           INTEGER(lt), INTEGER(lg), REAL(ret));
   UNPROTECT(1);
   return(ret);
 }

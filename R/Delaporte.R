@@ -6,7 +6,8 @@ ddelap <- function(x, alpha, beta, lambda, log = FALSE){
   if(any(x > floor(x))) {
     warning("Non-integers passed to ddelap. These will have 0 probability.")
   }
-  .Call(ddelap_C, x, alpha, beta, lambda, log)
+  if(log) log_f <- 1L else log_f <- 0L
+  .Call(ddelap_C, x, alpha, beta, lambda, log_f)
 }
 
 pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE){
@@ -14,7 +15,9 @@ pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE){
   if(!is.double(alpha)) {storage.mode(alpha) <- 'double'}
   if(!is.double(beta)) {storage.mode(beta) <- 'double'}
   if(!is.double(lambda)) {storage.mode(lambda) <- 'double'}
-  .Call(pdelap_C, q, alpha, beta, lambda, lower.tail, log.p)
+  if(lower.tail) lt_f <- 1L else lt_f <- 0L
+  if(log.p) lp_f <- 1L else lp_f <- 0L
+  .Call(pdelap_C, q, alpha, beta, lambda, lt_f, lp_f)
 }
 
 qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exact = TRUE, old = FALSE){
@@ -24,7 +27,9 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exa
   if(!is.double(lambda)) {storage.mode(lambda) <- 'double'}
   QDLAP <- double(length(p))
   if (exact) {
-    QDLAP <- .Call(qdelap_C, p, alpha, beta, lambda, lower.tail, log.p)
+    if(lower.tail) lt_f <- 1L else lt_f <- 0L
+    if(log.p) lp_f <- 1L else lp_f <- 0L
+    QDLAP <- .Call(qdelap_C, p, alpha, beta, lambda, lt_f, lp_f)
   } else {
     if(any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0))
       stop('Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results')

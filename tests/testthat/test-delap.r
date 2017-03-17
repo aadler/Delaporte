@@ -137,9 +137,12 @@ test_that("Vector Inf", {
   expect_identical(is.infinite(qdelap(seq_len(3), c(2, 1, 2), c(1, 6, 2), c(1, 2, 0.4))), rep(TRUE, 3))
 })
 test_that("Approximate throws error when 0 is passed", {
-  expect_error(qdelap(0.1, 0, 2, 3, exact = FALSE), 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results')
-  expect_error(qdelap(0.1, 1, 0, 3, exact = FALSE), 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results')
-  expect_error(qdelap(0.1, 1, 2, 0, exact = FALSE), 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results')
+  expect_error(qdelap(0.1, 0, 2, 3, exact = FALSE), 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results.')
+  expect_error(qdelap(0.1, 1, 0, 3, exact = FALSE), 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results.')
+  expect_error(qdelap(0.1, 1, 2, 0, exact = FALSE), 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results.')
+})
+test_that("Approximate throws error when parameter vectors are passed", {
+  expect_error(qdelap(c(.4, .07), c(1, 2), c(4, 1), c(2, 5), exact = FALSE), 'Quantile approximation relies on pooling and thus is not accurate when passing vector-valued parameters. Please use exact version.')
 })
 
 context("Testing rdelap")
@@ -189,8 +192,8 @@ test_that("Vector size", {
   expect_error(rdelap(-1, c(4, 2), c(1, 2, 3, 4), 2), "negative length vectors are not allowed")
 })
 test_that("Approximate throws error when 0 is passed", {
-  expect_error(rdelap(8, 0, 2, 3, exact = FALSE), 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results')
-  expect_error(rdelap(8, 1, 0, 3, exact = FALSE), 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results')
+  expect_error(rdelap(8, 0, 2, 3, exact = FALSE), 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results.')
+  expect_error(rdelap(8, 1, 0, 3, exact = FALSE), 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results.')
   expect_error(rdelap(8, 1, 2, 0, exact = FALSE), 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results')
 })
 
@@ -204,5 +207,5 @@ test_that("Function accuracy", {
 })
 test_that("MoMdelap traps bad parameters", {
   TestData <- c(3,  2, 12, 11,  1,  7,  1,  4,  0, 4)
-  expect_error(MoMdelap(TestData), "Method of moments not appropriate for this data; results include non-positive parameters.")
+  expect_error(MoMdelap(TestData), 'Method of moments not appropriate for this data; results include non-positive parameters.')
 })

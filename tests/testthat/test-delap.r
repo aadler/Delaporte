@@ -78,19 +78,19 @@ test_that("Vector NaN", {
 })
 
 context("Testing qdelap")
-test_that("Singleton function accuracy", {
+test_that("Singleton exact function accuracy", {
   expect_equal(qdelap(.4, 1, 4, 2), 4)
 })
-test_that("Singleton lower.tail", {
+test_that("Singleton exact lower.tail", {
   expect_equal(qdelap(0.49, 4, 6, 3, lower.tail = TRUE), 25)
 })
-test_that("Singleton log.p", {
+test_that("Singleton exact log.p", {
   expect_equal(qdelap(-0.255, 20, 15, 50, log.p = TRUE), 400)
 })
-test_that("Singleton lower.tail & log.p", {
+test_that("Singleton exact lower.tail & log.p", {
   expect_equal(qdelap(-0.7, 4, 6, 3, lower.tail = TRUE, log.p = TRUE), 25)
 })
-test_that("Singleton Nan", {
+test_that("Singleton exact NaN", {
   expect_true(is.nan(qdelap(.05, 0, 1, 2)))
   expect_true(is.nan(qdelap(.05, -2, 1, 2)))
   expect_true(is.nan(qdelap(0.1, 1, 0, 2)))
@@ -99,20 +99,26 @@ test_that("Singleton Nan", {
   expect_true(is.nan(qdelap(1, 1, 4, -9e-4)))
   expect_true(is.nan(qdelap(-1, 2, 3, 4)))
 })
-test_that("Singleton Inf", {
+test_that("Singleton exact Inf", {
   expect_true(is.infinite(qdelap(1, 3, 1, 2)))
   expect_true(is.infinite(qdelap(5, 1, 2, 3)))
 })
-test_that("Vector function accuracy", {
+test_that("Singleton approx function accuracy", {
+  expect_equal(qdelap(.4, 1, 4, 2, exact = FALSE), 4)
+})
+test_that("Singleton approx lower.tail & log.p", {
+  expect_equal(qdelap(-0.7, 4, 6, 3, lower.tail = TRUE, log.p = TRUE, exact = FALSE), 25)
+})
+test_that("Vector exact function accuracy", {
   expect_equal(qdelap(c(.4, .07), c(1, 2), c(4, 1), c(2, 5)), c(4, 3))
 })
-test_that("Vector lower.tail", {
+test_that("Vector exact lower.tail", {
   expect_equal(qdelap(c(0.49, 0.131), c(4, 1), c(6, 9), c(3, 12), lower.tail = FALSE), c(25, 31))
 })
-test_that("Vector log.p", {
+test_that("Vector exact log.p", {
   expect_equal(qdelap(c(-0.9162907318741550, -2.6592600369327779), c(1, 2), c(4, 1), c(2, 5), log.p = TRUE), c(4, 3))
 })  
-test_that("Vector lower.tail & log.p", {
+test_that("Vector exact lower.tail & log.p", {
   expect_equal(qdelap(c(-0.69895775020315487, -1.98413706125967337), c(4, 1), c(6, 9), c(3, 12),
                       lower.tail = FALSE, log.p = TRUE), c(25, 31))
 })

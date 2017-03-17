@@ -2,6 +2,30 @@
 \alias{NEWS}
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
 
+\section{Version 6.0.0 (2017-03-17)}{
+  \subsection{Fixed}{
+    \itemize{
+      \item The approximate version of \code{qdelap} was not correct. It pooled together ALL generated random variables. As it is impractical to generate millions of random variates for each unique parameter triplet, the functionality was changed so that only the \dQuote{exact} version of \code{qdelap} may be used if any of the parameters are a vector.
+    }
+  }
+  \subsection{Changed}{
+    \itemize{
+      \item In the continued struggle to have the package pass all its tests on Solaris SPARC, all logicals needing to be passed to Fortran are now passed as integers and not booleans. While all other platforms had no problem using Fortran 2003's ISO_C_bindings, Solaris SPARC did.
+    }
+  }
+  \subsection{Added}{
+    \itemize{
+      \item Added note to README about Solaris SPARC.
+      \item More tests including for singleton approximate \code{qdelap}.
+    }
+  }  
+  \subsection{Removed}{
+    \itemize{
+      \item Older implementation of \code{qdelap} and \code{rdelap} approximations are now completely removed from code and documentation.
+    }
+  }
+}
+
 \section{Version 5.0.1 (2017-03-05)}{
   \subsection{Changed}{
     \itemize{
@@ -23,14 +47,13 @@
   }
   \subsection{Fixed}{
     \itemize{
-      \item Removed \code{colClasses = 'double'} from tests. This should solve Sun Sparc issues.
-      \item Explicitly cast \code{n} as an integer in loggamma routine. This should suppres warning on OSX mavericks.
+      \item Explicitly cast \code{n} as an integer in loggamma routine. This should suppress warning on OSX mavericks.
     }
   }
   \subsection{Removed}{
     \itemize{
       \item Older implementation of \code{qdelap} and \code{rdelap} approximations is now defunct. Only the new faster approximation based on section 3.9 of Karlis & Xekalaki (2005) remains. The next minor version may remove the \code{.Defunct} calls and the references to the old version in the documentation.
-      \item Removed \code{colClasses = 'double'} from tests. This should solve Sun Sparc issues.
+      \item Removed \code{colClasses = 'double'} from tests. This should solve Sun Sparc issues. (It didn't)
     }
   }
   \subsection{Added}{
@@ -103,7 +126,7 @@
 \section{Version 2.3.0 (2016-06-02)}{
   \subsection{Deprecated}{
     \itemize{
-      \item In the next release (\strong{3.0.0}), passing FALSE to \code{exact} in \code{rdelap} and \code{qdelap} will use the method described in section 3.9 of Karlis & Xekalaki (2005) to generate approximately Delaporte random variates much more quickly for large \code{n} and large values of the parameters. However, when implemented, this will break reproduceability even for specifically set seeds. The new code is commented out in the function.
+      \item In the next release (\strong{3.0.0}), passing FALSE to \code{exact} in \code{rdelap} and \code{qdelap} will use the method described in section 3.9 of Karlis & Xekalaki (2005) to generate approximately Delaporte random variates much more quickly for large \code{n} and large values of the parameters. However, when implemented, this will break reproducible even for specifically set seeds. The new code is commented out in the function.
     }
   }
   \subsection{Changed}{

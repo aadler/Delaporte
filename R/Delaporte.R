@@ -20,7 +20,7 @@ pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE){
   .Call(pdelap_C, q, alpha, beta, lambda, lt_f, lp_f)
 }
 
-qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exact = TRUE, old = FALSE){
+qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exact = TRUE){
   if(!is.double(p)) {storage.mode(p) <- 'double'}
   if(!is.double(alpha)) {storage.mode(alpha) <- 'double'}
   if(!is.double(beta)) {storage.mode(beta) <- 'double'}
@@ -42,12 +42,8 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exa
     p0 <- p[p == 0]
     pInf <- p[p >= 1]
     n <- min(10 ^ (ceiling(log(alpha * beta + lambda, 10)) + 5), 1e7)
-    if (old) {
-      .Defunct(msg = 'This option is defunct. Use old = FALSE. The "old" option may be removed at any time and exact = FALSE will default to the new method.')
-    } else {
-      ShiftedGammas <- rgamma(n, shape = alpha, scale = beta)
-      DP <- rpois(n, lambda = (ShiftedGammas + lambda))
-    }
+    ShiftedGammas <- rgamma(n, shape = alpha, scale = beta)
+    DP <- rpois(n, lambda = (ShiftedGammas + lambda))
     QValid <- as.vector(quantile(DP, pValid, na.rm = TRUE, type = 8))
     QNan <- rep.int(NaN, times = length(pNan))
     Q0 <- rep.int(0, times = length(p0))
@@ -57,7 +53,7 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exa
   return(QDLAP)
 }
 
-rdelap <- function(n, alpha, beta, lambda, exact = TRUE, old = FALSE){
+rdelap <- function(n, alpha, beta, lambda, exact = TRUE){
   if(!is.integer(n)) {storage.mode(n) <- 'integer'}
   if(!is.double(alpha)) {storage.mode(alpha) <- 'double'}
   if(!is.double(beta)) {storage.mode(beta) <- 'double'}
@@ -66,12 +62,8 @@ rdelap <- function(n, alpha, beta, lambda, exact = TRUE, old = FALSE){
   if (!exact) {
     if(any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0))
       stop('Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results.')
-    if (old) {
-      .Defunct(msg = 'This option is defunct. Use old = FALSE. The "old" option may be removed at any time and exact = FALSE will default to the new method.')
-    } else {
-      ShiftedGammas <- rgamma(n, shape = alpha, scale = beta)
-      RDLAP <- rpois(n, lambda = (ShiftedGammas + lambda))
-    }
+    ShiftedGammas <- rgamma(n, shape = alpha, scale = beta)
+    RDLAP <- rpois(n, lambda = (ShiftedGammas + lambda))
   } else {
     RDLAP <- .Call(rdelap_C, n, alpha, beta, lambda)
   }

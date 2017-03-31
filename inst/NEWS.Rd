@@ -2,7 +2,7 @@
 \alias{NEWS}
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
 
-\section{Version 6.0.0 (2017-03-17)}{
+\section{Version 6.0.0 (2017-03-31)}{
   \subsection{Fixed}{
     \itemize{
       \item The approximate version of \code{qdelap} was not correct. It pooled together ALL generated random variables. As it is impractical to generate millions of random variates for each unique parameter triplet, the functionality was changed so that only the \dQuote{exact} version of \code{qdelap} may be used if any of the parameters are a vector.

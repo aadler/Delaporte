@@ -2,6 +2,13 @@
 \alias{NEWS}
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
 
+\section{Version 6.1.0 (2017-08-05)}{
+  \subsection{Fixed}{
+    \itemize{
+      \item There was an error in the calculation of \code{beta}, and thus all three parameters, in \code{MoMdelap} (thanks to William Cipolli).
+      }
+  }
+}
 \section{Version 6.0.0 (2017-03-31)}{
   \subsection{Fixed}{
     \itemize{

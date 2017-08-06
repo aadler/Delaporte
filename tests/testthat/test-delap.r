@@ -201,9 +201,9 @@ context("Testing MoMdelap")
 test_that("Function accuracy", {
   TestData <- c(5, 7, 9, 9, 10, 11, 11, 13, 17, 24)
   MoM <- MoMdelap(TestData)
-  expect_equal(MoM[[1]], 0.769626413810781)
-  expect_equal(MoM[[2]], 4.83611111111112)
-  expect_equal(MoM[[3]], 7.87800114876508)
+  expect_equal(MoM[[1]], 0.88342721893491116)
+  expect_equal(MoM[[2]], 4.51388888888888928)
+  expect_equal(MoM[[3]], 7.61230769230769155)
 })
 test_that("MoMdelap traps bad parameters", {
   TestData <- c(3,  2, 12, 11,  1,  7,  1,  4,  0, 4)

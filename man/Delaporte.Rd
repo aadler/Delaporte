@@ -49,7 +49,7 @@ The quantile function, \code{qdelap}, is right continuous: \code{qdelap(q, alpha
   
 The random variate generator, \code{rdelap}, also has multiple versions. When \code{exact = TRUE}, it uses inversion by creating a vector of \code{n} uniformly distributed random variates between \eqn{0} and \eqn{1}. If all the parameters are singletons, a single CDF vector is constructed as per the quantile function, and the entries corresponding to the uniform variates are read off of the constructed vector. If the parameters are themselves vectors, then it passes the entire uniform variate vector to \code{qdelap}, which is slower. When \code{exact = FALSE}, regardless of the length of the parameters, it generates \code{n} gamma variates \eqn{\Gamma} with shape \eqn{\alpha} and scale \eqn{\beta} and then \code{n} pseudo-Delaporte variates as Poisson random variables with parameter \eqn{\lambda + \Gamma}. As there is no pooling, each individual random variate reflects the parameter triplet which generated it. The non-inversion method is pretty much always faster.
 
-\code{MoMdelap} uses the definition of the Delaporte's mean, variance, and skew to calculate the method of moments estimates of \eqn{\alpha}, \eqn{\beta}, and \eqn{\lambda}, which it returns as a numeric vector. This estimate is also a reasonable starting point for maximum likelihood estimation using nonlinear optimizers such as \code{\link{optim}} or \code{\link[nloptr]{nloptr}}. If the data is clustered near 0, there are times when method of moments would result in a non-positive parameter. In these cases \code{MoMdelap} will throw an error.
+\code{MoMdelap} uses the definition of the Delaporte's mean, variance, and skew to calculate the method of moments estimates of \eqn{\alpha}, \eqn{\beta}, and \eqn{\lambda}, which it returns as a numeric vector. This estimate is also a reasonable starting point for maximum likelihood estimation using nonlinear optimizers such as \code{\link{optim}} or \code{\link[nloptr]{nloptr}}. If the data is clustered near 0, there are times when method of moments would result in a non-positive parameter. In these cases \code{MoMdelap} will throw an error. For the sample skew, the code uses G1 as defined in Joanes & Gill (1997) which they found has the least mean-square error for non-normal distributions.
 }
 \value{
   \code{ddelap} gives the probability mass function, \code{pdelap} gives the cumulative distribution function, \code{qdelap} gives the quantile function, and \code{rdelap} generates random deviates. Values close to 0 (less than machine epsilon) for \eqn{\alpha, \beta} or \eqn{\lambda} will return \code{NaN} for that particular entry. Proper triplets within a set of vectors should still return valid values. For the approximate versions of \code{qdelap} and \code{rdelap}, having a value close to 0 will trip an error, sending the user to the exact version which currently properly handles vector-based inputs which contain 0.
@@ -64,9 +64,12 @@ The random variate generator, \code{rdelap}, also has multiple versions. When \c
 Avraham Adler \email{Avraham.Adler@gmail.com}
 }
 \references{
+
+  Joanes, D. N. and Gill, C. A. (1998) Comparing Measures of Sample Skewness and Kurtosis. \emph{Journal of the Royal Statistical Society. Series D (The Statistician)} \bold{47}(1), 183--189. \url{http://www.jstor.org/stable/2988433}
+  
   Johnson, N. L., Kemp, A. W. and Kotz, S. (2005) \emph{Univariate discrete distributions} (Third ed.). John Wiley & Sons. pp. 241--242. ISBN 978-0-471-27246-5.
   
-    Karlis, D. and Xekalaki, E. (2005) Mixed Poisson Distributions. \emph{International Statistical Review} \bold{73}(1), 35--58. \url{http://projecteuclid.org/euclid.isr/1112304811}
+  Karlis, D. and Xekalaki, E. (2005) Mixed Poisson Distributions. \emph{International Statistical Review} \bold{73}(1), 35--58. \url{http://projecteuclid.org/euclid.isr/1112304811}
 
   Vose, D. (2008) \emph{Risk analysis: a quantitative guide} (Third, illustrated ed.). John Wiley & Sons. pp. 618--619 ISBN 978-0-470-51284-5
 }  

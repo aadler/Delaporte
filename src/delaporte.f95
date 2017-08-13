@@ -13,6 +13,8 @@
 !                       Porting from C++ code in Delaporte package for R.
 !          Version 1.1: 2017-03-01
 !                       Various tweaks.
+!          Version 1.2: 2017-08-13
+!                       Corrected MoMdelap code.
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler

@@ -21,7 +21,7 @@
 //  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 
-void ddelap_f(double *x, int nx, double *a, int na, double *b, int nb, double *l, int nl,
+void F77_NAME(ddelap_f)(double *x, int nx, double *a, int na, double *b, int nb, double *l, int nl,
               int *lg, double *ret);
 
 extern SEXP ddelap_C(SEXP x, SEXP alpha, SEXP beta, SEXP lambda, SEXP lg){
@@ -31,12 +31,12 @@ extern SEXP ddelap_C(SEXP x, SEXP alpha, SEXP beta, SEXP lambda, SEXP lg){
   const int nl = LENGTH(lambda);
   SEXP ret;
   PROTECT(ret = allocVector(REALSXP, nx));
-  ddelap_f(REAL(x), nx, REAL(alpha), na, REAL(beta), nb, REAL(lambda), nl, INTEGER(lg), REAL(ret));
+  F77_CALL(ddelap_f)(REAL(x), nx, REAL(alpha), na, REAL(beta), nb, REAL(lambda), nl, INTEGER(lg), REAL(ret));
   UNPROTECT(1);
   return(ret);
 }
 
-void pdelap_f(double *q, int nq, double *a, int na, double *b, int nb, double *l, int nl,
+void F77_NAME(pdelap_f)(double *q, int nq, double *a, int na, double *b, int nb, double *l, int nl,
               int *lt, int *lg, double *ret);
 
 extern SEXP pdelap_C(SEXP q, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt, SEXP lg){
@@ -46,13 +46,13 @@ extern SEXP pdelap_C(SEXP q, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt, SEXP l
   const int nl = LENGTH(lambda);
   SEXP ret;
   PROTECT(ret = allocVector(REALSXP, nq));
-  pdelap_f(REAL(q), nq, REAL(alpha), na, REAL(beta), nb, REAL(lambda), nl,
+  F77_CALL(pdelap_f)(REAL(q), nq, REAL(alpha), na, REAL(beta), nb, REAL(lambda), nl,
            INTEGER(lt), INTEGER(lg), REAL(ret));
   UNPROTECT(1);
   return(ret);
 }
 
-void qdelap_f(double *p, int np, double *a, int na, double *b, int nb, double *l, int nl,
+void F77_NAME(qdelap_f)(double *p, int np, double *a, int na, double *b, int nb, double *l, int nl,
               int *lt, int *lg, double *ret);
 
 extern SEXP qdelap_C(SEXP p, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt, SEXP lg){
@@ -62,13 +62,13 @@ extern SEXP qdelap_C(SEXP p, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt, SEXP l
   const int nl = LENGTH(lambda);
   SEXP ret;
   PROTECT(ret = allocVector(REALSXP, np));
-  qdelap_f(REAL(p), np, REAL(alpha), na, REAL(beta), nb, REAL(lambda), nl,
+  F77_CALL(qdelap_f)(REAL(p), np, REAL(alpha), na, REAL(beta), nb, REAL(lambda), nl,
            INTEGER(lt), INTEGER(lg), REAL(ret));
   UNPROTECT(1);
   return(ret);
 }
 
-void rdelap_f(int n, double *a, int na, double *b, int nb, double *l, int nl,
+void F77_NAME(rdelap_f)(int n, double *a, int na, double *b, int nb, double *l, int nl,
               double *ret);
 
 extern SEXP rdelap_C(SEXP n, SEXP alpha, SEXP beta, SEXP lambda){
@@ -78,23 +78,23 @@ extern SEXP rdelap_C(SEXP n, SEXP alpha, SEXP beta, SEXP lambda){
   const int nl = LENGTH(lambda);
   SEXP ret;
   PROTECT(ret = allocVector(REALSXP, nn));
-  rdelap_f(nn, REAL(alpha), na, REAL(beta), nb, REAL(lambda), nl, REAL(ret));
+  F77_CALL(rdelap_f)(nn, REAL(alpha), na, REAL(beta), nb, REAL(lambda), nl, REAL(ret));
   UNPROTECT(1);
   return(ret);
 }
 
-void momdelap_f(double *x, int nx, double *ret);
+void F77_NAME(momdelap_f)(double *x, int nx, double *ret);
 
 extern SEXP MoMdelap_C(SEXP x){
   const int nx = LENGTH(x);
   SEXP ret;
   PROTECT(ret = allocVector(REALSXP, 3));
-  momdelap_f(REAL(x), nx, REAL(ret));
+  F77_CALL(momdelap_f)(REAL(x), nx, REAL(ret));
   UNPROTECT(1);
   return(ret);
 }
 
-void unifrnd_ (int *n, double *x){
+void F77_SUB(unifrnd) (int *n, double *x){
   GetRNGstate();
   for (int i = 0; i < *n; ++i){
     *(x + i) = unif_rand();
@@ -102,10 +102,10 @@ void unifrnd_ (int *n, double *x){
   PutRNGstate();
 }
 
-void set_nan_(double *val){
+void F77_SUB(set_nan)(double *val){
     *val = R_NaN;
 }
-void set_inf_(double *val){
+void F77_SUB(set_inf)(double *val){
     *val = INFINITY;
 }
 

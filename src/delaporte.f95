@@ -96,7 +96,7 @@ contains
 !              without calling summation loop.
 !----------------------------------------------------------------------------------------
 
-    subroutine ddelap_f(x, nx, a, na, b, nb, l, nl, lg, pmfv) bind(C, name="ddelap_f")
+    subroutine ddelap_f(x, nx, a, na, b, nb, l, nl, lg, pmfv) bind(C, name="ddelap_f_")
     
     integer(kind = c_int), intent(in), value         :: nx, na, nb, nl     ! Sizes
     real(kind = c_double), intent(in), dimension(nx) :: x                  ! Observations
@@ -165,7 +165,7 @@ contains
 !----------------------------------------------------------------------------------------
 
     subroutine pdelap_f(q, nq, a, na, b, nb, l, nl, lt, lg, pmfv) &
-                        bind(C, name="pdelap_f")
+                        bind(C, name="pdelap_f_")
                         
     external set_nan                        
 
@@ -261,7 +261,7 @@ contains
 !----------------------------------------------------------------------------------------
 
     subroutine qdelap_f(p, np, a, na, b, nb, l, nl, lt, lg, obsv) &
-                       bind(C, name="qdelap_f")
+                       bind(C, name="qdelap_f_")
 
     external set_nan
     external set_inf
@@ -342,7 +342,7 @@ contains
 !              speedup. Only rdelap suffers slightly.
 !----------------------------------------------------------------------------------------
 
-    subroutine rdelap_f(n, a, na, b, nb, l, nl, vars) bind(C, name="rdelap_f")
+    subroutine rdelap_f(n, a, na, b, nb, l, nl, vars) bind(C, name="rdelap_f_")
 
     external unifrnd
 
@@ -367,7 +367,7 @@ contains
 !              Knuth, and Cook. https://www.johndcook.com/blog/skewness_kurtosis/
 !----------------------------------------------------------------------------------------
 
-    subroutine momdelap_f(obs, n, params) bind(C, name="momdelap_f")
+    subroutine momdelap_f(obs, n, params) bind(C, name="momdelap_f_")
 
     integer(kind = c_int), intent(in), value           :: n             ! Sizes
     real(kind = c_double), intent(in), dimension(n)    :: obs           ! Observations

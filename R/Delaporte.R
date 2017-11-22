@@ -20,7 +20,8 @@ pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE){
   .Call(pdelap_C, q, alpha, beta, lambda, lt_f, lp_f)
 }
 
-qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exact = TRUE){
+qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, 
+                   exact = TRUE){
   if(!is.double(p)) {storage.mode(p) <- 'double'}
   if(!is.double(alpha)) {storage.mode(alpha) <- 'double'}
   if(!is.double(beta)) {storage.mode(beta) <- 'double'}

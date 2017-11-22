@@ -1,4 +1,4 @@
-!----------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------
 !
 ! MODULE: lgam
 !
@@ -6,10 +6,11 @@
 !         Modified for Fortran 2003 and use with C by
 !         Avraham Adler <Avraham.Adler@gmail.com>
 !
-! DESCRIPTION: Taken from bratio.f90 found at http://jblevins.org/mirror/amiller/#nswc
-!              Both procedures written by ALFRED H. MORRIS as part of the Naval Surface
-!              Warfare Center Mathematical Library and released in public domain. While
-!              Fortran 2008 has an intrinsic GAMMA and LOG_GAMMA, Fortran 2003 does not.
+! DESCRIPTION: Taken from bratio.f90 found at
+!              http://jblevins.org/mirror/amiller/#nswc Both procedures written
+!              by ALFRED H. MORRIS as part of the Naval Surface Warfare Center
+!              Mathematical Library and released in public domain. While Fortran
+!              2008 has an intrinsic GAMMA and LOG_GAMMA, Fortran 2003 does not.
 !
 ! HISTORY:
 !          Version 1.0: 2016-11-20
@@ -17,31 +18,36 @@
 !          Version 1.1: 2017-02-04
 !                       Adjusted code slightly to become elemental by explicitly
 !                       declaring parameters as such.
-! LICENSE: The original is a work of the US government and thus in the public domain.
-!          The updated code below is released under the BSD-2 License below:
+!          Version 1.2: 2017-11-20
+!                       Reformatted to 80 columns
+!
+! LICENSE:
+!   The original is a work of the US government and thus in the public domain.
+!   The updated code below is released under the BSD-2 License below:
 !
 !   Copyright (c) 2016, Avraham Adler
 !   All rights reserved.
 !
-!   Redistribution and use in source and binary forms, with or without modification, are
-!   permitted provided that the following conditions are met:
-!       1. Redistributions of source code must retain the above copyright notice, this
-!          list of conditions and the following disclaimer.
-!       2. Redistributions in binary form must reproduce the above copyright notice,
-!          this list of conditions and the following disclaimer in the documentation
-!          and/or other materials provided with the distribution.
+!   Redistribution and use in source and binary forms, with or without
+!   modification, are permitted provided that the following conditions are met:
+!       1. Redistributions of source code must retain the above copyright
+!          notice, this list of conditions and the following disclaimer.
+!       2. Redistributions in binary form must reproduce the above copyright
+!          notice, this list of conditions and the following disclaimer in the
+!          documentation and/or other materials provided with the distribution.
 !
-!   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
-!   EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-!   OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
-!   SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-!   INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
-!   TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-!   BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-!   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-!   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
-!   DAMAGE.
-!----------------------------------------------------------------------------------------
+!   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+!   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+!   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+!   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+!   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+!   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+!   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+!   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+!   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+!   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+!   POSSIBILITY OF SUCH DAMAGE.
+!-------------------------------------------------------------------------------
 module lgam
 
     use, intrinsic :: iso_c_binding, only: c_double
@@ -50,11 +56,11 @@ module lgam
 
 contains
 
-!----------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------
 ! FUNCTION: gamln1
 !
 ! DESCRIPTION: EVALUATION OF LN(GAMMA(1 + A)) FOR -0.2 <= A <= 1.25
-!----------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------
 
     elemental function gamln1(a) result(fn_val)
 
@@ -88,8 +94,10 @@ contains
         S5 = .116165475989616e-03_c_double
 
         if(a < 0.6_c_double) then
-            w = ((((((P6 * a + P5) * a + P4) * a + P3) * a + P2) * a + P1) * a + P0) / &
-                ((((((Q6 * a + Q5) * a + Q4) * a + Q3) * a + Q2) * a + Q1) * a + ONE)
+            w = ((((((P6 * a + P5) * a + P4) * a + P3) * a + P2) * a + P1) * a &
+                      + P0) / &
+                ((((((Q6 * a + Q5) * a + Q4) * a + Q3) * a + Q2) * a + Q1) * a &
+                      + ONE)
             fn_val = -a * w
         else
             x = a - ONE
@@ -100,7 +108,7 @@ contains
 
     end function gamln1
 
-!----------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------
 ! FUNCTION: gamln
 !
 ! DESCRIPTION: EVALUATION OF LN(GAMMA(A)) FOR POSITIVE A
@@ -109,9 +117,9 @@ contains
 !              DAHLGREN, VIRGINIA
 !              Modified to interact with C using Fortran 2003
 !              by Avraham Adler <Avraham.Adler@gmail.com>, 2016-11-07
-!--------------------------
+!-------------------------------------------------------------------------------
 !     D = 0.5*(LN(2*PI) - 1)
-!--------------------------
+!-------------------------------------------------------------------------------
 
     elemental function gamln(a) result(fn_val)
 

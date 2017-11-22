@@ -1,4 +1,4 @@
-!----------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------
 !
 ! MODULE: Delaporte
 !
@@ -15,30 +15,33 @@
 !                       Various tweaks.
 !          Version 1.2: 2017-08-13
 !                       Corrected MoMdelap code.
+!          Version 1.3: 2017-11-20
+!                       Updates.
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
 !   All rights reserved.
 !
-!   Redistribution and use in source and binary forms, with or without modification, are
-!   permitted provided that the following conditions are met:
-!       1. Redistributions of source code must retain the above copyright notice, this
-!          list of conditions and the following disclaimer.
-!       2. Redistributions in binary form must reproduce the above copyright notice,
-!          this list of conditions and the following disclaimer in the documentation
-!          and/or other materials provided with the distribution.
+!   Redistribution and use in source and binary forms, with or without
+!   modification, are permitted provided that the following conditions are met:
+!       1. Redistributions of source code must retain the above copyright
+!          notice, this list of conditions and the following disclaimer.
+!       2. Redistributions in binary form must reproduce the above copyright
+!          notice, this list of conditions and the following disclaimer in the
+!          documentation and/or other materials provided with the distribution.
 !
-!   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
-!   EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-!   OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
-!   SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-!   INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
-!   TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-!   BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-!   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-!   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
-!   DAMAGE.
-!----------------------------------------------------------------------------------------
+!   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+!   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+!   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+!   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+!   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+!   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+!   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+!   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+!   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+!   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+!   POSSIBILITY OF SUCH DAMAGE.
+!-------------------------------------------------------------------------------
 
 module delaporte
     use, intrinsic :: iso_c_binding
@@ -52,22 +55,24 @@ module delaporte
 
 contains
 
-!----------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------
 ! FUNCTION: ddelap_f_s
 !
-! DESCRIPTION: Calculate the Delaporte probability mass function for a single observation
-!              and return the value or its log. Calculated through explicit summation.
-!              Follows R convention that real observations are errors and have 0 density
-!              so calls floor to build to last integer.
-!----------------------------------------------------------------------------------------
+! DESCRIPTION: Calculate the Delaporte probability mass function for a single
+!              observation and return the value or its log. Calculated through
+!              explicit summation.
+!
+!              Follows R convention that real observations are errors and have 0
+!              density so calls floor to build to last integer.
+!-------------------------------------------------------------------------------
 
     function ddelap_f_s(x, alpha, beta, lambda) result(pmf)
 
     external set_nan
     
-    real(kind = c_double), intent(in)   :: x, alpha, beta, lambda ! Observation & Parms
-    real(kind = c_double)               :: pmf                    ! Result
-    integer                             :: i, k                   ! Integers
+    real(kind = c_double), intent(in)   :: x, alpha, beta, lambda 
+    real(kind = c_double)               :: pmf                    
+    integer                             :: i, k                   
 
       if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. x < ZERO) then
           call set_nan(pmf)
@@ -85,25 +90,28 @@ contains
 
     end function ddelap_f_s
 
-!----------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------
 ! ROUTINE: ddelap_f
 !
-! DESCRIPTION: Vector-based PMF allowing parameter vector recycling and called from C.
-!              As Fortran starts its indices at 1, for the mod function to properly
-!              recycle the vectors, the index needs to be reduced by one, mod applied,
-!              and then increased by one again. Follows R convention that real
-!              observations are errors and have 0 density so returns 0 for non-integer
-!              without calling summation loop.
-!----------------------------------------------------------------------------------------
+! DESCRIPTION: Vector-based PMF allowing parameter vector recycling and called 
+!              from C. As Fortran starts its indices at 1, for the mod function
+!              to properly recycle the vectors, the index needs to be reduced by
+!              one, mod applied, and then increased by one again.
+!
+!              Follows R convention that real observations are errors and have 0
+!              density so returns 0 for non-integer without calling summation
+!              loop.
+!-------------------------------------------------------------------------------
 
-    subroutine ddelap_f(x, nx, a, na, b, nb, l, nl, lg, pmfv) bind(C, name="ddelap_f_")
+    subroutine ddelap_f(x, nx, a, na, b, nb, l, nl, lg, pmfv) &
+                        bind(C, name="ddelap_f_")
     
-    integer(kind = c_int), intent(in), value         :: nx, na, nb, nl     ! Sizes
-    real(kind = c_double), intent(in), dimension(nx) :: x                  ! Observations
-    real(kind = c_double), intent(out), dimension(nx):: pmfv               ! Result
-    real(kind = c_double), intent(in)                :: a(na), b(nb), l(nl)! Parameters
-    integer(kind = c_int), intent(in)                :: lg                 ! Log flag
-    integer                                          :: i                  ! Integer
+    integer(kind = c_int), intent(in), value         :: nx, na, nb, nl
+    real(kind = c_double), intent(in), dimension(nx) :: x
+    real(kind = c_double), intent(out), dimension(nx):: pmfv
+    real(kind = c_double), intent(in)                :: a(na), b(nb), l(nl)
+    integer(kind = c_int), intent(in)                :: lg
+    integer                                          :: i
 
         !$omp parallel do default(shared) private(i)
         do i = 1, nx
@@ -111,7 +119,8 @@ contains
                 pmfv(i) = ZERO
             else
                 pmfv(i) = ddelap_f_s(x(i), a(mod(i - 1, na) + 1), &
-                                     b(mod(i - 1, nb) + 1), l(mod(i - 1, nl) + 1))
+                                     b(mod(i - 1, nb) + 1), &
+                                     l(mod(i - 1, nl) + 1))
             end if
         end do
         !$omp end parallel do
@@ -122,22 +131,24 @@ contains
 
     end subroutine ddelap_f
 
-!----------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------
 ! FUNCTION: pdelap_f_s
 !
-! DESCRIPTION: Calculate the Delaporte cumulative distribution function for a single
-!              observation and return the value or its log. Calculated through explicit
-!              summation. Follows R convention that real observations are errors and have
-!              0 density so calls floor to build to last integer.
-!----------------------------------------------------------------------------------------
+! DESCRIPTION: Calculate the Delaporte cumulative distribution function for a
+!              single observation and return the value or its log. Calculated
+!              through explicit summation.
+!
+!              Follows R convention that real observations are errors and have 0
+!              density so calls floor to build to last integer.
+!-------------------------------------------------------------------------------
 
     function pdelap_f_s(q, alpha, beta, lambda) result(cdf)
     
     external set_nan
 
-    real(kind = c_double)               :: cdf                    ! Result
-    real(kind = c_double), intent(in)   :: q, alpha, beta, lambda ! Observation & Parms
-    integer                             :: i, k                   ! Integers
+    real(kind = c_double)               :: cdf
+    real(kind = c_double), intent(in)   :: q, alpha, beta, lambda
+    integer                             :: i, k
 
         if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. q < ZERO) then
             call set_nan(cdf)
@@ -151,31 +162,32 @@ contains
 
     end function pdelap_f_s
 
-!----------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------
 ! ROUTINE: pdelap_f
 !
-! DESCRIPTION: Vector-based CDF allowing parameter vector recycling and called from C. If
-!              parameters are all singletons (not vectors) then the idea is to find the
-!              largest value in the vector and build the PDF up to that point. Building
-!              the vector has each succesive value piggyback off of the prior instead of
-!              calling p_delap_f_s each time which increases the speed dramatically. Once
-!              created, remaining values are simple lookups off of the singlevec vector.
-!              Otherwise, each entry will need to build its own pmf value by calling
-!              p_delap_f_s on each entry.
-!----------------------------------------------------------------------------------------
+! DESCRIPTION: Vector-based CDF allowing parameter vector recycling and called
+!              from C. If parameters are all singletons (not vectors) then the
+!              idea is to find the largest value in the vector and build the PDF
+!              up to that point. Building the vector has each succesive value
+!              piggyback off of the prior instead of calling p_delap_f_s each
+!              time which increases the speed dramatically. Once created,
+!              remaining values are simple lookups off of the singlevec vector.
+!              Otherwise, each entry will need to build its own pmf value by
+!              calling p_delap_f_s on each entry.
+!-------------------------------------------------------------------------------
 
     subroutine pdelap_f(q, nq, a, na, b, nb, l, nl, lt, lg, pmfv) &
                         bind(C, name="pdelap_f_")
                         
     external set_nan                        
 
-    integer(kind = c_int), intent(in), value         :: nq, na, nb, nl     ! Sizes
-    real(kind = c_double), intent(in), dimension(nq) :: q                  ! Observations
-    real(kind = c_double), intent(out), dimension(nq):: pmfv               ! Result
-    real(kind = c_double), intent(in)                :: a(na), b(nb), l(nl)! Parameters
-    integer(kind = c_int), intent(in)                :: lg, lt             ! Flags
-    real(kind = c_double), allocatable, dimension(:) :: singlevec          ! holds pmf
-    integer                                          :: i, k               ! Integers
+    integer(kind = c_int), intent(in), value         :: nq, na, nb, nl
+    real(kind = c_double), intent(in), dimension(nq) :: q
+    real(kind = c_double), intent(out), dimension(nq):: pmfv
+    real(kind = c_double), intent(in)                :: a(na), b(nb), l(nl)
+    integer(kind = c_int), intent(in)                :: lg, lt
+    real(kind = c_double), allocatable, dimension(:) :: singlevec
+    integer                                          :: i, k
     
         if(na == 1 .and. nb == na .and. nl == nb) then
             if (a(1) < EPS .or. b(1) < EPS .or. l(1) < EPS) then
@@ -188,7 +200,8 @@ contains
                 singlevec(1) = exp(-l(1)) / ((b(1) + ONE) ** a(1))
                 do i = 2, k + 1
                     singlevec(i) = singlevec(i - 1) &
-                                   + ddelap_f_s(real(i - 1, c_double), a(1), b(1), l(1))
+                                   + ddelap_f_s(real(i - 1, c_double), a(1), &
+                                   b(1), l(1))
                 end do
                 do i = 1, nq
                     k = floor(q(i))
@@ -199,8 +212,8 @@ contains
         else
             !$omp parallel do default(shared) private(i)
             do i = 1, nq
-                pmfv(i) = pdelap_f_s(q(i), a(mod(i - 1, na) + 1), b(mod(i - 1, nb) + 1),&
-                                     l(mod(i - 1, nl) + 1))
+                pmfv(i) = pdelap_f_s(q(i), a(mod(i - 1, na) + 1), &
+                b(mod(i - 1, nb) + 1), l(mod(i - 1, nl) + 1))
             end do
             !$omp end parallel do
         end if
@@ -215,21 +228,21 @@ contains
 
     end subroutine pdelap_f
 
-!----------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------
 ! FUNCTION: qdelap_f_s
 !
-! DESCRIPTION: Calculate the Delaporte quantile function for a single observation and
-!              return the value. Calculated through explicit summation. Returns NaN and
-!              Inf. where appropriate
-!----------------------------------------------------------------------------------------
+! DESCRIPTION: Calculate the Delaporte quantile function for a single 
+!              observation and return the value. Calculated through explicit
+!              summation. Returns NaN and Inf where appropriate
+!-------------------------------------------------------------------------------
 
     function qdelap_f_s(p, alpha, beta, lambda) result(value)
     
     external set_nan
     external set_inf
 
-    real(kind = c_double), intent(in)   :: p, alpha, beta, lambda ! Percentile & Parms
-    real(kind = c_double)               :: testcdf, value         ! Result and testcdf
+    real(kind = c_double), intent(in)   :: p, alpha, beta, lambda
+    real(kind = c_double)               :: testcdf, value
 
         if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. p < ZERO) then
             call set_nan(value)
@@ -240,25 +253,26 @@ contains
             testcdf = exp(-lambda) / ((beta + ONE) ** alpha)
             do while (p > testcdf)
                 value = value + ONE
-                testcdf = testcdf + ddelap_f_s(real(value, c_double), alpha, beta, &
-                                                lambda)
+                testcdf = testcdf + ddelap_f_s(real(value, c_double), alpha, &
+                                               beta, lambda)
             end do
         end if
 
     end function qdelap_f_s
 
-!----------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------
 ! ROUTINE: qdelap_f
 !
-! DESCRIPTION: Vector-based quantile function with parameter vector recycling. If
-!              parameters are all singletons (not vectors) then the idea is to find the
-!              largest value in the vector and build the PDF up to that point. Building
-!              the vector has each succesive value piggyback off of the prior instead of
-!              calling p_delap_f_s each time which increases the speed dramatically. Once
-!              created, remaining values are lookups off of the singlevec vector.
-!              Otherwise, each entry will need to build its own pmf value by calling
-!              q_delap_f_s on each entry.
-!----------------------------------------------------------------------------------------
+! DESCRIPTION: Vector-based quantile function with parameter vector recycling.
+!              If parameters are all singletons (not vectors) then the idea is
+!              to find the largest value in the vector and build the PDF up to
+!              that point. Building the vector has each succesive value
+!              piggyback off of the prior instead of calling p_delap_f_s each
+!              time which increases the speed dramatically. Once created,
+!              remaining values are lookups off of the singlevec vector.
+!              Otherwise, each entry will need to build its own pmf value by
+!              calling q_delap_f_s on each entry.
+!-------------------------------------------------------------------------------
 
     subroutine qdelap_f(p, np, a, na, b, nb, l, nl, lt, lg, obsv) &
                        bind(C, name="qdelap_f_")
@@ -266,14 +280,14 @@ contains
     external set_nan
     external set_inf
     
-    integer(kind = c_int), intent(in), value           :: np, na, nb, nl     ! Sizes
-    real(kind = c_double), intent(inout), dimension(np):: p                  ! %iles
-    real(kind = c_double), intent(out), dimension(np)  :: obsv               ! Result
-    real(kind = c_double), intent(in)                  :: a(na), b(nb), l(nl)! Parameters
-    integer(kind = c_int), intent(in)                  :: lg, lt             ! Flags
-    real(kind = c_double), allocatable, dimension(:)   :: svec, tvec         ! Results
-    real(kind = c_double)                              :: x                  ! current %
-    integer                                            :: i                  ! Integer
+    integer(kind = c_int), intent(in), value           :: np, na, nb, nl
+    real(kind = c_double), intent(inout), dimension(np):: p
+    real(kind = c_double), intent(out), dimension(np)  :: obsv
+    real(kind = c_double), intent(in)                  :: a(na), b(nb), l(nl)
+    integer(kind = c_int), intent(in)                  :: lg, lt
+    real(kind = c_double), allocatable, dimension(:)   :: svec, tvec
+    real(kind = c_double)                              :: x
+    integer                                            :: i
 
         if (lg == 1) then
             p = exp(p)
@@ -301,8 +315,8 @@ contains
                     allocate(tvec(1:i))
                     tvec(1:i-1) = svec
                     call move_alloc(tvec, svec)
-                    svec(i) = svec(i - 1) + ddelap_f_s(real(i - 1, c_double), a(1), &
-                                                       b(1), l(1))
+                    svec(i) = svec(i - 1) + ddelap_f_s(real(i - 1, c_double), &
+                                                       a(1), b(1), l(1))
                 end do
                 do i = 1, np
                     if (p(i) < ZERO) then
@@ -318,7 +332,8 @@ contains
         else
             !$omp parallel do default(shared) private(i)
             do i = 1, np
-                obsv(i) = qdelap_f_s(p(i), a(mod(i - 1, na) + 1), b(mod(i - 1, nb) + 1),&
+                obsv(i) = qdelap_f_s(p(i), a(mod(i - 1, na) + 1), &
+                                     b(mod(i - 1, nb) + 1), &
                                      l(mod(i - 1, nl) + 1))
             end do
             !$omp end parallel do
@@ -326,31 +341,33 @@ contains
 
     end subroutine qdelap_f
 
-!----------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------
 ! ROUTINE: rdelap_f
 !
-! DESCRIPTION: Vector-based random number generator with parameter vector recycling. It
-!              Calls a C procedure to generate uniform random variates which jibe with
-!              R's own internals and then calls qdelap_f on the uniforms. This allows
-!              qdelap's singleton mode to activate if appropriate. This is the single
-!              routine slower in Fortran than C++, as the vector creation and pushback is
-!              more efficient in C++ STL than the ballet between allocate and move_alloc
-!              in Fortran. On vectors-valued parameters Fortran is faster than C++. 
-!              Technically this is a slowdown in qdelap, not rdelap, but the C++ version
-!              of qdelap did not use the vector lookup trick; it was only programmed in
-!              rdelap, wheras now the Fortran version of qdelap uses the trick for a net
-!              speedup. Only rdelap suffers slightly.
+! DESCRIPTION: Vector-based random number generator with parameter vector
+!              recycling. It calls a C procedure to generate uniform random
+!              variates which jibe with R's own internals and then calls
+!              qdelap_f on the uniforms. This allows qdelap's singleton mode to
+!              activate if appropriate. This is the single routine slower in
+!              this Fortran implementation than the prior C++ implementation, as
+!              the vector creation and pushback is more efficient in C++ STL
+!              than the ballet between allocate and move_alloc in Fortran. On
+!              vector-valued parameters Fortran is faster than C++. Technically
+!              this is a slowdown in qdelap, not rdelap, but the C++ version of
+!              qdelap did not use the vector lookup trick; it was only
+!              programmed in rdelap, wheras now the Fortran version of qdelap
+!              uses the trick for a net speedup. Only rdelap suffers slightly.
 !----------------------------------------------------------------------------------------
 
     subroutine rdelap_f(n, a, na, b, nb, l, nl, vars) bind(C, name="rdelap_f_")
 
     external unifrnd
 
-    integer(kind = c_int), intent(in), value           :: n, na, nb, nl      ! Sizes
-    real(kind = c_double), intent(out), dimension(n)   :: vars               ! Result
-    real(kind = c_double), intent(in)                  :: a(na), b(nb), l(nl)! Parameters
-    real(kind = c_double), dimension(n)                :: p                  ! %iles
-    integer(kind = c_int)                              :: lg, lt             ! Flags
+    integer(kind = c_int), intent(in), value           :: n, na, nb, nl
+    real(kind = c_double), intent(out), dimension(n)   :: vars
+    real(kind = c_double), intent(in)                  :: a(na), b(nb), l(nl)
+    real(kind = c_double), dimension(n)                :: p
+    integer(kind = c_int)                              :: lg, lt
 
         call unifrnd(n, p)
         lt = 1
@@ -359,21 +376,23 @@ contains
 
     end subroutine rdelap_f
 
-!----------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------
 ! ROUTINE: momdelap_f
 !
-! DESCRIPTION: Calculates method of moments estimates of parameters for a Delaporte
-!              distribution based on supplied vector. Based on algorithms of Welford, 
-!              Knuth, and Cook. https://www.johndcook.com/blog/skewness_kurtosis/
-!----------------------------------------------------------------------------------------
+! DESCRIPTION: Calculates method of moments estimates of parameters for a 
+!              Delaporte distribution based on supplied vector. Based on
+!              algorithms of Welford, Knuth, and Cook.
+!              https://www.johndcook.com/blog/skewness_kurtosis/
+!-------------------------------------------------------------------------------
 
     subroutine momdelap_f(obs, n, params) bind(C, name="momdelap_f_")
 
-    integer(kind = c_int), intent(in), value           :: n             ! Sizes
-    real(kind = c_double), intent(in), dimension(n)    :: obs           ! Observations
-    real(kind = c_double), intent(out), dimension(3)   :: params        ! Result triplet
-    real(kind = c_double)                              :: nm1, P, Mu_D, M2, M3, T1, delta
-    real(kind = c_double)                              :: delta_i, Var_D, Skew_D, VmM_D
+    integer(kind = c_int), intent(in), value           :: n
+    real(kind = c_double), intent(in), dimension(n)    :: obs
+    real(kind = c_double), intent(out), dimension(3)   :: params
+    real(kind = c_double)                              :: nm1, P, Mu_D, M2, M3
+    real(kind = c_double)                              :: T1, delta, delta_i
+    real(kind = c_double)                              :: Var_D, Skew_D, VmM_D
     integer                                            :: i
 
         nm1 = real(n, c_double) - ONE
@@ -393,7 +412,8 @@ contains
         Var_D = M2 / nm1
         Skew_D = P * M3 / (M2 ** THREEHALFS)
         VmM_D = Var_D - Mu_D
-        params(2) = HALF * (Skew_D * (Var_D ** THREEHALFS) - Mu_D - THREE * VmM_D) / VmM_D
+        params(2) = HALF * (Skew_D * (Var_D ** THREEHALFS) - Mu_D - &
+                                      THREE * VmM_D) / VmM_D
         params(1) = VmM_D / (params(2) ** 2)
         params(3) = Mu_D - params(1) * params(2)
 

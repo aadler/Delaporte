@@ -17,6 +17,8 @@
 !                       Corrected MoMdelap code.
 !          Version 1.3: 2017-11-20
 !                       Updates.
+!          Version 1.4: 2018-06-18
+!                       Added skew bias correction option to MoMdelap
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -385,18 +387,27 @@ contains
 !              https://www.johndcook.com/blog/skewness_kurtosis/
 !-------------------------------------------------------------------------------
 
-    subroutine momdelap_f(obs, n, params) bind(C, name="momdelap_f_")
+    subroutine momdelap_f(obs, n, tp, params) bind(C, name="momdelap_f_")
 
     integer(kind = c_int), intent(in), value           :: n
+    integer(kind = c_int), intent(in)                  :: tp
     real(kind = c_double), intent(in), dimension(n)    :: obs
     real(kind = c_double), intent(out), dimension(3)   :: params
     real(kind = c_double)                              :: nm1, P, Mu_D, M2, M3
-    real(kind = c_double)                              :: T1, delta, delta_i
+    real(kind = c_double)                              :: T1, delta, delta_i, nr
     real(kind = c_double)                              :: Var_D, Skew_D, VmM_D
     integer                                            :: i
 
-        nm1 = real(n, c_double) - ONE
-        P = real(n, c_double) * sqrt(nm1) / (real(n, c_double) - TWO)
+        nr = real(n, c_double)
+        nm1 = nr - ONE
+        select case (tp)
+            case (1)
+                P = ONE
+            case (2)
+                P = sqrt(nr * nm1) / (nr - TWO)
+            case (3)
+                P = (nm1 / nr) ** THREEHALFS
+        end select
         Mu_D = ZERO
         M2 = ZERO
         M3 = ZERO
@@ -410,13 +421,13 @@ contains
             M2 = M2 + T1
         end do
         Var_D = M2 / nm1
-        Skew_D = P * M3 / (M2 ** THREEHALFS)
+        Skew_D = P * sqrt(nr) * M3 / (M2 ** THREEHALFS)
         VmM_D = Var_D - Mu_D
         params(2) = HALF * (Skew_D * (Var_D ** THREEHALFS) - Mu_D - &
                                       THREE * VmM_D) / VmM_D
         params(1) = VmM_D / (params(2) ** 2)
         params(3) = Mu_D - params(1) * params(2)
-
+ 
     end subroutine momdelap_f
 
 end module delaporte

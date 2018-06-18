@@ -93,13 +93,13 @@ extern SEXP rdelap_C(SEXP n, SEXP alpha, SEXP beta, SEXP lambda){
   return(ret);
 }
 
-void F77_NAME(momdelap_f)(double *x, int nx, double *ret);
+void F77_NAME(momdelap_f)(double *x, int nx, int *tp, double *ret);
 
-extern SEXP MoMdelap_C(SEXP x){
+extern SEXP MoMdelap_C(SEXP x, SEXP tp){
   const int nx = LENGTH(x);
   SEXP ret;
   PROTECT(ret = allocVector(REALSXP, 3));
-  F77_CALL(momdelap_f)(REAL(x), nx, REAL(ret));
+  F77_CALL(momdelap_f)(REAL(x), nx, INTEGER(tp), REAL(ret));
   UNPROTECT(1);
   return(ret);
 }
@@ -124,7 +124,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"pdelap_C",    (DL_FUNC) &pdelap_C,   6},
     {"qdelap_C",    (DL_FUNC) &qdelap_C,   6},
     {"rdelap_C",    (DL_FUNC) &rdelap_C,   4},
-    {"MoMdelap_C",  (DL_FUNC) &MoMdelap_C, 1},
+    {"MoMdelap_C",  (DL_FUNC) &MoMdelap_C, 2},
     {NULL,                    NULL,        0}
 };
 

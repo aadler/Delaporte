@@ -2,6 +2,17 @@
 \alias{NEWS}
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
 
+\section{Version 6.2.0 (2018-06-18)}{
+  \subsection{Added}{
+    \itemize{
+      \item \code{MoMdelap} now allows a skew \code{type} selection, similar to that of the \link[e1071]{skewness} function in the \pkg{e1071} package (thanks to William Cipolli for the suggestion). Skew defaults to former selection so there should be no change to any values.
+      \item Tests added for all three skewness variants.
+      \item ORCID added to author description
+      \item Copyright date corrected to reflect actual copyright and not date of licensure change.
+      }
+  }
+}
+
 \section{Version 6.1.0 (2017-08-13)}{
   \subsection{Fixed}{
     \itemize{

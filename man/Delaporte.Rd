@@ -16,7 +16,7 @@ pdelap(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE)
 qdelap(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exact=TRUE)
 rdelap(n, alpha, beta, lambda, exact = TRUE)
 
-MoMdelap(x)
+MoMdelap(x, type = 2L)
 }
 \arguments{
   \item{x}{vector of (non-negative integer) quantiles.}
@@ -33,6 +33,7 @@ MoMdelap(x)
   \item{lower.tail}{logical; if TRUE (default), probabilities are
     \eqn{P[X \le x]}, otherwise, \eqn{P[X > x]}.}
   \item{exact}{logical; if TRUE uses double summation to generate quantiles or random variates. Otherwise uses Poisson-negative binomial approximation.}
+  \item{type}{integer; 1L will return g1, 2L will return G1, and 3L will return b1, as per \code{\link[e1071]{skewness}}.}
 }
 \details{
   The Delaporte distribution with parameters \code{alpha}, \code{beta}, and \code{lambda} is a discrete probability distribution which can be considered the convolution of a negative binomial distribution with a Poisson distribution. Alternatively, it can be considered a counting distribution with both Poisson and negative binomial components. The Delaporte's probability mass function, called via \code{ddelap}, is:
@@ -49,7 +50,7 @@ The quantile function, \code{qdelap}, is right continuous: \code{qdelap(q, alpha
   
 The random variate generator, \code{rdelap}, also has multiple versions. When \code{exact = TRUE}, it uses inversion by creating a vector of \code{n} uniformly distributed random variates between \eqn{0} and \eqn{1}. If all the parameters are singletons, a single CDF vector is constructed as per the quantile function, and the entries corresponding to the uniform variates are read off of the constructed vector. If the parameters are themselves vectors, then it passes the entire uniform variate vector to \code{qdelap}, which is slower. When \code{exact = FALSE}, regardless of the length of the parameters, it generates \code{n} gamma variates \eqn{\Gamma} with shape \eqn{\alpha} and scale \eqn{\beta} and then \code{n} pseudo-Delaporte variates as Poisson random variables with parameter \eqn{\lambda + \Gamma}. As there is no pooling, each individual random variate reflects the parameter triplet which generated it. The non-inversion method is pretty much always faster.
 
-\code{MoMdelap} uses the definition of the Delaporte's mean, variance, and skew to calculate the method of moments estimates of \eqn{\alpha}, \eqn{\beta}, and \eqn{\lambda}, which it returns as a numeric vector. This estimate is also a reasonable starting point for maximum likelihood estimation using nonlinear optimizers such as \code{\link{optim}} or \code{\link[nloptr]{nloptr}}. If the data is clustered near 0, there are times when method of moments would result in a non-positive parameter. In these cases \code{MoMdelap} will throw an error. For the sample skew, the code uses G1 as defined in Joanes & Gill (1997) which they found has the least mean-square error for non-normal distributions.
+\code{MoMdelap} uses the definition of the Delaporte's mean, variance, and skew to calculate the method of moments estimates of \eqn{\alpha}, \eqn{\beta}, and \eqn{\lambda}, which it returns as a numeric vector. This estimate is also a reasonable starting point for maximum likelihood estimation using nonlinear optimizers such as \code{\link{optim}} or \code{\link[nloptr]{nloptr}}. If the data is clustered near 0, there are times when method of moments would result in a non-positive parameter. In these cases \code{MoMdelap} will throw an error. For the sample skew, the user has the choice to select g1, b1, or G1 as defined in Joanes & Gill (1997). The selection defaults to 2, G1, which Joanes & Gill found to have the least mean-square error for non-normal distributions.
 }
 \value{
   \code{ddelap} gives the probability mass function, \code{pdelap} gives the cumulative distribution function, \code{qdelap} gives the quantile function, and \code{rdelap} generates random deviates. Values close to 0 (less than machine epsilon) for \eqn{\alpha, \beta} or \eqn{\lambda} will return \code{NaN} for that particular entry. Proper triplets within a set of vectors should still return valid values. For the approximate versions of \code{qdelap} and \code{rdelap}, having a value close to 0 will trip an error, sending the user to the exact version which currently properly handles vector-based inputs which contain 0.
@@ -59,6 +60,8 @@ The random variate generator, \code{rdelap}, also has multiple versions. When \c
   The length of the result is determined by \code{x} for \code{ddelap}, \code{q} for \code{pdelap}, \code{p} for \code{qdelap}, and \code{n} for \code{rdelap}. The distributional parameters (\eqn{\alpha, \beta, \lambda}) are recycled as necessary to the length of the result.
   
   When using the \code{lower.tail = FALSE} or \code{log / log.p = TRUE} options, some accuracy may be lost at knot points or the tail ends of the  distributions due to the limitations of floating point representation.
+  
+  \code{MoMdelap} returns a triplet comprising a method-of-moments based estimate of \eqn{\alpha}, \eqn{\beta}, and \eqn{\lambda}.
 }
 \author{
 Avraham Adler \email{Avraham.Adler@gmail.com}
@@ -76,7 +79,7 @@ Avraham Adler \email{Avraham.Adler@gmail.com}
 
 \seealso{
   \link{Distributions} for standard distributions, including \code{\link{dnbinom}} for the negative binomial distribution
-  and \code{\link{dpois}} for the Poisson distribution.
+  and \code{\link{dpois}} for the Poisson distribution, and \code{\link[e1071]{skewness}} for skew options.
 }
 
 \examples{

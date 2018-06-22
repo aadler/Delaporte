@@ -4,6 +4,6 @@
 
 The author is grateful to [Drew Schmidt](https://github.com/wrathematics) both generally for his writings on R, C++, and Fortran and specifically for help with this project.
 
-####Note
+#### Note
  - This project attempts to follow [Semantic Versioning](http://semver.org/)
  - This project attempts to follow the changelog system at [Keep a CHANGELOG](http://keepachangelog.com/)

@@ -2,7 +2,7 @@
 \alias{NEWS}
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
 
-\section{Version 6.2.0 (2018-06-18)}{
+\section{Version 6.2.0 (2018-06-22)}{
   \subsection{Added}{
     \itemize{
       \item \code{MoMdelap} now allows a skew \code{type} selection, similar to that of the \link[e1071]{skewness} function in the \pkg{e1071} package (thanks to William Cipolli for the suggestion). Skew defaults to former selection so there should be no change to any values.

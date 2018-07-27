@@ -19,7 +19,9 @@ This project intends to have as few dependancies as possible. Please consider th
 ### Style
 Please review and conform to the current code stylistic choices (e.g. 80 character lines, two-space indentations).
 ### Documentation
-Please provide valid .Rd files and **not** roxygen-style documentation
+Please provide valid .Rd files and **not** roxygen-style documentation.
+### Tests
+Please review the current test suite and supply similar `testthat`-compatible unit tests for all added functionality. 
 ### Submission
 
 If you would like to contribute to the project, it may be prudent to first contact the maintainer via email. A request or suggestion may be raised as an issue as well. To supply a pull request (PR), please:

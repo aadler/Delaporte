@@ -77,6 +77,10 @@ test_that("Vector NaN", {
   expect_identical(is.nan(pdelap(seq_len(3), c(-5e5, 1, 2), c(1, -2, 2), c(1, 2, -8e-4))), rep(TRUE, 3))
 })
 
+test_that("Negative values due to floating point issues are 0", {
+  expect_identical(pdelap(500, 13.08251, 0.02414521, 0.04421658, FALSE, FALSE), 0)
+})
+
 context("Testing qdelap")
 test_that("Singleton exact function accuracy", {
   expect_equal(qdelap(.4, 1, 4, 2), 4)

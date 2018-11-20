@@ -11,6 +11,9 @@
 !          Version 1.1: 2017-03-01
 !          Version 1.2: 2017-11-20
 !                       Reformatted to 80 columns
+!          Version 1.3: 2018-11-20
+!                       Added cleanzeros function to handle EPS issues for right
+!                       tail. See Issue #1
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -89,5 +92,25 @@ contains
         end do
         
     end function position
+    
+!-------------------------------------------------------------------------------
+! FUNCTION: CleanZeros
+!
+! DESCRIPTION: Takes any within "margin" times EPS and sets it to ZERO
+!-------------------------------------------------------------------------------
+
+    elemental function cleanzeros(x) result(y)
+    
+        real(kind = c_double), intent(in) :: x                      !Input
+        real(kind = c_double), parameter  :: margin = 1.1_c_double  !Margin
+        real(kind = c_double)             :: y                      !Output
+        
+        if (abs(x) < margin * EPS) then
+            y = ZERO
+        else
+            y = x
+        end if
+        
+    end function cleanzeros
 
 end module utils

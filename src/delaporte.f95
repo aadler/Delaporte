@@ -19,6 +19,8 @@
 !                       Updates.
 !          Version 1.4: 2018-06-18
 !                       Added skew bias correction option to MoMdelap
+!          Version 1.5: 2018-11-20
+!                       Zapping absolute values < 1.1 * EPS to 0
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -130,7 +132,7 @@ contains
         if (lg == 1) then
             pmfv = log(pmfv)
         end if
-
+        
     end subroutine ddelap_f
 
 !-------------------------------------------------------------------------------
@@ -175,7 +177,9 @@ contains
 !              time which increases the speed dramatically. Once created,
 !              remaining values are simple lookups off of the singlevec vector.
 !              Otherwise, each entry will need to build its own pmf value by
-!              calling p_delap_f_s on each entry.
+!              calling p_delap_f_s on each entry. Added cleanzeros after right-
+!              tail call since subtracting 1 from 1 in floating point can lead
+!              to issues. See Issue #1.
 !-------------------------------------------------------------------------------
 
     subroutine pdelap_f(q, nq, a, na, b, nb, l, nl, lt, lg, pmfv) &
@@ -219,15 +223,17 @@ contains
             end do
             !$omp end parallel do
         end if
-
+        
+        pmfv = cleanzeros(pmfv)
+        
         if (lt == 0) then
-            pmfv = ONE - pmfv
+            pmfv = cleanzeros(ONE - pmfv)
         end if
-
+        
         if (lg == 1) then
-            pmfv = log(pmfv)
+            pmfv = cleanzeros(log(pmfv))
         end if
-
+        
     end subroutine pdelap_f
 
 !-------------------------------------------------------------------------------

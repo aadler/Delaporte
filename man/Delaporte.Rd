@@ -68,11 +68,11 @@ Avraham Adler \email{Avraham.Adler@gmail.com}
 }
 \references{
 
-  Joanes, D. N. and Gill, C. A. (1998) Comparing Measures of Sample Skewness and Kurtosis. \emph{Journal of the Royal Statistical Society. Series D (The Statistician)} \bold{47}(1), 183--189. \url{http://www.jstor.org/stable/2988433}
+  Joanes, D. N. and Gill, C. A. (1998) Comparing Measures of Sample Skewness and Kurtosis. \emph{Journal of the Royal Statistical Society. Series D (The Statistician)} \bold{47}(1), 183--189. \url{https://www.jstor.org/stable/2988433}
   
   Johnson, N. L., Kemp, A. W. and Kotz, S. (2005) \emph{Univariate discrete distributions} (Third ed.). John Wiley & Sons. pp. 241--242. ISBN 978-0-471-27246-5.
   
-  Karlis, D. and Xekalaki, E. (2005) Mixed Poisson Distributions. \emph{International Statistical Review} \bold{73}(1), 35--58. \url{http://projecteuclid.org/euclid.isr/1112304811}
+  Karlis, D. and Xekalaki, E. (2005) Mixed Poisson Distributions. \emph{International Statistical Review} \bold{73}(1), 35--58. \url{https://projecteuclid.org/euclid.isr/1112304811}
 
   Vose, D. (2008) \emph{Risk analysis: a quantitative guide} (Third, illustrated ed.). John Wiley & Sons. pp. 618--619 ISBN 978-0-470-51284-5
 }  

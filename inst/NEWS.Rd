@@ -8,7 +8,6 @@
       \item Added "cleanzeros" function that zaps to 0 any value less or equal to EPS. See \href{https://bitbucket.org/aadler/delaporte/issues/1/negative-p-values-in-pdelap}{Issue #1} (Thanks Kipper Fletez-Brant).
       \item Test for zeros. Using call submitted in \href{https://bitbucket.org/aadler/delaporte/issues/1/negative-p-values-in-pdelap}{Issue #1} (Thanks Kipper Fletez-Brant).
       \item Added items to README to comply with \href{https://bestpractices.coreinfrastructure.org/en}{CII} best practices and added badge.
-      \item Added \code{SHLIB_OPENMP_CFLAGS} to \code{PKG_LIBS} to try and address \code{NOTE} on r-devel+linux even though \href{https://cran.r-project.org/doc/manuals/r-release/R-exts.html#OpenMP-support}{Writing R extensions 1.2.1.1} specifically states "This does not apply to Fortran 9x code, where SHLIB_OPENMP_FCFLAGS should be used in both PKG_FCFLAGS and PKG_LIBS."
       \item Added various badges to README
       \item Added copyright and license information inside R source code file
     }

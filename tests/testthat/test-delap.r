@@ -78,10 +78,10 @@ test_that("Vector NaN", {
 })
 
 test_that("Negative values due to floating point issues are 0", {
-  if (Sys.info()[["machine"]] == "x86_32") {
-    expect_equal(pdelap(500, 13.08251, 0.02414521, 0.04421658, FALSE, FALSE), 0)
-  } else {
+  if (R.Version()$arch == "x86_64") {
     expect_identical(pdelap(500, 13.08251, 0.02414521, 0.04421658, FALSE, FALSE), 0)
+  } else {
+    expect_equal(pdelap(500, 13.08251, 0.02414521, 0.04421658, FALSE, FALSE), 0)
   }
 })
 

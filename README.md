@@ -1,4 +1,6 @@
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2011/badge)](https://bestpractices.coreinfrastructure.org/projects/2011)
+[![](https://www.r-pkg.org/badges/version-last-release/Delaporte)]
+[![](https://cranlogs.r-pkg.org/badges/Delaporte)](https://cran.r-project.org/package=Delaporte)
 
 # Delaporte
 

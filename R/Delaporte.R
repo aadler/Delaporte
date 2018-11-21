@@ -1,3 +1,6 @@
+# Copyright (c) 2013, Avraham Adler All rights reserved
+# SPDX-License-Identifier: BSD-2-Clause
+
 ddelap <- function(x, alpha, beta, lambda, log = FALSE){
   if (!is.double(x)) {storage.mode(x) <- 'double'}
   if (!is.double(alpha)) {storage.mode(alpha) <- 'double'}

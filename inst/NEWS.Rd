@@ -2,12 +2,12 @@
 \alias{NEWS}
 \title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
 
-\section{Version 7.0.0 (2018-11-20)}{
+\section{Version 6.3.0 (2018-11-21)}{
   \subsection{Added}{
     \itemize{
-      \item Added "cleanzeros" function that zaps to 0 any value less than a margin times EPS. That margin is currently 1.1. This does mean that any values formerly between 2.2204460492503131e-16 and 2.4424906541753446e-16 will now return 0. This is a breaking change, thus the major model increment, but it should not affect anyone drastically. See \href{https://bitbucket.org/aadler/delaporte/issues/1/negative-p-values-in-pdelap}{Issue #1} (Thanks Kipper Fletez-Brant).
+      \item Added "cleanzeros" function that zaps to 0 any value less or equal to EPS. See \href{https://bitbucket.org/aadler/delaporte/issues/1/negative-p-values-in-pdelap}{Issue #1} (Thanks Kipper Fletez-Brant).
       \item Test for zeros. Using call submitted in \href{https://bitbucket.org/aadler/delaporte/issues/1/negative-p-values-in-pdelap}{Issue #1} (Thanks Kipper Fletez-Brant).
-      \item Added items to READMe to comply with \href{https://bestpractices.coreinfrastructure.org/en}{CII} best practices and added badge.
+      \item Added items to README to comply with \href{https://bestpractices.coreinfrastructure.org/en}{CII} best practices and added badge.
       \item Added \code{SHLIB_OPENMP_CFLAGS} to \code{PKG_LIBS} to try and address \code{NOTE} on r-devel+linux even though \href{https://cran.r-project.org/doc/manuals/r-release/R-exts.html#OpenMP-support}{Writing R extensions 1.2.1.1} specifically states "This does not apply to Fortran 9x code, where SHLIB_OPENMP_FCFLAGS should be used in both PKG_FCFLAGS and PKG_LIBS."
     }
   }

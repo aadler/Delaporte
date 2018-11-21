@@ -96,16 +96,15 @@ contains
 !-------------------------------------------------------------------------------
 ! FUNCTION: CleanZeros
 !
-! DESCRIPTION: Takes any within "margin" times EPS and sets it to ZERO
+! DESCRIPTION: Takes values <= EPS and sets them to ZERO
 !-------------------------------------------------------------------------------
 
     elemental function cleanzeros(x) result(y)
     
-        real(kind = c_double), intent(in) :: x                      !Input
-        real(kind = c_double), parameter  :: margin = 1.1_c_double  !Margin
-        real(kind = c_double)             :: y                      !Output
+        real(kind = c_double), intent(in)                :: x
+        real(kind = c_double)                            :: y
         
-        if (abs(x) < margin * EPS) then
+        if (abs(x) <= EPS) then
             y = ZERO
         else
             y = x

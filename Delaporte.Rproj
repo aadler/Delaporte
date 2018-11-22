@@ -9,10 +9,10 @@ UseSpacesForTab: Yes
 NumSpacesForTab: 2
 Encoding: UTF-8
 
-RnwWeave: Sweave
+RnwWeave: knitr
 LaTeX: pdfLaTeX
 
 BuildType: Package
-PackageInstallArgs: --force-biarch
-PackageBuildArgs: --resave-data="best" --compact-vignettes="both"
+PackageInstallArgs: --force-biarch --preclean --clean
+PackageBuildArgs: --resave-data="best" --compact-vignettes="both" --md5
 PackageCheckArgs: --force-multiarch --as-cran

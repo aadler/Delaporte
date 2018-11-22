@@ -68,7 +68,7 @@ Avraham Adler \email{Avraham.Adler@gmail.com}
 }
 \references{
 
-  Joanes, D. N. and Gill, C. A. (1998) Comparing Measures of Sample Skewness and Kurtosis. \emph{Journal of the Royal Statistical Society. Series D (The Statistician)} \bold{47}(1), 183--189. \url{https://www.jstor.org/stable/2988433}
+  Joanes, D. N. and Gill, C. A. (1998) Comparing Measures of Sample Skewness and Kurtosis. \emph{Journal of the Royal Statistical Society. Series D (The Statistician)} \bold{47}(1), 183--189. \href{https://www.jstor.org/stable/2988433?seq=1#page_scan_tab_contents}{https://www.jstor.org/stable/2988433}
   
   Johnson, N. L., Kemp, A. W. and Kotz, S. (2005) \emph{Univariate discrete distributions} (Third ed.). John Wiley & Sons. pp. 241--242. ISBN 978-0-471-27246-5.
   

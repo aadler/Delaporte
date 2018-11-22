@@ -32,8 +32,12 @@ test_that("Non-integer warning", {
   expect_warning(ddelap(1.1, 1, 2, 3), "Non-integers passed to ddelap. These will have 0 probability.")
   expect_warning(ddelap(c(1, 1.1, 1.2, 3), c(1, 1), 2, 3), "Non-integers passed to ddelap. These will have 0 probability.")
   expect_warning(ddelap(seq(2, 3, .1), c(1, 1), 2, 3), "Non-integers passed to ddelap. These will have 0 probability.")
-})  
-  
+})
+
+test_that("Non-double parameters converted", {
+  expect_equal(ddelap(2L, 1L, 2L, 3L), ddelap(2L, 1, 2, 3))
+})
+
 context("Testing pdelap")
 test_that("Singleton function accuracy", {
   expect_equal(pdelap(SEQUENCE, 2, 1, 5), VAL$PDELAP_2)
@@ -85,6 +89,10 @@ test_that("Negative values due to floating point issues are 0", {
   }
 })
 
+test_that("Non-double parameters converted", {
+  expect_equal(pdelap(2L, 1L, 2L, 3L), pdelap(2L, 1, 2, 3))
+})
+
 context("Testing qdelap")
 test_that("Singleton exact function accuracy", {
   expect_equal(qdelap(.4, 1, 4, 2), 4)
@@ -111,12 +119,16 @@ test_that("Singleton exact Inf", {
   expect_true(is.infinite(qdelap(1, 3, 1, 2)))
   expect_true(is.infinite(qdelap(5, 1, 2, 3)))
 })
-test_that("Singleton approx function accuracy", {
+test_that("Singleton approx function accuracy lower tail", {
   expect_equal(qdelap(.4, 1, 4, 2, exact = FALSE), 4)
+})
+test_that("Singleton approx function accuracy upper tail", {
+  expect_equal(qdelap(.4, 1, 4, 2, exact = FALSE, lower.tail = FALSE), 6)
 })
 test_that("Singleton approx lower.tail & log.p", {
   expect_equal(qdelap(-0.7, 4, 6, 3, lower.tail = TRUE, log.p = TRUE, exact = FALSE), 25)
 })
+
 test_that("Vector exact function accuracy", {
   expect_equal(qdelap(c(.4, .07), c(1, 2), c(4, 1), c(2, 5)), c(4, 3))
 })
@@ -151,6 +163,10 @@ test_that("Approximate throws error when 0 is passed", {
 })
 test_that("Approximate throws error when parameter vectors are passed", {
   expect_error(qdelap(c(.4, .07), c(1, 2), c(4, 1), c(2, 5), exact = FALSE), 'Quantile approximation relies on pooling and thus is not accurate when passing vector-valued parameters. Please use exact version.')
+})
+
+test_that("Non-double parameters converted", {
+  expect_equal(qdelap(0.25, 1L, 2L, 3L), qdelap(0.25, 1, 2, 3))
 })
 
 context("Testing rdelap")
@@ -205,6 +221,14 @@ test_that("Approximate throws error when 0 is passed", {
   expect_error(rdelap(8, 1, 2, 0, exact = FALSE), 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results')
 })
 
+test_that("Non-double parameters converted", {
+  set.seed(8)
+  INTG <- rdelap(3, 1L, 2L, 3L)
+  set.seed(8)
+  DOUBL <- rdelap(3, 1, 2, 3)
+  expect_equal(INTG, DOUBL)
+})
+
 context("Testing MoMdelap")
 TestData <- c(5, 7, 9, 9, 10, 11, 11, 13, 17, 24)
 MTD <- mean(TestData)
@@ -254,4 +278,10 @@ test_that("MoMdelap traps bad types", {
 test_that("MoMdelap traps bad parameters", {
   TestData <- c(3,  2, 12, 11,  1,  7,  1,  4,  0, 4)
   expect_error(MoMdelap(TestData), 'Method of moments not appropriate for this data; results include non-positive parameters.')
+})
+
+test_that("Non-double vector converted", {
+  expect_equal(MoMdelap(c(30L, 32L, 39L, 50L), type = 2L),
+               MoMdelap(c(30, 32, 39, 50), type = 2L)
+  )
 })

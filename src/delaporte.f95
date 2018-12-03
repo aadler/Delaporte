@@ -20,7 +20,7 @@
 !          Version 1.4: 2018-06-18
 !                       Added skew bias correction option to MoMdelap
 !          Version 1.5: 2018-11-20
-!                       Zapping absolute values < 1.1 * EPS to 0
+!                       Zapping absolute values <= EPS to 0
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler

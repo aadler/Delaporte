@@ -261,8 +261,7 @@ contains
             testcdf = exp(-lambda) / ((beta + ONE) ** alpha)
             do while (p > testcdf)
                 value = value + ONE
-                testcdf = testcdf + ddelap_f_s(real(value, c_double), alpha, &
-                                               beta, lambda)
+                testcdf = testcdf + ddelap_f_s(value, alpha, beta, lambda)
             end do
         end if
 

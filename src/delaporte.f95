@@ -117,7 +117,7 @@ contains
     integer(kind = c_int), intent(in)                :: lg
     integer                                          :: i
 
-        !$omp parallel do default(shared) private(i)
+        !$omp parallel do default(shared), private(i), schedule(static)
         do i = 1, nx
             if (x(i) > floor(x(i))) then
                 pmfv(i) = ZERO
@@ -216,7 +216,7 @@ contains
                 deallocate(singlevec)
             end if
         else
-            !$omp parallel do default(shared) private(i)
+            !$omp parallel do default(shared), private(i), schedule(static)
             do i = 1, nq
                 pmfv(i) = pdelap_f_s(q(i), a(mod(i - 1, na) + 1), &
                 b(mod(i - 1, nb) + 1), l(mod(i - 1, nl) + 1))
@@ -338,7 +338,7 @@ contains
                 deallocate(svec)
             end if
         else
-            !$omp parallel do default(shared) private(i)
+            !$omp parallel do default(shared), private(i), schedule(static)
             do i = 1, np
                 obsv(i) = qdelap_f_s(p(i), a(mod(i - 1, na) + 1), &
                                      b(mod(i - 1, nb) + 1), &

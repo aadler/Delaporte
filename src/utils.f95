@@ -40,7 +40,6 @@
 !   POSSIBILITY OF SUCH DAMAGE.
 !-------------------------------------------------------------------------------
 
-
 module utils
     use, intrinsic :: iso_c_binding, only: c_double
     implicit none
@@ -66,7 +65,6 @@ contains
 
         real(kind = c_double), intent(in) :: x
         real(kind = c_double) :: y, z
-
 
         z = x + ONE
         y = log(z) - ((z - ONE) - x) / z   !Eliminates catastrophic subtraction

@@ -412,6 +412,8 @@ contains
                 P = sqrt(nr * nm1) / (nr - TWO)
             case (3)
                 P = (nm1 / nr) ** THREEHALFS
+            case default
+                P = sqrt(nr * nm1) / (nr - TWO)
         end select
         Mu_D = ZERO
         M2 = ZERO

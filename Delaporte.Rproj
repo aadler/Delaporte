@@ -13,6 +13,7 @@ RnwWeave: knitr
 LaTeX: pdfLaTeX
 
 BuildType: Package
-PackageInstallArgs: --force-biarch --preclean --clean
+PackageInstallArgs: --preclean --clean
 PackageBuildArgs: --resave-data="best" --compact-vignettes="both" --md5
-PackageCheckArgs: --force-multiarch --as-cran
+PackageBuildBinaryArgs: --preclean --clean
+PackageCheckArgs: --as-cran --use-valgrind

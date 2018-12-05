@@ -116,7 +116,7 @@ void F77_SUB(set_nan)(double *val){
     *val = R_NaN;
 }
 void F77_SUB(set_inf)(double *val){
-    *val = INFINITY;
+    *val = R_PosInf;
 }
 
 static const R_CallMethodDef CallEntries[] = {

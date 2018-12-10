@@ -93,6 +93,10 @@ test_that("Non-double parameters converted", {
   expect_equal(pdelap(2L, 1L, 2L, 3L), pdelap(2L, 1, 2, 3))
 })
 
+test_that("Floating point issues do not lead to CDF > 1", {
+  expect_true(pdelap(1000, 8, 15, 100) <= 1) # print(pdelap(1000, 8, 15, 100), digits = 17) used to be 1.0000000000001035
+})
+
 context("Testing qdelap")
 test_that("Singleton exact function accuracy", {
   expect_equal(qdelap(.4, 1, 4, 2), 4)

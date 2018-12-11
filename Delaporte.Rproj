@@ -16,4 +16,4 @@ BuildType: Package
 PackageInstallArgs: --preclean --clean
 PackageBuildArgs: --resave-data="best" --compact-vignettes="both" --md5
 PackageBuildBinaryArgs: --preclean --clean
-PackageCheckArgs: --as-cran --use-valgrind
+PackageCheckArgs: --as-cran --timings

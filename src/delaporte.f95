@@ -21,6 +21,9 @@
 !                       Added skew bias correction option to MoMdelap
 !          Version 1.5: 2018-11-20
 !                       Zapping absolute values <= EPS to 0
+!          Version 1.6: 2018-12-10
+!                       Replaced zapping with setting min to 0 and max to 1
+!                       as appropriate. Less monkeying with values this way.
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -64,16 +67,16 @@ contains
 !
 ! DESCRIPTION: Calculate the Delaporte probability mass function for a single
 !              observation and return the value or its log. Calculated through
-!              explicit summation.
-!
-!              Follows R convention that real observations are errors and have 0
-!              density so calls floor to build to last integer.
+!              explicit summation. Follows R convention that real observations
+!              are errors and have 0 probability, so calls floor to build to
+!              the last integer. Implements hard floor of 0 and hard ceiling of
+!              1 to prevent spurious floating point errors.
 !-------------------------------------------------------------------------------
 
     function ddelap_f_s(x, alpha, beta, lambda) result(pmf)
 
     external set_nan
-    
+
     real(kind = c_double), intent(in)   :: x, alpha, beta, lambda 
     real(kind = c_double)               :: pmf                    
     integer                             :: i, k                   
@@ -90,6 +93,7 @@ contains
                         - (alpha + i) * log1p(beta) &
                         - gamln(k - i + ONE))
           end do
+          pmf = max(min(pmf, ONE), ZERO)          ! Clear floating point errors
       end if
 
     end function ddelap_f_s
@@ -100,16 +104,15 @@ contains
 ! DESCRIPTION: Vector-based PMF allowing parameter vector recycling and called 
 !              from C. As Fortran starts its indices at 1, for the mod function
 !              to properly recycle the vectors, the index needs to be reduced by
-!              one, mod applied, and then increased by one again.
-!
-!              Follows R convention that real observations are errors and have 0
-!              density so returns 0 for non-integer without calling summation
-!              loop.
+!              one, mod applied, and then increased by one again. Follows R
+!              convention that real observations are errors and have 0
+!              probability, so returns 0 for non-integer without calling
+!              summation loop. 
 !-------------------------------------------------------------------------------
 
     subroutine ddelap_f(x, nx, a, na, b, nb, l, nl, lg, pmfv) &
                         bind(C, name="ddelap_f_")
-    
+                        
     integer(kind = c_int), intent(in), value         :: nx, na, nb, nl
     real(kind = c_double), intent(in), dimension(nx) :: x
     real(kind = c_double), intent(out), dimension(nx):: pmfv
@@ -140,10 +143,10 @@ contains
 !
 ! DESCRIPTION: Calculate the Delaporte cumulative distribution function for a
 !              single observation and return the value or its log. Calculated
-!              through explicit summation.
-!
-!              Follows R convention that real observations are errors and have 0
-!              density so calls floor to build to last integer.
+!              through explicit summation. Follows R convention that real
+!              observations are errors and have 0 probability, so calls floor to
+!              build to last integer. Implements hard floor of 0 and hard
+!              ceiling of 1 to prevent spurious floating point errors.
 !-------------------------------------------------------------------------------
 
     function pdelap_f_s(q, alpha, beta, lambda) result(cdf)
@@ -162,6 +165,7 @@ contains
             do i = 1, k
                 cdf = cdf + ddelap_f_s(real(i, c_double), alpha, beta, lambda)
             end do
+            cdf = max(min(cdf, ONE), ZERO)        ! Clear floating point errors
         end if
 
     end function pdelap_f_s
@@ -177,9 +181,8 @@ contains
 !              time which increases the speed dramatically. Once created,
 !              remaining values are simple lookups off of the singlevec vector.
 !              Otherwise, each entry will need to build its own pmf value by
-!              calling p_delap_f_s on each entry. Added cleanzeros after right-
-!              tail call since subtracting 1 from 1 in floating point can lead
-!              to issues. See Issue #1.
+!              calling p_delap_f_s on each entry. Implements hard floor of 0 and
+!              hard ceiling of 1 to prevent spurious floating point errors.
 !-------------------------------------------------------------------------------
 
     subroutine pdelap_f(q, nq, a, na, b, nb, l, nl, lt, lg, pmfv) &
@@ -214,6 +217,7 @@ contains
                     pmfv(i) = singlevec(k + 1)
                 end do
                 deallocate(singlevec)
+                pmfv = max(min(pmfv, ONE), ZERO)  ! Clear floating point errors
             end if
         else
             !$omp parallel do default(shared), private(i), schedule(static)
@@ -224,14 +228,12 @@ contains
             !$omp end parallel do
         end if
         
-        pmfv = cleanzeros(pmfv)
-        
         if (lt == 0) then
-            pmfv = cleanzeros(ONE - pmfv)
+            pmfv = ONE - pmfv
         end if
         
         if (lg == 1) then
-            pmfv = cleanzeros(log(pmfv))
+            pmfv = log(pmfv)
         end if
         
     end subroutine pdelap_f
@@ -241,7 +243,7 @@ contains
 !
 ! DESCRIPTION: Calculate the Delaporte quantile function for a single 
 !              observation and return the value. Calculated through explicit
-!              summation. Returns NaN and Inf where appropriate
+!              summation. Returns NaN and Inf where appropriate.
 !-------------------------------------------------------------------------------
 
     function qdelap_f_s(p, alpha, beta, lambda) result(value)
@@ -252,7 +254,7 @@ contains
     real(kind = c_double), intent(in)   :: p, alpha, beta, lambda
     real(kind = c_double)               :: testcdf, value
 
-        if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. p < ZERO) then
+        if (alpha <= EPS .or. beta <= EPS .or. lambda <= EPS .or. p < ZERO) then
             call set_nan(value)
         else if (p >= ONE) then
             call set_inf(value)
@@ -377,8 +379,8 @@ contains
     integer(kind = c_int)                              :: lg, lt
 
         call unifrnd(n, p)
-        lt = 1
-        lg = 0
+        lt = 1_c_int
+        lg = 0_c_int
         call qdelap_f(p, n, a, na, b, nb, l, nl, lt, lg, vars)
 
     end subroutine rdelap_f

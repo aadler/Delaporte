@@ -18,7 +18,6 @@
       \item Removed unneeded Makevars target \code{cleanup}
       \item Removed GNU-specific Makevars target \code{.NOTPARALLEL}
     }
-    }
   }
 }
 

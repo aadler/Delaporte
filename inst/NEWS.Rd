@@ -1,11 +1,31 @@
 \name{NEWS}
 \alias{NEWS}
-\title{NEWS file for the \code{\link[=Delaporte-package]{Delaporte} package}}
+\title{NEWS file for the Delaporte package}
+
+\section{Version 6.4.0 (2019-01-13)}{
+  \subsection{Changed}{
+    \itemize{
+      \item Preventing spurious floating point errors by implementing hard floor of 0 and hard ceiling of 1
+      \item Updated comments in delaporte.f95 source code
+      \item Changed Makevars flags and targets to reflect changes to r-devel handling of (free-form) Fortran
+      \item Changed \code{rdelap} testing to always use a fixed seed
+      \item Documentation cleaned up
+    }
+  }
+  \subsection{Removed}{
+    \itemize{
+      \item Removed the \code{cleanzeros} function from use
+      \item Removed unneeded Makevars target \code{cleanup}
+      \item Removed GNU-specific Makevars target \code{.NOTPARALLEL}
+    }
+    }
+  }
+}
 
 \section{Version 6.3.0 (2018-11-21)}{
   \subsection{Added}{
     \itemize{
-      \item Added "cleanzeros" function that zaps to 0 any value less or equal to EPS. See \href{https://bitbucket.org/aadler/delaporte/issues/1/negative-p-values-in-pdelap}{Issue #1} (Thanks Kipper Fletez-Brant).
+      \item Added \code{cleanzeros} function that zaps to 0 any value less or equal to EPS. See \href{https://bitbucket.org/aadler/delaporte/issues/1/negative-p-values-in-pdelap}{Issue #1} (Thanks Kipper Fletez-Brant).
       \item Test for zeros. Using call submitted in \href{https://bitbucket.org/aadler/delaporte/issues/1/negative-p-values-in-pdelap}{Issue #1} (Thanks Kipper Fletez-Brant).
       \item Added items to README to comply with \href{https://bestpractices.coreinfrastructure.org/en}{CII} best practices and added badge.
       \item Added various badges to README

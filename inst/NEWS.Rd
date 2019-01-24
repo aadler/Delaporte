@@ -2,12 +2,12 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
-\section{Version 6.4.0 (2019-01-13)}{
+\section{Version 6.4.0 (2019-01-23)}{
   \subsection{Changed}{
     \itemize{
       \item Preventing spurious floating point errors by implementing hard floor of 0 and hard ceiling of 1
       \item Updated comments in delaporte.f95 source code
-      \item Changed Makevars flags and targets to reflect changes to r-devel handling of (free-form) Fortran
+      \item Changed Makevars flags and targets to reflect R-release. There will be a new release for R 3.6+
       \item Changed \code{rdelap} testing to always use a fixed seed
       \item Documentation cleaned up
     }

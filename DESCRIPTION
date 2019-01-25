@@ -8,6 +8,7 @@ Description: Provides probability mass, distribution, quantile, random-variate g
 License: BSD_2_clause + file LICENSE
 URL: https://bitbucket.org/aadler/delaporte
 BugReports: https://bitbucket.org/aadler/delaporte/issues
+Depends: R (<= 3.5.2)
 Imports: stats
 Suggests: testthat
 ByteCompile: yes

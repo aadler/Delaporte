@@ -2,19 +2,19 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
-\section{Version 6.4.0 (2019-02-01)}{
+\section{Version 7.0.0 (2019-02-12)}{
   \subsection{Changed}{
     \itemize{
+      \item Changed Makevars flags and targets and forced dependance on R 3.6+ to comply with new CRAN policies on Fortran and OpenMP.
       \item Preventing spurious floating point errors by implementing hard floor of 0 and hard ceiling of 1
       \item Updated comments in delaporte.f95 source code
-      \item Changed Makevars flags and targets to try an comply with CRAN.
       \item Changed \code{rdelap} testing to always use a fixed seed
       \item Documentation cleaned up
     }
   }
   \subsection{Removed}{
     \itemize{
-      \item Removed the \code{cleanzeros} function from use
+      \item Removed the \code{cleanzeros} function
       \item Removed unneeded Makevars target \code{cleanup}
       \item Removed GNU-specific Makevars target \code{.NOTPARALLEL}
     }

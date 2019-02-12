@@ -366,7 +366,7 @@ contains
 !              qdelap did not use the vector lookup trick; it was only
 !              programmed in rdelap, wheras now the Fortran version of qdelap
 !              uses the trick for a net speedup. Only rdelap suffers slightly.
-!----------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------
 
     subroutine rdelap_f(n, a, na, b, nb, l, nl, vars) bind(C, name="rdelap_f_")
 

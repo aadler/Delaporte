@@ -1,4 +1,4 @@
-!----------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------
 !
 ! MODULE: Utils
 !
@@ -91,23 +91,4 @@ contains
         
     end function position
     
-!-------------------------------------------------------------------------------
-! FUNCTION: CleanZeros
-!
-! DESCRIPTION: Takes values <= EPS and sets them to ZERO
-!-------------------------------------------------------------------------------
-
-    elemental function cleanzeros(x) result(y)
-    
-        real(kind = c_double), intent(in)                :: x
-        real(kind = c_double)                            :: y
-        
-        if (abs(x) <= EPS) then
-            y = ZERO
-        else
-            y = x
-        end if
-        
-    end function cleanzeros
-
 end module utils

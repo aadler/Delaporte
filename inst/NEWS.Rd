@@ -2,6 +2,23 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
+\section{Version 7.0.2 (2019-05-17)}{
+  \subsection{Changed}{
+    \itemize{
+      \item Updated NEWS to reflect recent changes
+      \item Updated various file versions to reflect recent changes
+    }
+  }
+}
+
+\section{Version 7.0.1 (2019-04-26)}{
+  \subsection{Changed}{
+    \itemize{
+      \item Makevars adjusted by CRAN to prevent issues with parallel make
+    }
+  }
+}
+
 \section{Version 7.0.0 (2019-02-12)}{
   \subsection{Changed}{
     \itemize{

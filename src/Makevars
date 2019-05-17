@@ -4,14 +4,14 @@ PKG_LIBS = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CFLAGS)
 C_OBJS = utils_and_wrappers.o
 FT_OBJS = utils.o lgamma.o delaporte.o
 
-all: $(SHLIB) cleanup
-	
+all:
+	@$(MAKE) $(SHLIB)
+	@rm -f *.mod *.o
+
 $(SHLIB): $(FT_OBJS) $(C_OBJS) 
 
-utils.mod: utils.o
-lgamma.o: utils.mod utils.o 
-lgam.mod: lgamma.o utils.mod utils.o
-delaporte.o: lgam.mod lgamma.o utils.mod utils.o
+lgamma.o: utils.o 
+delaporte.o: lgamma.o utils.o
 
 cleanup:
-	@rm -rf *.mod *.o
+	@rm -f *.mod *.o

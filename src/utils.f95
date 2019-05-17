@@ -14,6 +14,8 @@
 !          Version 1.3: 2018-11-20
 !                       Added cleanzeros function to handle EPS issues for right
 !                       tail. See Issue #1
+!          Version 1.4: 2018-12-10
+!                       Cleanzeros removed in favor of floor & ceiling of 0 & 1
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler

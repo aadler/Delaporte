@@ -7,8 +7,8 @@
 \tabular{ll}{
 Package: \tab Delaporte\cr
 Type: \tab Package\cr
-Version: \tab 7.0.2\cr
-Date: \tab 2019-05-17\cr
+Version: \tab 7.0.3.9999\cr
+Date: \tab 2020-01-00\cr
 License: \tab BSD_2_clause \cr
 }
 }

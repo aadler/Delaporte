@@ -2,6 +2,20 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
+\section{Version 7.0.3 (2020-01-00)}{
+  \subsection{Added}{
+    \itemize{
+      \item Explicit citation information to README
+    }
+  }
+  \subsection{Changed}{
+    \itemize{
+      \item Use FFLAGS instead of FCFLAGS in Makevars
+      \item Have README be more comformant to 80 character line size
+    }
+  }
+}
+
 \section{Version 7.0.2 (2019-05-17)}{
   \subsection{Changed}{
     \itemize{

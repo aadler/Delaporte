@@ -14,6 +14,11 @@
       \item Have README be more comformant to 80 character line size
     }
   }
+  \subsection{Removed}{
+    \itemize{
+      \item Removed depsy badge from README as site is now defunct
+    }
+  }
 }
 
 \section{Version 7.0.2 (2019-05-17)}{

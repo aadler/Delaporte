@@ -131,6 +131,7 @@ static const R_CallMethodDef CallEntries[] = {
 void R_init_Delaporte(DllInfo *dll) {
   R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
   R_useDynamicSymbols(dll, FALSE);
+  R_forceSymbols(dll, TRUE);
   
   R_RegisterCCallable("Delaporte", "ddelap_C",  (DL_FUNC) &ddelap_C);
   R_RegisterCCallable("Delaporte", "pdelap_C",  (DL_FUNC) &pdelap_C);

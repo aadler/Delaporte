@@ -6,6 +6,7 @@
   \subsection{Added}{
     \itemize{
       \item Explicit citation information to README
+      \item Added R_forceSymbols(dll, TRUE) to source per WRE 5.4
     }
   }
   \subsection{Changed}{

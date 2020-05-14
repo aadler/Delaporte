@@ -36,9 +36,11 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE,
     QDLAP <- .Call(qdelap_C, p, alpha, beta, lambda, lt_f, lp_f)
   } else {
     if (any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0))
-      stop('Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results.')
+      stop('Parameters must be strictly greater than 0. Please use exact
+           version, if necessary, to prevent spurious results.')
     if (length(alpha) > 1 || length(beta) > 1 || length(lambda) > 1)
-      stop('Quantile approximation relies on pooling and thus is not accurate when passing vector-valued parameters. Please use exact version.')
+      stop('Quantile approximation relies on pooling and thus is not accurate
+           when passing vector-valued parameters. Please use exact version.')
     if (log.p) p <- exp(p)
     if (!lower.tail) p <- 1 - p
     pValid <- p[p > 0 & p < 1]
@@ -65,7 +67,8 @@ rdelap <- function(n, alpha, beta, lambda, exact = TRUE){
   RDLAP <- double(length(n))
   if (!exact) {
     if (any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0))
-      stop('Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results.')
+      stop('Parameters must be strictly greater than 0. Please use exact
+           version, if necessary, to prevent spurious results.')
     ShiftedGammas <- rgamma(n, shape = alpha, scale = beta)
     RDLAP <- rpois(n, lambda = (ShiftedGammas + lambda))
   } else {
@@ -81,7 +84,8 @@ MoMdelap <- function(x, type = 2L){
     stop('Skew type must be one of 1, 2, or 3.')
   MoMDLAP <- double(3)
   MoMDLAP <- .Call(MoMdelap_C, x, type)
-  if (any(MoMDLAP <= 0)) stop("Method of moments not appropriate for this data; results include non-positive parameters.")
+  if (any(MoMDLAP <= 0)) stop("Method of moments not appropriate for this data;
+                              results include non-positive parameters.")
   return(MoMDLAP)
 }
 

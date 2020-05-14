@@ -12,7 +12,7 @@
   \subsection{Changed}{
     \itemize{
       \item Use FFLAGS instead of FCFLAGS in Makevars
-      \item Have README be more comformant to 80 character line size
+      \item Have files be more comformant to 80 character line size
     }
   }
   \subsection{Removed}{

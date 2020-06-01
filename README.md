@@ -4,6 +4,7 @@
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2011/badge)](https://bestpractices.coreinfrastructure.org/projects/2011)
 [![Travis build status](https://travis-ci.com/aadler/Delaporte.svg?branch=master)](https://travis-ci.com/aadler/Delaporte)
 [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/aadler/Delaporte?branch=master&svg=true)](https://ci.appveyor.com/project/aadler/Delaporte)
+[![Codecov test coverage](https://codecov.io/gh/aadler/Delaporte/branch/master/graph/badge.svg)](https://codecov.io/gh/aadler/Delaporte?branch=master)
 <!-- badges: end -->
 # Delaporte
 

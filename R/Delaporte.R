@@ -86,5 +86,5 @@ MoMdelap <- function(x, type = 2L){
 }
 
 .onUnload <- function(libpath) {
-  library.dynam.unload("Delaporte", libpath)
+  library.dynam.unload("Delaporte", libpath) # nocov
 }

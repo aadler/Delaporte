@@ -71,8 +71,8 @@ If you would like to contribute to the project, it may be prudent to first
 contact the maintainer via email. A request or suggestion may be raised as an
 issue as well. To supply a pull request (PR), please:
 
- 1. Fork the project into your own local repository
+ 1. Fork the project and then clone into your own local repository
  2. Create a branch in your repository in which you will make your changes
- 3. Push that branch to Bitbucket and then create a pull request
+ 3. Push that branch and then create a pull request
  
 At this point, the PR will be discussed and eventually accepted or rejected.

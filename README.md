@@ -1,7 +1,9 @@
+<!-- badges: start -->
 [![](https://www.r-pkg.org/badges/version-last-release/Delaporte)]
 [![](https://cranlogs.r-pkg.org/badges/Delaporte)]
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2011/badge)](https://bestpractices.coreinfrastructure.org/projects/2011)
-
+[![Travis build status](https://travis-ci.com/aadler/Delaporte.svg?branch=master)](https://travis-ci.com/aadler/Delaporte)
+<!-- badges: end -->
 # Delaporte
 
 **Delaporte** is an `R` package which provides the probability mass,

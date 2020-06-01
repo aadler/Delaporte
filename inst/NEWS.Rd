@@ -2,17 +2,20 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
-\section{Version 7.0.3 (2020-01-00)}{
+\section{Version 7.0.3 (2020-06-01)}{
   \subsection{Added}{
     \itemize{
+      \item CITATION file
       \item Explicit citation information to README
+      \item Travis, AppVeyor, and CodeCov Integration
       \item Added R_forceSymbols(dll, TRUE) to source per WRE 5.4
+      \item Tests for package versioning
     }
   }
   \subsection{Changed}{
     \itemize{
+      \item Moved canonical repository to Github
       \item Use FFLAGS instead of FCFLAGS in Makevars
-      \item Have files be more comformant to 80 character line size
     }
   }
   \subsection{Removed}{

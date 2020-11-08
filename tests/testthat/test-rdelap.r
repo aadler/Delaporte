@@ -2,7 +2,8 @@ set.seed(4175L)
 DP1 <- rdelap(1e6, alpha = 10, beta = 2, lambda = 10) 
 DP2 <- rdelap(3e6, alpha = 2, beta = 14, lambda = 2, exact = FALSE)
 DP3 <- rdelap(1.75e5, alpha = c(5, 5), beta = c(5, 5), lambda = c(5, 5))
-DP4 <- rdelap(1e6, alpha = c(5, 5), beta = c(5, 5), lambda = c(5, 5), exact = FALSE)
+DP4 <- rdelap(1e6, alpha = c(5, 5), beta = c(5, 5), lambda = c(5, 5),
+              exact = FALSE)
 
 test_that("Singleton exact function accuracy", {
   expect_true(abs((mean(DP1) / 30 - 1)) < 5e-4)
@@ -36,7 +37,8 @@ test_that("Vector NaN", {
   expect_identical(is.nan(rdelap(2, 4, -5e7, 2)), rep(TRUE, 2))
   expect_identical(is.nan(rdelap(2, 4, 2, 0)), rep(TRUE, 2))
   expect_identical(is.nan(rdelap(2, 4, 2, -1e-6)), rep(TRUE, 2))
-  expect_identical(is.nan(rdelap(3, c(0, 1, 2), c(1, 0, 2), c(1, 2, 0))), rep(TRUE, 3))
+  expect_identical(is.nan(rdelap(3, c(0, 1, 2), c(1, 0, 2), c(1, 2, 0))),
+                   rep(TRUE, 3))
   expect_equal(sum(is.nan(rdelap(3, c(0, 1, 2), c(1, 0, 2), c(1, 2, 1)))), 2)
 })
 test_that("Vector size", {
@@ -45,9 +47,12 @@ test_that("Vector size", {
   expect_error(rdelap(-1, c(4, 2), c(1, 2, 3, 4), 2), "negative length vectors are not allowed")
 })
 test_that("Approximate throws error when 0 is passed", {
-  expect_error(rdelap(8, 0, 2, 3, exact = FALSE), 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results.')
-  expect_error(rdelap(8, 1, 0, 3, exact = FALSE), 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results.')
-  expect_error(rdelap(8, 1, 2, 0, exact = FALSE), 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results')
+  expect_error(rdelap(8, 0, 2, 3, exact = FALSE),
+               'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results.')
+  expect_error(rdelap(8, 1, 0, 3, exact = FALSE),
+               'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results.')
+  expect_error(rdelap(8, 1, 2, 0, exact = FALSE),
+               'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results')
 })
 
 test_that("Non-double parameters converted", {

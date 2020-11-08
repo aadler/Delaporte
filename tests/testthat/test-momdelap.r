@@ -45,7 +45,8 @@ test_that("MoMdelap traps bad types", {
 })
 test_that("MoMdelap traps bad parameters", {
   TestData <- c(3,  2, 12, 11,  1,  7,  1,  4,  0, 4)
-  expect_error(MoMdelap(TestData), 'Method of moments not appropriate for this data; results include non-positive parameters.')
+  expect_error(MoMdelap(TestData),
+               'Method of moments not appropriate for this data; results include non-positive parameters.')
 })
 
 test_that("Non-double vector converted", {

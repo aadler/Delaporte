@@ -1,4 +1,3 @@
-context("Testing MoMdelap")
 TestData <- c(5, 7, 9, 9, 10, 11, 11, 13, 17, 24)
 MTD <- mean(TestData)
 VTD <- var(TestData)

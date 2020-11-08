@@ -1,7 +1,6 @@
 VAL <- data.frame(read.csv(file = "./RawTest.csv", header = TRUE))
 SEQUENCE <- seq_len(37) - 1
 
-context("Testing pdelap")
 test_that("Singleton function accuracy", {
   expect_equal(pdelap(SEQUENCE, 2, 1, 5), VAL$PDELAP_2)
 })  

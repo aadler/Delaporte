@@ -1,10 +1,19 @@
 Package: Delaporte
 Type: Package
 Title: Statistical Functions for the Delaporte Distribution
-Version: 7.0.3
-Date: 2020-06-01
-Authors@R: c(person(given="Avraham", family="Adler", role=c("aut", "cph", "cre"), email="Avraham.Adler@gmail.com", comment = c(ORCID = "0000-0002-3039-0703")))
-Description: Provides probability mass, distribution, quantile, random-variate generation, and method-of-moments parameter-estimation functions for the Delaporte distribution. The Delaporte is a discrete probability distribution which can be considered the convolution of a negative binomial distribution with a Poisson distribution. Alternatively, it can be considered a counting distribution with both Poisson and negative binomial components. It has been studied in actuarial science as a frequency distribution which has more variability than the Poisson, but less than the negative binomial.
+Version: 7.0.4
+Date: 2020-11-08
+Authors@R: c(person(given="Avraham", family="Adler", role=c("aut", "cph", "cre"),
+    email="Avraham.Adler@gmail.com", comment = c(ORCID = "0000-0002-3039-0703")))
+Description: Provides probability mass, distribution, quantile, random-variate
+    generation, and method-of-moments parameter-estimation functions for the
+    Delaporte distribution with parameterization based on Vose (2008)
+    <isbn:9780470512845>. The Delaporte is a discrete probability distribution
+    which can be considered the convolution of a negative binomial distribution
+    with a Poisson distribution. Alternatively, it can be considered a counting
+    distribution with both Poisson and negative binomial components. It has been
+    studied in actuarial science as a frequency distribution which has more
+    variability than the Poisson, but less than the negative binomial.
 License: BSD_2_clause + file LICENSE
 URL: https://github.com/aadler/Delaporte
 BugReports: https://github.com/aadler/Delaporte/issues
@@ -13,3 +22,4 @@ Imports: stats
 Suggests: testthat, covr
 ByteCompile: yes
 NeedsCompilation: yes
+Config/testthat/edition: 3

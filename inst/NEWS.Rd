@@ -2,6 +2,20 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
+\section{Version 7.0.4 (2020-11-08)}{
+  \subsection{Changed}{
+    \itemize{
+      \item Converted tests to be compliant with \code{testthat}: 3rd edition
+      \item Cleaned up prose
+    }
+  }
+  \subsection{Added}{
+    \itemize{
+      \item Added citation to DESCRIPTION
+    }
+  }
+}
+
 \section{Version 7.0.3 (2020-06-01)}{
   \subsection{Added}{
     \itemize{

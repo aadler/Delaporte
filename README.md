@@ -6,8 +6,8 @@
 [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/aadler/Delaporte?branch=master&svg=true)](https://ci.appveyor.com/project/aadler/Delaporte)
 [![Codecov test coverage](https://codecov.io/gh/aadler/Delaporte/branch/master/graph/badge.svg)](https://codecov.io/gh/aadler/Delaporte?branch=master)
 <!-- badges: end -->
-# Delaporte
 
+# Delaporte
 **Delaporte** is an `R` package which provides the probability mass,
 distribution, quantile, random variate generation, and method of moments
 parameter estimation functions for the Delaporte distribution. As the
@@ -21,7 +21,7 @@ estimate as opposed to the full Delaporte double summations.
 If you use the package, please cite it as:
 
   Avraham Adler (2013). Delaporte: Statistical Functions for the Delaporte
-  Distribution. R package version 7.0.3.
+  Distribution. R package version 7.0.4.
   https://CRAN.R-project.org/package=Delaporte
 
 A BibTeX entry for LaTeX users is:
@@ -31,7 +31,7 @@ A BibTeX entry for LaTeX users is:
     title = {Delaporte: Statistical Functions for the Delaporte Distribution},
     author = {Avraham Adler},
     year = {2013},
-    note = {R package version 7.0.3},
+    note = {R package version 7.0.4},
     url = {https://CRAN.R-project.org/package=Delaporte},
   }
 ```

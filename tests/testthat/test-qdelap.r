@@ -1,4 +1,3 @@
-context("Testing qdelap")
 test_that("Singleton exact function accuracy", {
   expect_equal(qdelap(.4, 1, 4, 2), 4)
 })

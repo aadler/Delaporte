@@ -1,4 +1,3 @@
-context("Testing rdelap")
 set.seed(4175L)
 DP1 <- rdelap(1e6, alpha = 10, beta = 2, lambda = 10) 
 DP2 <- rdelap(3e6, alpha = 2, beta = 14, lambda = 2, exact = FALSE)

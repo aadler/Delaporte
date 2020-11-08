@@ -11,7 +11,8 @@
   }
   \subsection{Added}{
     \itemize{
-      \item Added citation to DESCRIPTION
+      \item Added a citation to DESCRIPTION
+      \item Added a test to get codecov to 100%
     }
   }
 }

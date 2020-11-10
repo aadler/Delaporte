@@ -2,6 +2,15 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
+\section{Version 7.0.5 (2020-11-10)}{
+  \subsection{Fixed}{
+    \itemize{
+      \item Corrected CRAN requests
+      \item Cleaned up NEWS
+    }
+  }
+}
+
 \section{Version 7.0.4 (2020-11-08)}{
   \subsection{Changed}{
     \itemize{
@@ -12,7 +21,7 @@
   \subsection{Added}{
     \itemize{
       \item Added a citation to DESCRIPTION
-      \item Added a test to get codecov to 100%
+      \item Added a test to get codecov to 100\%
     }
   }
 }
@@ -23,7 +32,7 @@
       \item CITATION file
       \item Explicit citation information to README
       \item Travis, AppVeyor, and CodeCov Integration
-      \item Added R_forceSymbols(dll, TRUE) to source per WRE 5.4
+      \item Added \code{R_forceSymbols(dll, TRUE)} to source per WRE 5.4
       \item Tests for package versioning
     }
   }
@@ -82,12 +91,8 @@
   \subsection{Added}{
     \itemize{
       \item Added \code{cleanzeros} function that zaps to 0 any value less or
-      equal to EPS. See
-      \href{https://bitbucket.org/aadler/delaporte/issues/1/negative-p-values-in-pdelap}{Issue #1}
-      (Thanks Kipper Fletez-Brant).
-      \item Test for zeros. Using call submitted in
-      \href{https://bitbucket.org/aadler/delaporte/issues/1/negative-p-values-in-pdelap}{Issue #1}
-      (Thanks Kipper Fletez-Brant).
+      equal to EPS. (Thanks Kipper Fletez-Brant).
+      \item Test for zeros. (Thanks Kipper Fletez-Brant).
       \item Added items to README to comply with
       \href{https://bestpractices.coreinfrastructure.org/en}{CII}
       best practices and added badge.
@@ -157,7 +162,7 @@
   \subsection{Changed}{
     \itemize{
       \item Solaris, being big-endian, appears unable to use the same bit-mask
-      transfer for NaN and INF as any other R platform. Therefore, the package
+      transfer for `NaN` and INF as any other R platform. Therefore, the package
       has to revert to calling C to call the R magic words which should
       recognize the platform.
     }
@@ -303,7 +308,7 @@
       \item Change non-exact \code{qdelap} mode to \emph{numeric} instead of
       \emph{integer} to handle returned \code{Inf}.
       \item Refactor NEWS to more closely comply with
-      \href{http://keepachangelog.com/}{keep a changelog} suggestions.
+      \href{https://keepachangelog.com/}{keep a changelog} suggestions.
     }
   }
   \subsection{Fixed}{
@@ -405,10 +410,10 @@
 \section{Version 1.1-0 (2014-01-17)}{
   \subsection{Changed}{
     \itemize{
-      \item Change "Depends" to "LinkingTo" in line with CRAN philosophy on
-      package dependencies.
+      \item Change \dQuote{Depends} to \dQuote{LinkingTo} in line with CRAN
+      philosophy on package dependencies.
       \item Update documentation to give rough estimate as to when
-      "exact = FALSE" should be used (rarely).
+      \dQuote{exact = FALSE} should be used (rarely).
       \item Have R code be written in a consistent style.
     }
   }
@@ -427,11 +432,8 @@
   \subsection{Added}{
     \itemize{
       \item Poisson-negative binomial approximation to quantile and random
-      variate functions.
-        \itemize{
-          \item This greatly speeds up calculation for large
-          \eqn{\alpha, \beta}, or \eqn{\lambda}.
-        }
+      variate functions. This greatly speeds up calculation for large
+      \eqn{\alpha, \beta}, or \eqn{\lambda}.
     }
   }
 }

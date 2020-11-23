@@ -1,9 +1,8 @@
 <!-- badges: start -->
 [![](https://www.r-pkg.org/badges/version-last-release/Delaporte)]
-[![](https://cranlogs.r-pkg.org/badges/Delaporte)]
+[![](http://cranlogs.r-pkg.org/badges/last-month/Delaporte)](https://cran.r-project.org/package=Delaporte)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2011/badge)](https://bestpractices.coreinfrastructure.org/projects/2011)
-[![Travis build status](https://travis-ci.com/aadler/Delaporte.svg?branch=master)](https://travis-ci.com/aadler/Delaporte)
-[![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/aadler/Delaporte?branch=master&svg=true)](https://ci.appveyor.com/project/aadler/Delaporte)
+[![R build status](https://github.com/aadler/Delaporte/workflows/R-CMD-check/badge.svg)](https://github.com/aadler/Delaporte/actions)
 [![Codecov test coverage](https://codecov.io/gh/aadler/Delaporte/branch/master/graph/badge.svg)](https://codecov.io/gh/aadler/Delaporte?branch=master)
 <!-- badges: end -->
 

@@ -1,3 +1,5 @@
+zeroErr <- 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results.'
+negLenErr <- 'negative length vectors are not allowed'
 set.seed(4175L)
 DP1 <- rdelap(1e6, alpha = 10, beta = 2, lambda = 10) 
 DP2 <- rdelap(3e6, alpha = 2, beta = 14, lambda = 2, exact = FALSE)
@@ -22,7 +24,7 @@ test_that("Singleton NaN", {
 test_that("Singleton size", {
   expect_length(rdelap(8, 4, 1, 2), 8)
   expect_length(rdelap(0, 4, 1, 2), 0)
-  expect_error(rdelap(-4, 4, 1, 2), "negative length vectors are not allowed")
+  expect_error(rdelap(-4, 4, 1, 2), negLenErr)
 })  
 test_that("Vector exact function accuracy", {
   expect_true(abs((mean(DP3) / 30 - 1)) < 5e-4)
@@ -44,15 +46,12 @@ test_that("Vector NaN", {
 test_that("Vector size", {
   expect_length(rdelap(8, c(4, 2), c(1, 2, 3, 4), 2), 8)
   expect_length(rdelap(0, c(4, 2), c(1, 2, 3, 4), 2), 0)
-  expect_error(rdelap(-1, c(4, 2), c(1, 2, 3, 4), 2), "negative length vectors are not allowed")
+  expect_error(rdelap(-1, c(4, 2), c(1, 2, 3, 4), 2), negLenErr)
 })
 test_that("Approximate throws error when 0 is passed", {
-  expect_error(rdelap(8, 0, 2, 3, exact = FALSE),
-               'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results.')
-  expect_error(rdelap(8, 1, 0, 3, exact = FALSE),
-               'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results.')
-  expect_error(rdelap(8, 1, 2, 0, exact = FALSE),
-               'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results')
+  expect_error(rdelap(8, 0, 2, 3, exact = FALSE), zeroErr)
+  expect_error(rdelap(8, 1, 0, 3, exact = FALSE), zeroErr)
+  expect_error(rdelap(8, 1, 2, 0, exact = FALSE), zeroErr)
 })
 
 test_that("Non-double parameters converted", {

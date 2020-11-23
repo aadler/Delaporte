@@ -1,3 +1,5 @@
+zeroErr <- 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results.'
+
 test_that("Singleton exact function accuracy", {
   expect_equal(qdelap(.4, 1, 4, 2), 4)
 })
@@ -67,12 +69,9 @@ test_that("Vector Inf", {
                                       c(1, 6, 2), c(1, 2, 0.4))), rep(TRUE, 3))
 })
 test_that("Approximate throws error when 0 is passed", {
-  expect_error(qdelap(0.1, 0, 2, 3, exact = FALSE),
-               'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results.')
-  expect_error(qdelap(0.1, 1, 0, 3, exact = FALSE),
-               'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results.')
-  expect_error(qdelap(0.1, 1, 2, 0, exact = FALSE),
-               'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results.')
+  expect_error(qdelap(0.1, 0, 2, 3, exact = FALSE), zeroErr)
+  expect_error(qdelap(0.1, 1, 0, 3, exact = FALSE), zeroErr )
+  expect_error(qdelap(0.1, 1, 2, 0, exact = FALSE), zeroErr )
 })
 test_that("Approximate throws error when parameter vectors are passed", {
   expect_error(qdelap(c(.4, .07), c(1, 2), c(4, 1), c(2, 5), exact = FALSE),

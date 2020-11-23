@@ -1,3 +1,4 @@
+nonIntErr <- 'Non-integers passed to ddelap. These will have 0 probability.'
 VAL <- data.frame(read.csv(file = "./RawTest.csv", header = TRUE))
 SEQUENCE <- seq_len(37) - 1
 
@@ -37,12 +38,9 @@ test_that("Vector NaN", {
                                  c(1, 2, -0.1))), rep(TRUE, 3))
 })
 test_that("Non-integer warning", {
-  expect_warning(ddelap(1.1, 1, 2, 3),
-                 "Non-integers passed to ddelap. These will have 0 probability.")
-  expect_warning(ddelap(c(1, 1.1, 1.2, 3), c(1, 1), 2, 3),
-                 "Non-integers passed to ddelap. These will have 0 probability.")
-  expect_warning(ddelap(seq(2, 3, .1), c(1, 1), 2, 3),
-                 "Non-integers passed to ddelap. These will have 0 probability.")
+  expect_warning(ddelap(1.1, 1, 2, 3), nonIntErr)
+  expect_warning(ddelap(c(1, 1.1, 1.2, 3), c(1, 1), 2, 3), nonIntErr)
+  expect_warning(ddelap(seq(2, 3, .1), c(1, 1), 2, 3), nonIntErr)
 })
 
 test_that("Non-double parameters converted", {

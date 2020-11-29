@@ -2,6 +2,15 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
+\section{Version 7.0.6 UNRELEASED (2020-12-10)}{
+  \subsection{Changed}{
+    \itemize{
+      \item Switched CI from Travis/Appveyor to Github actions (thanks to Jim
+      Hester for his help in fixing the coverage check issue)
+    }
+  }
+}
+
 \section{Version 7.0.5 (2020-11-10)}{
   \subsection{Fixed}{
     \itemize{
@@ -91,8 +100,8 @@
   \subsection{Added}{
     \itemize{
       \item Added \code{cleanzeros} function that zaps to 0 any value less or
-      equal to EPS. (Thanks Kipper Fletez-Brant).
-      \item Test for zeros. (Thanks Kipper Fletez-Brant).
+      equal to EPS (thanks Kipper Fletez-Brant).
+      \item Test for zeros (thanks Kipper Fletez-Brant).
       \item Added items to README to comply with
       \href{https://bestpractices.coreinfrastructure.org/en}{CII}
       best practices and added badge.

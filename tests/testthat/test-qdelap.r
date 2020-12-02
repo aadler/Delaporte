@@ -68,10 +68,10 @@ test_that("Vector Inf", {
   expect_identical(is.infinite(qdelap(seq_len(3), c(2, 1, 2),
                                       c(1, 6, 2), c(1, 2, 0.4))), rep(TRUE, 3))
 })
-test_that("Approximate throws error when 0 is passed", {
+test_that("Approximate throws error when nonpositive is passed", {
   expect_error(qdelap(0.1, 0, 2, 3, exact = FALSE), zeroErr)
   expect_error(qdelap(0.1, 1, 0, 3, exact = FALSE), zeroErr )
-  expect_error(qdelap(0.1, 1, 2, 0, exact = FALSE), zeroErr )
+  expect_error(qdelap(0.1, 1, 2, -3, exact = FALSE), zeroErr )
 })
 test_that("Approximate throws error when parameter vectors are passed", {
   expect_error(qdelap(c(.4, .07), c(1, 2), c(4, 1), c(2, 5), exact = FALSE),

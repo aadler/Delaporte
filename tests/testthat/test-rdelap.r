@@ -48,9 +48,9 @@ test_that("Vector size", {
   expect_length(rdelap(0, c(4, 2), c(1, 2, 3, 4), 2), 0)
   expect_error(rdelap(-1, c(4, 2), c(1, 2, 3, 4), 2), negLenErr)
 })
-test_that("Approximate throws error when 0 is passed", {
+test_that("Approximate throws error when nonpositive is passed", {
   expect_error(rdelap(8, 0, 2, 3, exact = FALSE), zeroErr)
-  expect_error(rdelap(8, 1, 0, 3, exact = FALSE), zeroErr)
+  expect_error(rdelap(8, 1, -0.8, 3, exact = FALSE), zeroErr)
   expect_error(rdelap(8, 1, 2, 0, exact = FALSE), zeroErr)
 })
 

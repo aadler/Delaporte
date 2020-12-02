@@ -144,9 +144,7 @@ distributions.
   \code{MoMdelap} returns a triplet comprising a method-of-moments based
   estimate of \eqn{\alpha}, \eqn{\beta}, and \eqn{\lambda}.
 }
-\author{
-Avraham Adler \email{Avraham.Adler@gmail.com}
-}
+\author{Avraham Adler \email{Avraham.Adler@gmail.com}}
 \references{
 
   Joanes, D. N. and Gill, C. A. (1998) Comparing Measures of Sample Skewness and

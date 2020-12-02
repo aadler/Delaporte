@@ -49,18 +49,17 @@ test_that("Vector exact log.p", {
 })  
 test_that("Vector exact lower.tail & log.p", {
   expect_equal(qdelap(c(-0.69895775020315487, -1.98413706125967337), c(4, 1),
-                      c(6, 9), c(3, 12), lower.tail = FALSE, log.p = TRUE),
-               c(25, 31))
+                      c(6, 9), c(3, 12), lower.tail = FALSE, log.p = TRUE), c(25, 31))
 })
 test_that("Vector Nan", {
-  expect_identical(is.nan(qdelap(seq_len(2)/10, 0, 1, 2)), rep(TRUE, 2))
-  expect_identical(is.nan(qdelap(seq_len(2)/10, -1, 1, 2)), rep(TRUE, 2))
-  expect_identical(is.nan(qdelap(seq_len(2)/10, 1, 0, 2)), rep(TRUE, 2))
-  expect_identical(is.nan(qdelap(seq_len(2)/10, 1, -8, 2)), rep(TRUE, 2))
-  expect_identical(is.nan(qdelap(seq_len(2)/10, 3, 1, 0)), rep(TRUE, 2))
-  expect_identical(is.nan(qdelap(seq_len(2)/10, 3, 1, -4e-5)), rep(TRUE, 2))
+  expect_identical(is.nan(qdelap(seq_len(2) / 10, 0, 1, 2)), rep(TRUE, 2))
+  expect_identical(is.nan(qdelap(seq_len(2) / 10, -1, 1, 2)), rep(TRUE, 2))
+  expect_identical(is.nan(qdelap(seq_len(2) / 10, 1, 0, 2)), rep(TRUE, 2))
+  expect_identical(is.nan(qdelap(seq_len(2) / 10, 1, -8, 2)), rep(TRUE, 2))
+  expect_identical(is.nan(qdelap(seq_len(2) / 10, 3, 1, 0)), rep(TRUE, 2))
+  expect_identical(is.nan(qdelap(seq_len(2) / 10, 3, 1, -4e-5)), rep(TRUE, 2))
   expect_identical(is.nan(qdelap(c(-1, -5), 3, 1, 6)), rep(TRUE, 2))
-  expect_identical(is.nan(qdelap(seq_len(3)/10, c(0, 1, 2), c(1, 0, 2),
+  expect_identical(is.nan(qdelap(seq_len(3) / 10, c(0, 1, 2), c(1, 0, 2),
                                  c(1, 2, 0))), rep(TRUE, 3))
 })
 test_that("Vector Inf", {

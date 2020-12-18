@@ -14,7 +14,7 @@ LaTeX: pdfLaTeX
 
 BuildType: Package
 PackageUseDevtools: Yes
-PackageInstallArgs: --no-multiarch --with-keep.source --clean --preclean --use-LTO
+PackageInstallArgs: --no-multiarch --with-keep.source --clean --preclean
 PackageBuildArgs: --md5 --resave-data
-PackageBuildBinaryArgs: --clean --preclean --use-LTO
+PackageBuildBinaryArgs: --clean --preclean
 PackageCheckArgs: --as-cran --timings

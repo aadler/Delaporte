@@ -20,7 +20,8 @@ estimate as opposed to the full Delaporte double summations.
 If you use the package, please cite it as:
 
   Avraham Adler (2013). Delaporte: Statistical Functions for the Delaporte
-  Distribution. R package version 7.0.5.
+  Distribution.
+  R package version 7.0.6.
   https://CRAN.R-project.org/package=Delaporte
 
 A BibTeX entry for LaTeX users is:
@@ -30,7 +31,7 @@ A BibTeX entry for LaTeX users is:
     title = {Delaporte: Statistical Functions for the Delaporte Distribution},
     author = {Avraham Adler},
     year = {2013},
-    note = {R package version 7.0.5},
+    note = {R package version 7.0.6},
     url = {https://CRAN.R-project.org/package=Delaporte},
   }
 ```

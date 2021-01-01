@@ -2,7 +2,7 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
-\section{Version 7.0.6 UNRELEASED (2020-12-10)}{
+\section{Version 7.0.6 (2021-01-04)}{
   \subsection{Changed}{
     \itemize{
       \item Switched CI from Travis/Appveyor to Github actions (thanks to Jim

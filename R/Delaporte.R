@@ -1,35 +1,31 @@
 # Copyright (c) 2013, Avraham Adler All rights reserved
 # SPDX-License-Identifier: BSD-2-Clause
 
-plt0err <- 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results.'
+plt0err <- paste('Parameters must be strictly greater than 0.',
+                 'Please use exact version, if necessary,',
+                 'to prevent spurious results.')
 
 ddelap <- function(x, alpha, beta, lambda, log = FALSE) {
-  if (!is.double(x)) {storage.mode(x) <- 'double'}
-  if (!is.double(alpha)) {storage.mode(alpha) <- 'double'}
-  if (!is.double(beta)) {storage.mode(beta) <- 'double'}
-  if (!is.double(lambda)) {storage.mode(lambda) <- 'double'}
+  x <- as.double(x)
   if (any(x > floor(x))) {
     warning("Non-integers passed to ddelap. These will have 0 probability.")
   }
   if (log) log_f <- 1L else log_f <- 0L
-  .Call(ddelap_C, x, alpha, beta, lambda, log_f)
+  .Call(ddelap_C, x, as.double(alpha), as.double(beta), as.double(lambda), log_f)
 }
 
 pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE) {
-  if (!is.double(q)) {storage.mode(q) <- 'double'}
-  if (!is.double(alpha)) {storage.mode(alpha) <- 'double'}
-  if (!is.double(beta)) {storage.mode(beta) <- 'double'}
-  if (!is.double(lambda)) {storage.mode(lambda) <- 'double'}
   if (lower.tail) lt_f <- 1L else lt_f <- 0L
   if (log.p) lp_f <- 1L else lp_f <- 0L
-  .Call(pdelap_C, q, alpha, beta, lambda, lt_f, lp_f)
+  .Call(pdelap_C, as.double(q), as.double(alpha), as.double(beta),
+        as.double(lambda), lt_f, lp_f)
 }
 
 qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exact = TRUE) {
-  if (!is.double(p)) {storage.mode(p) <- 'double'}
-  if (!is.double(alpha)) {storage.mode(alpha) <- 'double'}
-  if (!is.double(beta)) {storage.mode(beta) <- 'double'}
-  if (!is.double(lambda)) {storage.mode(lambda) <- 'double'}
+  p <- as.double(p)
+  alpha <- as.double(alpha)
+  beta <- as.double(beta)
+  lambda <- as.double(lambda)
   QDLAP <- double(length(p))
   if (exact) {
     if (lower.tail) lt_f <- 1L else lt_f <- 0L
@@ -39,7 +35,9 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exa
     if (any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0))
       stop(plt0err)
     if (length(alpha) > 1 || length(beta) > 1 || length(lambda) > 1)
-      stop('Quantile approximation relies on pooling and thus is not accurate when passing vector-valued parameters. Please use exact version.')
+      stop(paste('Quantile approximation relies on pooling and thus is not',
+                 'accurate when passing vector-valued parameters.',
+                 'Please use exact version.'))
     if (log.p) p <- exp(p)
     if (!lower.tail) p <- 1 - p
     pValid <- p[p > 0 & p < 1]
@@ -59,10 +57,10 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exa
 }
 
 rdelap <- function(n, alpha, beta, lambda, exact = TRUE) {
-  if (!is.integer(n)) {storage.mode(n) <- 'integer'}
-  if (!is.double(alpha)) {storage.mode(alpha) <- 'double'}
-  if (!is.double(beta)) {storage.mode(beta) <- 'double'}
-  if (!is.double(lambda)) {storage.mode(lambda) <- 'double'}
+  n <- as.integer(n)
+  alpha <- as.double(alpha)
+  beta <- as.double(beta)
+  lambda <- as.double(lambda)
   RDLAP <- double(length(n))
   if (!exact) {
     if (any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0)) stop(plt0err)
@@ -75,11 +73,10 @@ rdelap <- function(n, alpha, beta, lambda, exact = TRUE) {
 }
 
 MoMdelap <- function(x, type = 2L) {
-  if (!is.double(x)) {storage.mode(x) <- 'double'}
-  if (!is.integer(type)) {storage.mode(type) <- 'integer'}
+  type <- as.integer(type)
   if (!(type %in% c(1L, 2L, 3L))) stop('Skew type must be one of 1, 2, or 3.')
   MoMDLAP <- double(3)
-  MoMDLAP <- .Call(MoMdelap_C, x, type)
+  MoMDLAP <- .Call(MoMdelap_C, as.double(x), type)
   if (any(MoMDLAP <= 0)) stop("Method of moments not appropriate for this data; results include non-positive parameters.")
   return(MoMDLAP)
 }

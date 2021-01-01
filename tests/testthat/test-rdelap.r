@@ -1,4 +1,4 @@
-zeroErr <- 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results.'
+zeroErr <- 'Parameters must be strictly greater than 0.'
 negLenErr <- 'negative length vectors are not allowed'
 set.seed(4175L)
 DP1 <- rdelap(1e6, alpha = 10, beta = 2, lambda = 10) 

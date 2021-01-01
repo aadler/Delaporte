@@ -1,4 +1,4 @@
-zeroErr <- 'Parameters must be strictly greater than 0. Please use exact version, if necessary, to prevent spurious results.'
+zeroErr <- 'Parameters must be strictly greater than 0.'
 
 test_that("Singleton exact function accuracy", {
   expect_equal(qdelap(.4, 1, 4, 2), 4)

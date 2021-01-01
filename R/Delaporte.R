@@ -1,9 +1,7 @@
 # Copyright (c) 2013, Avraham Adler All rights reserved
 # SPDX-License-Identifier: BSD-2-Clause
 
-plt0err <- paste('Parameters must be strictly greater than 0.',
-                 'Please use exact version, if necessary,',
-                 'to prevent spurious results.')
+plt0err <- 'Parameters must be strictly greater than 0.'
 
 ddelap <- function(x, alpha, beta, lambda, log = FALSE) {
   x <- as.double(x)

@@ -2,9 +2,15 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
-\section{Version 7.0.6 (2021-01-04)}{
+\section{Version 8.0.0 (2021-01-04)}{
   \subsection{Changed}{
     \itemize{
+      \item Exact code more in line with R defaults for d/p/q/r functions in
+      that \code{NaN} inputs return \code{NaN} outputs
+      \item Handling of \code{Inf} and \code{-Inf} now more in line with R
+      defaults for d/p/q/r functions
+      \item Parameter errors now check for \eqn{< 0} instead of \code{< EPS}
+      \item Allow using \code{LTO} if requested
       \item Switched CI from Travis/Appveyor to Github actions (thanks to Jim
       Hester for his help in fixing the coverage check issue)
     }

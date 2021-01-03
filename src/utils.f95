@@ -52,6 +52,7 @@ module utils
     real(kind = c_double), parameter :: THREEHALFS = 1.5_c_double
     real(kind = c_double), parameter :: TWO = 2._c_double
     real(kind = c_double), parameter :: THREE = 3._c_double
+    real(kind = c_double), parameter :: INFTST = HUGE(ZERO)
     real(kind = c_double), parameter :: EPS = 2.2204460492503131e-16_c_double
 
 contains

@@ -5,7 +5,7 @@ plt0err <- 'Parameters must be strictly greater than 0.'
 
 ddelap <- function(x, alpha, beta, lambda, log = FALSE) {
   x <- as.double(x)
-  if (any(x > floor(x))) {
+  if (any(x[!is.nan(x)] > floor(x[!is.nan(x)]))) {
     warning("Non-integers passed to ddelap. These will have 0 probability.")
   }
   if (log) log_f <- 1L else log_f <- 0L

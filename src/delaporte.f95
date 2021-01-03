@@ -24,6 +24,13 @@
 !          Version 1.6: 2018-12-10
 !                       Replaced zapping with setting min to 0 and max to 1
 !                       as appropriate. Less monkeying with values this way.
+!          Version 2.0: 2021-01-03
+!                       Setting limits as < 0 to be more consistent with R
+!                       defaults for d/p/q/r functions. Returning NaN for NaN
+!                       inputs per R defaults. Trapping for INFTY more
+!                       consistently with base R. Should use ieee_arithmetic
+!                       once current oldrelease gets deprecated and min GCC
+!                       version is > 5
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -81,18 +88,22 @@ contains
     real(kind = c_double)               :: pmf                    
     integer                             :: i, k                   
 
-      if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. x < ZERO) then
+      if (alpha < ZERO .or. beta < ZERO .or. lambda < ZERO .or. x < ZERO &
+          .or. alpha /= alpha .or. beta /= beta .or. lambda /= lambda &
+          .or. x /= x) then
           call set_nan(pmf)
       else
-          k = floor(x)
           pmf = ZERO
-          do i = 0, k
-              pmf = pmf + exp(gamln(alpha + i) + i * log(beta) &
-                        + (k - i) * log(lambda) - lambda &
-                        - gamln(alpha) - gamln(i + ONE) &
-                        - (alpha + i) * log1p(beta) &
-                        - gamln(k - i + ONE))
-          end do
+          if (x < INFTST) then
+              k = floor(x)
+              do i = 0, k
+                  pmf = pmf + exp(gamln(alpha + i) + i * log(beta) &
+                            + (k - i) * log(lambda) - lambda &
+                            - gamln(alpha) - gamln(i + ONE) &
+                            - (alpha + i) * log1p(beta) &
+                            - gamln(k - i + ONE))
+              end do
+          end if
           pmf = max(min(pmf, ONE), ZERO)          ! Clear floating point errors
       end if
 
@@ -157,14 +168,20 @@ contains
     real(kind = c_double), intent(in)   :: q, alpha, beta, lambda
     integer                             :: i, k
 
-        if (alpha < EPS .or. beta < EPS .or. lambda < EPS .or. q < ZERO) then
-            call set_nan(cdf)
+        if (alpha < ZERO .or. beta < ZERO .or. lambda < ZERO .or. q < ZERO &
+          .or. alpha /= alpha .or. beta /= beta .or. lambda /= lambda &
+          .or. q /= q) then
+          call set_nan(cdf)
         else
-            k = floor(q)
-            cdf = exp(-lambda) / ((beta + ONE) ** alpha)
-            do i = 1, k
-                cdf = cdf + ddelap_f_s(real(i, c_double), alpha, beta, lambda)
-            end do
+            if (k >= INFTST) then
+                cdf = ONE
+            else
+                k = floor(q)
+                cdf = exp(-lambda) / ((beta + ONE) ** alpha)
+                do i = 1, k
+                    cdf = cdf + ddelap_f_s(real(i, c_double), alpha, beta, lambda)
+                end do
+            end if
             cdf = max(min(cdf, ONE), ZERO)        ! Clear floating point errors
         end if
 
@@ -199,25 +216,28 @@ contains
     integer                                          :: i, k
     
         if(na == 1 .and. nb == na .and. nl == nb) then
-            if (a(1) < EPS .or. b(1) < EPS .or. l(1) < EPS) then
+            if (a(1) < ZERO .or. b(1) < ZERO .or. l(1) < ZERO .or. &
+                a(1) /= a(1) .or. b(1) /= b(1) .or. l(1) /= l(1)) then
                 do i = 1, nq
                     call set_nan(pmfv(i))
                 end do
-            else
+            else 
                 k = floor(maxval(q))
-                allocate (singlevec(k + 1))
-                singlevec(1) = exp(-l(1)) / ((b(1) + ONE) ** a(1))
-                do i = 2, k + 1
-                    singlevec(i) = singlevec(i - 1) &
-                                   + ddelap_f_s(real(i - 1, c_double), a(1), &
-                                   b(1), l(1))
-                end do
-                do i = 1, nq
-                    k = floor(q(i))
-                    pmfv(i) = singlevec(k + 1)
-                end do
-                deallocate(singlevec)
-                pmfv = max(min(pmfv, ONE), ZERO)  ! Clear floating point errors
+                if (k < INFTST) then
+                    allocate (singlevec(k + 1))
+                    singlevec(1) = exp(-l(1)) / ((b(1) + ONE) ** a(1))
+                    do i = 2, k + 1
+                        singlevec(i) = singlevec(i - 1) &
+                                       + ddelap_f_s(real(i - 1, c_double), &
+                                       a(1), b(1), l(1))
+                    end do
+                    do i = 1, nq
+                        k = floor(q(i))
+                        pmfv(i) = singlevec(k + 1)
+                    end do
+                    deallocate(singlevec)
+                    pmfv = max(min(pmfv, ONE), ZERO) ! Clear floating point errors
+                end if
             end if
         else
             !$omp parallel do default(shared), private(i), schedule(static)
@@ -254,7 +274,9 @@ contains
     real(kind = c_double), intent(in)   :: p, alpha, beta, lambda
     real(kind = c_double)               :: testcdf, value
 
-        if (alpha <= EPS .or. beta <= EPS .or. lambda <= EPS .or. p < ZERO) then
+        if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. p < ZERO &
+          .or. alpha /= alpha .or. beta /= beta .or. lambda /= lambda &
+          .or. p /= p) then
             call set_nan(value)
         else if (p >= ONE) then
             call set_inf(value)

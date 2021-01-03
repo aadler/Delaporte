@@ -215,39 +215,36 @@ contains
     real(kind = c_double), allocatable, dimension(:) :: singlevec
     integer                                          :: i, k
     
-        if(na == 1 .and. nb == na .and. nl == nb) then
+        k = floor(maxval(q))
+        if(na > 1 .or. nb > 1 .or. nl > 1 .or. k > MAXVECSIZE) then
+            !$omp parallel do default(shared), private(i), schedule(static)
+                do i = 1, nq
+                    pmfv(i) = pdelap_f_s(q(i), a(mod(i - 1, na) + 1), &
+                    b(mod(i - 1, nb) + 1), l(mod(i - 1, nl) + 1))
+                end do
+            !$omp end parallel do
+        else
             if (a(1) < ZERO .or. b(1) < ZERO .or. l(1) < ZERO .or. &
                 a(1) /= a(1) .or. b(1) /= b(1) .or. l(1) /= l(1)) then
                 do i = 1, nq
                     call set_nan(pmfv(i))
                 end do
-            else 
-                k = floor(maxval(q))
-                if (k < INFTST) then
-                    allocate (singlevec(k + 1))
-                    singlevec(1) = exp(-l(1)) / ((b(1) + ONE) ** a(1))
-                    do i = 2, k + 1
-                        singlevec(i) = singlevec(i - 1) &
-                                       + ddelap_f_s(real(i - 1, c_double), &
-                                       a(1), b(1), l(1))
-                    end do
-                    do i = 1, nq
-                        k = floor(q(i))
-                        pmfv(i) = singlevec(k + 1)
-                    end do
-                    deallocate(singlevec)
-                    pmfv = max(min(pmfv, ONE), ZERO) ! Clear floating point errors
-                end if
+            else
+                allocate (singlevec(k + 1))
+                singlevec(1) = exp(-l(1)) / ((b(1) + ONE) ** a(1))
+                do i = 2, k + 1
+                    singlevec(i) = singlevec(i - 1) &
+                    + ddelap_f_s(real(i - 1, c_double), a(1), b(1), l(1))
+                end do
+                do i = 1, nq
+                    k = floor(q(i))
+                    pmfv(i) = singlevec(k + 1)
+                end do
+                deallocate(singlevec)
+                pmfv = max(min(pmfv, ONE), ZERO) ! Clear floating point errors
             end if
-        else
-            !$omp parallel do default(shared), private(i), schedule(static)
-            do i = 1, nq
-                pmfv(i) = pdelap_f_s(q(i), a(mod(i - 1, na) + 1), &
-                b(mod(i - 1, nb) + 1), l(mod(i - 1, nl) + 1))
-            end do
-            !$omp end parallel do
         end if
-        
+
         if (lt == 0) then
             pmfv = ONE - pmfv
         end if

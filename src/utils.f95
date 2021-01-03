@@ -54,6 +54,7 @@ module utils
     real(kind = c_double), parameter :: THREE = 3._c_double
     real(kind = c_double), parameter :: INFTST = HUGE(ZERO)
     real(kind = c_double), parameter :: EPS = 2.2204460492503131e-16_c_double
+    integer, parameter               :: MAXVECSIZE = 16384
 
 contains
 

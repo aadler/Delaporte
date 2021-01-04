@@ -59,6 +59,7 @@
 
 module delaporte
     use, intrinsic :: iso_c_binding
+    use, intrinsic :: iso_fortran_env
     !$use omp_lib
     use utils
     use lgam
@@ -81,31 +82,35 @@ contains
 !-------------------------------------------------------------------------------
 
     function ddelap_f_s(x, alpha, beta, lambda) result(pmf)
+    !$omp declare simd(ddelap_f_s) uniform(alpha, beta, lambda)
 
     external set_nan
 
-    real(kind = c_double), intent(in)   :: x, alpha, beta, lambda 
-    real(kind = c_double)               :: pmf                    
-    integer                             :: i, k                   
+    real(kind = c_double), intent(in)   :: x, alpha, beta, lambda
+    real(kind = c_double)               :: pmf, ii, kk, a, b, z, ch1, ch2, u
+    integer(INT64)                      :: i, k                   
 
-      if (alpha < ZERO .or. beta < ZERO .or. lambda < ZERO .or. x < ZERO &
-          .or. alpha /= alpha .or. beta /= beta .or. lambda /= lambda &
-          .or. x /= x) then
-          call set_nan(pmf)
-      else
-          pmf = ZERO
-          if (x < INFTST) then
-              k = floor(x)
-              do i = 0, k
-                  pmf = pmf + exp(gamln(alpha + i) + i * log(beta) &
-                            + (k - i) * log(lambda) - lambda &
-                            - gamln(alpha) - gamln(i + ONE) &
-                            - (alpha + i) * log1p(beta) &
-                            - gamln(k - i + ONE))
-              end do
-          end if
-          pmf = max(min(pmf, ONE), ZERO)          ! Clear floating point errors
-      end if
+        if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. x < ZERO &
+            .or. alpha /= alpha .or. beta /= beta .or. lambda /= lambda &
+            .or. x /= x) then
+            call set_nan(pmf)
+        else
+            pmf = ZERO
+            if (x < MAXD) then
+                k = floor(x, INT64)
+                kk = real(k, c_double)
+                !$omp simd reduction(+:pmf) linear(i)
+                do i = 0_INT64, k
+                    ii = real(i, c_double)
+                    pmf = pmf + exp(gamln(alpha + ii) + ii * log(beta) &
+                    + (kk - ii) * log(lambda) - lambda - gamln(alpha) &
+                    - gamln(ii + ONE) - (alpha + ii) * log1p(beta) &
+                    - gamln(kk - ii + ONE))
+                end do
+                !$omp end simd
+            end if
+            pmf = max(min(pmf, ONE), ZERO)        ! Clear floating point errors
+        end if
 
     end function ddelap_f_s
 
@@ -131,7 +136,7 @@ contains
     integer(kind = c_int), intent(in)                :: lg
     integer                                          :: i
 
-        !$omp parallel do default(shared), private(i), schedule(static)
+        !$omp parallel do default(shared) private(i) schedule(static)
         do i = 1, nx
             if (x(i) > floor(x(i))) then
                 pmfv(i) = ZERO
@@ -166,23 +171,24 @@ contains
 
     real(kind = c_double)               :: cdf
     real(kind = c_double), intent(in)   :: q, alpha, beta, lambda
-    integer                             :: i, k
+    integer(INT64)                      :: i, k
 
-        if (alpha < ZERO .or. beta < ZERO .or. lambda < ZERO .or. q < ZERO &
-          .or. alpha /= alpha .or. beta /= beta .or. lambda /= lambda &
-          .or. q /= q) then
-          call set_nan(cdf)
+        if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. q < ZERO &
+            .or. alpha /= alpha .or. beta /= beta .or. lambda /= lambda &
+            .or. q /= q) then
+            call set_nan(cdf)
+        else if (q > HUGE(q)) then
+            cdf = ONE
         else
-            if (k >= INFTST) then
-                cdf = ONE
-            else
-                k = floor(q)
-                cdf = exp(-lambda) / ((beta + ONE) ** alpha)
-                do i = 1, k
-                    cdf = cdf + ddelap_f_s(real(i, c_double), alpha, beta, lambda)
-                end do
-            end if
-            cdf = max(min(cdf, ONE), ZERO)        ! Clear floating point errors
+            k = floor(q, INT64)
+            cdf = exp(-lambda) / ((beta + ONE) ** alpha)
+            !$omp simd reduction(+:cdf) linear(i)
+            do i = 1_INT64, k
+                cdf = cdf + ddelap_f_s(real(i, c_double), alpha, beta, lambda)
+            end do
+            !$omp end simd
+        cdf = max(min(cdf, ONE), ZERO)        ! Clear floating point errors
+
         end if
 
     end function pdelap_f_s
@@ -215,8 +221,8 @@ contains
     real(kind = c_double), allocatable, dimension(:) :: singlevec
     integer                                          :: i, k
     
-        k = floor(maxval(q))
-        if(na > 1 .or. nb > 1 .or. nl > 1 .or. k > MAXVECSIZE) then
+        if (na > 1 .or. nb > 1 .or. nl > 1 .or. minval(q) < ZERO .or. &
+            maxval(q) > REAL(MAXVECSIZE, c_double)) then
             !$omp parallel do default(shared), private(i), schedule(static)
                 do i = 1, nq
                     pmfv(i) = pdelap_f_s(q(i), a(mod(i - 1, na) + 1), &
@@ -224,12 +230,13 @@ contains
                 end do
             !$omp end parallel do
         else
-            if (a(1) < ZERO .or. b(1) < ZERO .or. l(1) < ZERO .or. &
+            if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO .or. &
                 a(1) /= a(1) .or. b(1) /= b(1) .or. l(1) /= l(1)) then
                 do i = 1, nq
                     call set_nan(pmfv(i))
                 end do
             else
+                k = floor(maxval(q))
                 allocate (singlevec(k + 1))
                 singlevec(1) = exp(-l(1)) / ((b(1) + ONE) ** a(1))
                 do i = 2, k + 1
@@ -244,7 +251,7 @@ contains
                 pmfv = max(min(pmfv, ONE), ZERO) ! Clear floating point errors
             end if
         end if
-
+        
         if (lt == 0) then
             pmfv = ONE - pmfv
         end if
@@ -326,7 +333,7 @@ contains
         end if
 
         if(na == 1 .and. nb == na .and. nl == nb) then
-            if (a(1) < EPS .or. b(1) < EPS .or. l(1) < EPS) then
+            if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO) then
                 do i = 1, np
                     call set_nan(obsv(i))
                 end do
@@ -422,6 +429,7 @@ contains
     real(kind = c_double)                              :: nm1, P, Mu_D, M2, M3
     real(kind = c_double)                              :: T1, delta, delta_i, nr
     real(kind = c_double)                              :: Var_D, Skew_D, VmM_D
+    real(kind = c_double)                              :: ii
     integer                                            :: i
 
         nr = real(n, c_double)
@@ -440,12 +448,12 @@ contains
         M2 = ZERO
         M3 = ZERO
         do i = 1, n
+            ii = real(i, c_double)
             delta = obs(i) - Mu_D
-            delta_i = delta / real(i, c_double)
-            T1 = delta * delta_i * (real(i, c_double) - ONE)
+            delta_i = delta / ii
+            T1 = delta * delta_i * (ii - ONE)
             Mu_D = Mu_D + delta_i
-            M3 = M3 + (T1 * delta_i * (real(i, c_double) - TWO) &
-                       - THREE * delta_i * M2)
+            M3 = M3 + (T1 * delta_i * (ii - TWO) - THREE * delta_i * M2)
             M2 = M2 + T1
         end do
         Var_D = M2 / nm1

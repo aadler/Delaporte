@@ -13,6 +13,18 @@ ddelap <- function(x, alpha, beta, lambda, log = FALSE) {
 }
 
 pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE) {
+  if (any(q[is.finite(q)] >= 2^64)) {
+    stop('Function cannot handle values >= 2^64')
+  }
+  if (any(q[is.finite(q)] >= 2^15)) {
+    cat("There are values >= 32768.",
+        "This may take minutes if not hours to compute. Are you sure?\n")
+    resp <- readline('Press "y" to continue.\n')
+    if (tolower(resp) != 'y') {
+      cat('Stopping\n')
+      return(invisible(NULL))
+    }
+  }
   if (lower.tail) lt_f <- 1L else lt_f <- 0L
   if (log.p) lp_f <- 1L else lp_f <- 0L
   .Call(pdelap_C, as.double(q), as.double(alpha), as.double(beta),

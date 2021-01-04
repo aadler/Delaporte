@@ -138,7 +138,7 @@ contains
 
         !$omp parallel do default(shared) private(i) schedule(static)
         do i = 1, nx
-            if (x(i) > floor(x(i))) then
+            if (x(i) > floor(x(i), c_double)) then
                 pmfv(i) = ZERO
             else
                 pmfv(i) = ddelap_f_s(x(i), a(mod(i - 1, na) + 1), &

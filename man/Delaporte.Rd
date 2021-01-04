@@ -68,6 +68,12 @@ from this vector. This requires only one double summation instead of
 \code{length(q)} such summations. If at least one of the parameters is itself a
 vector of length greater than 1, the function has to build the double summation
 for each entry in \code{q}.
+
+\code{ddelap} will return 0 for all values \eqn{> 2^31} whereas \code{pdelap}
+will not run at all, due to the limitations of integer represenatation. Also,
+for values \eqn{> 2^15}, \code{pdelap} will ask for positive input from the user
+to continue, as otherwise, depending on the parameters, the function can take
+hours to complete given its double-summation nature.
   
 The quantile function, \code{qdelap}, is right continuous:
 \code{qdelap(q, alpha, beta, lambda)} is the smallest integer \eqn{x} such that
@@ -191,14 +197,16 @@ DP3 <- rdelap(10000, alpha = 4, beta = 5, lambda = 5)  ## Close to the Negative 
 NB <- rnbinom(10000, size = 5, mu = 25)                ## Will have the widest spread
 mean(P);mean(NB);mean(DP1);mean(DP2);mean(DP3)         ## Means should all be near 25
 MoMdelap(DP1);MoMdelap(DP2);MoMdelap(DP3)              ## Estimates should be close to originals
-\dontshow{
-plot(density(P), col = "black", lwd = 2, main = "Distribution Comparison", xlab = "Value", xlim = c(0, 80))
+\dontrun{
+plot(density(P), col = "black", lwd = 2, main = "Distribution Comparison",
+     xlab = "Value", xlim = c(0, 80))
 lines(density(DP1), col = "blue", lwd = 2)
 lines(density(DP2), col = "green3", lwd = 2)
 lines(density(DP3), col = "orange3", lwd = 2)
 lines(density(NB), col = "red", lwd = 2)
-legend(x = "topright", legend = c("Poisson {l=25}", "DP {a=2, b=2, l=21}", "DP {a=3, b=4, l=13}",
-  "DP {a=4, b=5, l=5}", "NegBinom {a=5, b=5}"), col=c("black", "blue", "green3","orange3", "red"), lwd = 2)
-  }
+legend(x = "topright", legend = c("Poisson {l=25}", "DP {a=2, b=2, l=21}",
+       "DP {a=3, b=4, l=13}", "DP {a=4, b=5, l=5}", "NegBinom {a=5, b=5}"),
+       col=c("black", "blue", "green3","orange3", "red"), lwd = 2)
+}
 }
 \keyword{distribution}

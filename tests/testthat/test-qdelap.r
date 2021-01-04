@@ -2,6 +2,9 @@ zeroErr <- 'Parameters must be strictly greater than 0.'
 
 test_that("Singleton exact function accuracy", {
   expect_equal(qdelap(.4, 1, 4, 2), 4)
+  testV <- c(3, 7, 23)
+  expect_equal(qdelap(pdelap(testV, 5L, 2L, 3L), 5L, 2L, 3L),
+               testV)
 })
 test_that("Singleton exact lower.tail", {
   expect_equal(qdelap(0.49, 4, 6, 3, lower.tail = TRUE), 25)

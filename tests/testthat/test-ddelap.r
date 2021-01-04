@@ -46,3 +46,9 @@ test_that("Non-integer warning", {
 test_that("Non-double parameters converted", {
   expect_equal(ddelap(2L, 1L, 2L, 3L), ddelap(2L, 1, 2, 3))
 })
+
+test_that("Infinite values", {
+  expect_identical(ddelap(Inf, 1L, 2L, 3L), 0)
+  expect_identical(ddelap(c(Inf, Inf), c(1L, 2L), 2L, 3L), c(0, 0))
+  expect_true(is.nan(ddelap(-Inf, 1L, 2L, 3L)))
+})

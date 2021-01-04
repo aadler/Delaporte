@@ -1,17 +1,17 @@
 zeroErr <- 'Parameters must be strictly greater than 0.'
 negLenErr <- 'negative length vectors are not allowed'
 set.seed(4175L)
-DP1 <- rdelap(1e6, alpha = 10, beta = 2, lambda = 10) 
-DP2 <- rdelap(3e6, alpha = 2, beta = 14, lambda = 2, exact = FALSE)
-DP3 <- rdelap(1.75e5, alpha = c(5, 5), beta = c(5, 5), lambda = c(5, 5))
+DP1 <- rdelap(5e6, alpha = 10, beta = 2, lambda = 10) 
+DP2 <- rdelap(5e6, alpha = 2, beta = 14, lambda = 2, exact = FALSE)
+DP3 <- rdelap(5e5, alpha = c(5, 5), beta = c(5, 5), lambda = c(5, 5))
 DP4 <- rdelap(1e6, alpha = c(5, 5), beta = c(5, 5), lambda = c(5, 5),
               exact = FALSE)
 
 test_that("Singleton exact function accuracy", {
-  expect_true(abs((mean(DP1) / 30 - 1)) < 5e-4)
+  expect_equal(mean(DP1), 30, tolerance = 5e-5)
 })
 test_that("Singleton approximate function accuracy", {
-  expect_true(abs((mean(DP2) / 30 - 1)) < 5e-4)
+  expect_equal(mean(DP2), 30, tolerance = 5e-5)
 })
 test_that("Singleton NaN", {
   expect_true(is.nan(rdelap(1, 0, 1, 2)))
@@ -27,10 +27,10 @@ test_that("Singleton size", {
   expect_error(rdelap(-4, 4, 1, 2), negLenErr)
 })  
 test_that("Vector exact function accuracy", {
-  expect_true(abs((mean(DP3) / 30 - 1)) < 5e-4)
+  expect_equal(mean(DP2), 30, tolerance = 5e-5)
 })  
 test_that("Vector approximate function accuracy", {
-  expect_true(abs((mean(DP4) / 30 - 1)) < 5e-4)
+  expect_equal(mean(DP2), 30, tolerance = 5e-5)
 })  
 test_that("Vector NaN", {
   expect_identical(is.nan(rdelap(2, 0, 1, 2)), rep(TRUE, 2))

@@ -71,3 +71,9 @@ test_that("Floating point issues do not lead to CDF > 1", {
   # print(pdelap(1000, 8, 15, 100), digits = 17) used to be 1.0000000000001035
   expect_true(pdelap(1000, 8, 15, 100) <= 1) 
 })
+
+test_that("Infinite values", {
+  expect_identical(pdelap(Inf, 1L, 2L, 3L), 1)
+  expect_identical(pdelap(c(Inf, Inf), c(1L, 2L), 2L, 3L), c(1, 1))
+  expect_true(is.nan(pdelap(-Inf, 1L, 2L, 3L)))
+})

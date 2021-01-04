@@ -1,7 +1,7 @@
 Package: Delaporte
 Type: Package
 Title: Statistical Functions for the Delaporte Distribution
-Version: 7.0.6
+Version: 8.0.0
 Date: 2021-01-04
 Authors@R: c(person(given="Avraham", family="Adler", role=c("aut", "cph", "cre"),
     email="Avraham.Adler@gmail.com", comment = c(ORCID = "0000-0002-3039-0703")))

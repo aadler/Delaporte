@@ -10,7 +10,21 @@
       \item Handling of \code{Inf} and \code{-Inf} now more in line with R
       defaults for d/p/q/r functions
       \item Parameter errors now check for \eqn{< 0} instead of \code{< EPS}
-      \item Allow using \code{LTO} if requested
+      \item \code{ddelap} and \code{pdelap} now use 8-byte integers (INT64) for
+      their counters so allow calculation for values up to \eqn{2^63}
+      \itemize{
+        \item \code{ddelap} will return 0 for all values \eqn{> 2^63} under the
+        assumption that the pmf is spread too thinly.
+        \item \code{pdelap} will not run for values \eqn{> 2^63}
+        \item \code{ddelap} of \code{Inf} returns 0 and \code{pdelap} of
+        \code{Inf} returns 1
+      }
+      \item \code{pdelap} gives a warning for finite values \eqn{> 2^15} as,
+      dependning on the parameters, this may take hours to finish (it's a double
+      summation!). The user has to respond with 'y' for it to continue.
+      \item Updated help and tests
+      \item Allow compiler to use SIMD constructs
+      \item Allow using \code{LTO}
       \item Switched CI from Travis/Appveyor to Github actions (thanks to Jim
       Hester for his help in fixing the coverage check issue)
     }

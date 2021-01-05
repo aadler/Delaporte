@@ -462,8 +462,8 @@ contains
         Var_D = M2 / nm1
         Skew_D = P * sqrt(nr) * M3 / (M2 ** THREEHALFS)
         VmM_D = Var_D - Mu_D
-        params(2) = HALF * (Skew_D * (Var_D ** THREEHALFS) - Mu_D - &
-                                      THREE * VmM_D) / VmM_D
+        params(2) = HALF * (Skew_D * (Var_D ** THREEHALFS) - Mu_D - THREE &
+                            * VmM_D) / VmM_D
         params(1) = VmM_D / (params(2) ** 2)
         params(3) = Mu_D - params(1) * params(2)
  

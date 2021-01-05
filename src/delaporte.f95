@@ -30,7 +30,9 @@
 !                       inputs per R defaults. Trapping for INFTY more
 !                       consistently with base R. Should use ieee_arithmetic
 !                       once current oldrelease gets deprecated and min GCC
-!                       version is > 5
+!                       version is > 5. Allowing use of SIMD constructs. Using
+!                       iso_fortran_env for INT64 to allow wider range for
+!                       d/pdelap
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -82,12 +84,13 @@ contains
 !-------------------------------------------------------------------------------
 
     function ddelap_f_s(x, alpha, beta, lambda) result(pmf)
-    !$omp declare simd(ddelap_f_s) uniform(alpha, beta, lambda)
-
+    !$omp declare simd(ddelap_f_s) uniform(alpha, beta, lambda) inbranch
+    !$omp declare simd(ddelap_f_s) uniform(alpha, beta, lambda) notinbranch
+    
     external set_nan
 
     real(kind = c_double), intent(in)   :: x, alpha, beta, lambda
-    real(kind = c_double)               :: pmf, ii, kk, a, b, z, ch1, ch2, u
+    real(kind = c_double)               :: pmf, ii, kk
     integer(INT64)                      :: i, k                   
 
         if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. x < ZERO &
@@ -96,10 +99,10 @@ contains
             call set_nan(pmf)
         else
             pmf = ZERO
-            if (x < MAXD) then
-                k = floor(x, INT64)
-                kk = real(k, c_double)
-                !$omp simd reduction(+:pmf) linear(i)
+            k = floor(x, INT64)
+            kk = real(k, c_double)
+            if (x < MAXD .and. x == kk) then
+                !$omp simd private(ii) reduction(+:pmf)
                 do i = 0_INT64, k
                     ii = real(i, c_double)
                     pmf = pmf + exp(gamln(alpha + ii) + ii * log(beta) &
@@ -136,17 +139,13 @@ contains
     integer(kind = c_int), intent(in)                :: lg
     integer                                          :: i
 
-        !$omp parallel do default(shared) private(i) schedule(static)
+        !$omp parallel do simd schedule(simd:static)
         do i = 1, nx
-            if (x(i) > floor(x(i), c_double)) then
-                pmfv(i) = ZERO
-            else
                 pmfv(i) = ddelap_f_s(x(i), a(mod(i - 1, na) + 1), &
                                      b(mod(i - 1, nb) + 1), &
                                      l(mod(i - 1, nl) + 1))
-            end if
         end do
-        !$omp end parallel do
+        !$omp end parallel do simd
         
         if (lg == 1) then
             pmfv = log(pmfv)
@@ -166,6 +165,8 @@ contains
 !-------------------------------------------------------------------------------
 
     function pdelap_f_s(q, alpha, beta, lambda) result(cdf)
+    !$omp declare simd(pdelap_f_s) uniform(alpha, beta, lambda) inbranch
+    !$omp declare simd(pdelap_f_s) uniform(alpha, beta, lambda) notinbranch
     
     external set_nan
 
@@ -182,7 +183,7 @@ contains
         else
             k = floor(q, INT64)
             cdf = exp(-lambda) / ((beta + ONE) ** alpha)
-            !$omp simd reduction(+:cdf) linear(i)
+            !$omp simd reduction(+:cdf) 
             do i = 1_INT64, k
                 cdf = cdf + ddelap_f_s(real(i, c_double), alpha, beta, lambda)
             end do
@@ -223,12 +224,12 @@ contains
     
         if (na > 1 .or. nb > 1 .or. nl > 1 .or. minval(q) < ZERO .or. &
             maxval(q) > REAL(MAXVECSIZE, c_double)) then
-            !$omp parallel do default(shared), private(i), schedule(static)
+            !$omp parallel do simd schedule(simd:static)
                 do i = 1, nq
                     pmfv(i) = pdelap_f_s(q(i), a(mod(i - 1, na) + 1), &
                     b(mod(i - 1, nb) + 1), l(mod(i - 1, nl) + 1))
                 end do
-            !$omp end parallel do
+            !$omp end parallel do simd
         else
             if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO .or. &
                 a(1) /= a(1) .or. b(1) /= b(1) .or. l(1) /= l(1)) then
@@ -271,6 +272,8 @@ contains
 !-------------------------------------------------------------------------------
 
     function qdelap_f_s(p, alpha, beta, lambda) result(value)
+    !$omp declare simd(qdelap_f_s) uniform(alpha, beta, lambda) inbranch
+    !$omp declare simd(qdelap_f_s) uniform(alpha, beta, lambda) notinbranch
     
     external set_nan
     external set_inf
@@ -365,13 +368,13 @@ contains
                 deallocate(svec)
             end if
         else
-            !$omp parallel do default(shared), private(i), schedule(static)
+            !$omp parallel do simd schedule(simd:static)
             do i = 1, np
                 obsv(i) = qdelap_f_s(p(i), a(mod(i - 1, na) + 1), &
                                      b(mod(i - 1, nb) + 1), &
                                      l(mod(i - 1, nl) + 1))
             end do
-            !$omp end parallel do
+            !$omp end parallel do simd
         end if
 
     end subroutine qdelap_f

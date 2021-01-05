@@ -2,7 +2,7 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
-\section{Version 8.0.0 (2021-01-04)}{
+\section{Version 8.0.0 (2021-01-05)}{
   \subsection{Changed}{
     \itemize{
       \item Exact code more in line with R defaults for d/p/q/r functions in
@@ -23,7 +23,7 @@
       dependning on the parameters, this may take hours to finish (it's a double
       summation!). The user has to respond with 'y' for it to continue.
       \item Updated help and tests
-      \item Allow compiler to use SIMD constructs
+      \item Allow compiler to use OpenMP SIMD constructs
       \item Allow using \code{LTO}
       \item Switched CI from Travis/Appveyor to Github actions (thanks to Jim
       Hester for his help in fixing the coverage check issue)

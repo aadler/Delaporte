@@ -10,7 +10,7 @@
 **Delaporte** is an `R` package which provides the probability mass,
 distribution, quantile, random variate generation, and method of moments
 parameter estimation functions for the Delaporte distribution. As the
-distribution does not have a closed form but requires summations or double
+distribution does not have a closed form, but requires summations or double
 summations to calculate values, the functions have been programmed in Fortran
 and C. In cases where approximations are sufficient, the quantile and random
 variate generator have the option to use a much faster Poisson-negative binomial
@@ -51,13 +51,13 @@ This project attempts to follow [Semantic Versioning](https://semver.org/)
 This project attempts to follow the changelog system at
 [Keep a CHANGELOG](https://keepachangelog.com/)
 
-### Dependancies
-This project intends to have as few dependancies as possible. Please consider
+### Dependencies
+This project intends to have as few dependencies as possible. Please consider
 that when writing code.
 
 ### Style
 Please review and conform to the current code stylistic choices (e.g. 80
-character lines, two-space indentations).
+character lines, two-space indentations, etc.).
 
 ### Documentation
 Please provide valid .Rd files and **not** roxygen-style documentation.

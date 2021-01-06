@@ -115,6 +115,7 @@ void F77_SUB(unifrnd) (int *n, double *x){
 void F77_SUB(set_nan)(double *val){
     *val = R_NaN;
 }
+
 void F77_SUB(set_inf)(double *val){
     *val = R_PosInf;
 }
@@ -132,7 +133,6 @@ void R_init_Delaporte(DllInfo *dll) {
   R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
   R_useDynamicSymbols(dll, FALSE);
   R_forceSymbols(dll, TRUE);
-  
   R_RegisterCCallable("Delaporte", "ddelap_C",  (DL_FUNC) &ddelap_C);
   R_RegisterCCallable("Delaporte", "pdelap_C",  (DL_FUNC) &pdelap_C);
   R_RegisterCCallable("Delaporte", "qdelap_C",  (DL_FUNC) &qdelap_C);

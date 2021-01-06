@@ -215,9 +215,12 @@ contains
     integer(kind = c_int), intent(in)                :: lg, lt
     real(kind = c_double), allocatable, dimension(:) :: singlevec
     integer                                          :: i, k
-    
+
+! If there are any complications at all, don't use the fast version. pdelap_f_s
+! and ddelap_f_s are robust to improper entries
+
         if (na > 1 .or. nb > 1 .or. nl > 1 .or. minval(q) < ZERO .or. &
-            maxval(q) > REAL(MAXVECSIZE, c_double)) then
+            maxval(q) > REAL(MAXVECSIZE, c_double) .or. any(q /= q)) then
             !$omp parallel do default(shared) private(i) schedule(static)
                 do i = 1, nq
                     pmfv(i) = pdelap_f_s(q(i), a(mod(i - 1, na) + 1), &

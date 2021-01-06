@@ -1,4 +1,5 @@
-zeroErr <- 'Parameters must be strictly greater than 0.'
+nanWarn <- 'NaNs produced'
+inpErr <- 'Quantile approximation relies on pooling'
 
 test_that("Singleton exact function accuracy", {
   expect_equal(qdelap(.4, 1, 4, 2), 4)
@@ -15,18 +16,19 @@ test_that("Singleton exact log.p", {
 test_that("Singleton exact lower.tail & log.p", {
   expect_equal(qdelap(-0.7, 4, 6, 3, lower.tail = TRUE, log.p = TRUE), 25)
 })
-test_that("Singleton exact NaN", {
-  expect_true(is.nan(qdelap(.05, 0, 1, 2)))
-  expect_true(is.nan(qdelap(.05, -2, 1, 2)))
-  expect_true(is.nan(qdelap(0.1, 1, 0, 2)))
-  expect_true(is.nan(qdelap(0.1, 1, -4e5, 2)))
-  expect_true(is.nan(qdelap(1, 1, 4, 0)))
-  expect_true(is.nan(qdelap(1, 1, 4, -9e-4)))
-  expect_true(is.nan(qdelap(-1, 2, 3, 4)))
+test_that("Singleton exact bad parameters", {
+  expect_warning(qdelap(.05, 0, 1, 2), nanWarn)
+  expect_warning(qdelap(.05, -2, 1, 2), nanWarn)
+  expect_warning(qdelap(0.1, 1, 0, 2), nanWarn)
+  expect_warning(qdelap(0.1, 1, -4e5, 2), nanWarn)
+  expect_warning(qdelap(1, 1, 4, 0), nanWarn)
+  expect_warning(qdelap(1, 1, 4, -9e-4), nanWarn)
 })
-test_that("Singleton exact Inf", {
-  expect_true(is.infinite(qdelap(1, 3, 1, 2)))
-  expect_true(is.infinite(qdelap(5, 1, 2, 3)))
+test_that("Singleton exact bad inputs", {
+  expect_warning(qdelap(-1, 2, 3, 4), nanWarn)
+  expect_warning(qdelap(NaN, 2, 3, 4), nanWarn)
+  expect_warning(qdelap(c(0.3, NA), 2, 3, 4), nanWarn)
+  
 })
 test_that("Singleton approx function accuracy lower tail", {
   expect_equal(qdelap(.4, 1, 4, 2, exact = FALSE), 4)
@@ -38,7 +40,19 @@ test_that("Singleton approx lower.tail & log.p", {
   expect_equal(qdelap(-0.7, 4, 6, 3, lower.tail = TRUE, log.p = TRUE,
                       exact = FALSE), 25)
 })
-
+test_that("Singleton approx bad parameters", {
+  expect_warning(qdelap(.05, 0, 1, 2, exact = FALSE), nanWarn)
+  expect_warning(qdelap(.05, -2, 1, 2, exact = FALSE), nanWarn)
+  expect_warning(qdelap(0.1, 1, 0, 2, exact = FALSE), nanWarn)
+  expect_warning(qdelap(0.1, 1, -4e5, 2, exact = FALSE), nanWarn)
+  expect_warning(qdelap(1, 1, 4, 0, exact = FALSE), nanWarn)
+  expect_warning(qdelap(1, 1, 4, -9e-4, exact = FALSE), nanWarn)
+})
+test_that("Singleton approx bad inputs", {
+  expect_warning(qdelap(-1, 2, 3, 4, exact = FALSE), nanWarn)
+  expect_error(qdelap(c(0.2, NaN), 2, 3, 4, exact = FALSE), inpErr)
+  expect_error(qdelap(c(0.3, NA), 2, 3, 4, exact = FALSE), inpErr)
+})
 test_that("Vector exact function accuracy", {
   expect_equal(qdelap(c(.4, .07), c(1, 2), c(4, 1), c(2, 5)), c(4, 3))
 })
@@ -54,30 +68,69 @@ test_that("Vector exact lower.tail & log.p", {
   expect_equal(qdelap(c(-0.69895775020315487, -1.98413706125967337), c(4, 1),
                       c(6, 9), c(3, 12), lower.tail = FALSE, log.p = TRUE), c(25, 31))
 })
-test_that("Vector Nan", {
-  expect_identical(is.nan(qdelap(seq_len(2) / 10, 0, 1, 2)), rep(TRUE, 2))
-  expect_identical(is.nan(qdelap(seq_len(2) / 10, -1, 1, 2)), rep(TRUE, 2))
-  expect_identical(is.nan(qdelap(seq_len(2) / 10, 1, 0, 2)), rep(TRUE, 2))
-  expect_identical(is.nan(qdelap(seq_len(2) / 10, 1, -8, 2)), rep(TRUE, 2))
-  expect_identical(is.nan(qdelap(seq_len(2) / 10, 3, 1, 0)), rep(TRUE, 2))
-  expect_identical(is.nan(qdelap(seq_len(2) / 10, 3, 1, -4e-5)), rep(TRUE, 2))
-  expect_identical(is.nan(qdelap(c(-1, -5), 3, 1, 6)), rep(TRUE, 2))
-  expect_identical(is.nan(qdelap(seq_len(3) / 10, c(0, 1, 2), c(1, 0, 2),
-                                 c(1, 2, 0))), rep(TRUE, 3))
+test_that("Vector exact bad parameters", {
+  t2 <- 1:2 / 10
+  t3 <- 1:3 / 10
+  expect_warning(qdelap(t2, c(0, 1), 1, 2), nanWarn)
+  expect_warning(qdelap(t2, c(1, -1), 1, 2), nanWarn)
+  expect_warning(qdelap(t2, 1, c(2, 0), 2), nanWarn)
+  expect_warning(qdelap(t2, 1, c(-8, 3), 2), nanWarn)
+  expect_warning(qdelap(t2, 3, 1, c(2, 0)), nanWarn)
+  expect_warning(qdelap(t2, 3, 1, c(-4e-5, 12)), nanWarn)
+  expect_warning(qdelap(t3, c(0, 1, 2), c(1, 0, 2), c(1, 2, 0)), nanWarn)
+  expect_warning(qdelap(t3 / 10, c(6, 1, 2), c(1, 4, 2), c(1, 2, -1)), nanWarn)
+})
+test_that("Vector exact bad inputs", {
+  expect_warning(qdelap(c(-1, 3), c(1, 3), 1, 6), nanWarn)
+  expect_warning(qdelap(c(NA, 4), c(1, 3), 1, 6), nanWarn)
+  expect_warning(qdelap(c(5, NaN), c(1, 3), 1, 6), nanWarn)
+  
+})
+test_that("Vector approx bad parameters", {
+  t2 <- 1:2 / 10
+  t3 <- 1:3 / 10
+  expect_error(qdelap(t2, c(0, 1), 1, 2, exact = FALSE), inpErr)
+  expect_error(qdelap(t2, c(1, -1), 1, 2, exact = FALSE), inpErr)
+  expect_error(qdelap(t2, 1, c(2, 0), 2, exact = FALSE), inpErr)
+  expect_error(qdelap(t2, 1, c(-8, 3), 2, exact = FALSE), inpErr)
+  expect_error(qdelap(t2, 3, 1, c(2, 0), exact = FALSE), inpErr)
+  expect_error(qdelap(t2, 3, 1, c(-4e-5, 12), exact = FALSE), inpErr)
+  expect_error(qdelap(t3, c(0, 1, 2), c(1, 0, 2), c(1, 2, 0), exact = FALSE),
+               inpErr)
+  expect_error(qdelap(t3 / 10, c(6, 1, 2), c(1, 4, 2), c(1, 2, -1),
+                      exact = FALSE), inpErr)
+})
+test_that("Vector exact bad inputs", {
+  expect_error(qdelap(c(-1, 3), c(1, 3), 1, 6, exact = FALSE), inpErr)
+  expect_error(qdelap(c(NA, 4), c(1, 3), 1, 6, exact = FALSE), inpErr)
+  expect_error(qdelap(c(5, NaN), c(1, 3), 1, 6, exact = FALSE), inpErr)
+  
+})
+test_that("Singleton Inf", {
+  expect_true(is.infinite(qdelap(1, 3, 1, 2)))
+  expect_true(is.infinite(qdelap(1, 3, 1, 2, exact = FALSE)))
+  expect_true(is.infinite(qdelap(5, 1, 2, 3)))
+  expect_true(is.infinite(qdelap(5, 1, 2, 3, exact = FALSE)))
+  expect_identical(is.infinite(qdelap(c(1, 3), 3, 1, 2)), rep(TRUE, 2))
+  expect_identical(is.infinite(qdelap(c(1, 3), 3, 1, 2, exact = FALSE)),
+                   rep(TRUE, 2))
 })
 test_that("Vector Inf", {
-  expect_identical(is.infinite(qdelap(seq_len(2), 3, 1, 2)), rep(TRUE, 2))
-  expect_identical(is.infinite(qdelap(seq_len(3), c(2, 1, 2),
-                                      c(1, 6, 2), c(1, 2, 0.4))), rep(TRUE, 3))
+  expect_identical(is.infinite(qdelap(1:2, 3, c(1, 1), 2)), rep(TRUE, 2))
+  expect_identical(is.infinite(qdelap(1:3, c(2, 1, 2), c(1, 6, 2),
+                                      c(1, 2, 0.4))), rep(TRUE, 3))
+  expect_error(qdelap(1:2, 3, c(1, 1), 2, exact = FALSE), inpErr)
+  expect_error(qdelap(1:3, c(2, 1, 2), c(1, 6, 2), c(1, 2, 0.4), exact = FALSE),
+               inpErr)
 })
 test_that("Approximate throws error when nonpositive is passed", {
-  expect_error(qdelap(0.1, 0, 2, 3, exact = FALSE), zeroErr)
-  expect_error(qdelap(0.1, 1, 0, 3, exact = FALSE), zeroErr )
-  expect_error(qdelap(0.1, 1, 2, -3, exact = FALSE), zeroErr )
+  expect_warning(qdelap(0.1, 0, 2, 3, exact = FALSE), nanWarn)
+  expect_warning(qdelap(0.1, 1, 0, 3, exact = FALSE), nanWarn)
+  expect_warning(qdelap(0.1, 1, 2, -3, exact = FALSE), nanWarn)
 })
 test_that("Approximate throws error when parameter vectors are passed", {
   expect_error(qdelap(c(.4, .07), c(1, 2), c(4, 1), c(2, 5), exact = FALSE),
-               'Quantile approximation relies on pooling and thus is not accurate when passing vector-valued parameters. Please use exact version.')
+               'Quantile approximation relies on pooling')
 })
 
 test_that("Non-double parameters converted", {

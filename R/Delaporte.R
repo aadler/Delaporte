@@ -2,23 +2,18 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 ddelap <- function(x, alpha, beta, lambda, log = FALSE) {
-  if (anyNA(c(alpha, beta, lambda))) {
-    return(rep.int(NA_real_, length(x)))
-  } else {
-    x <- as.double(x)
-    xvalid <- x[!(is.nan(x) | is.na(x))]
-    if (any(xvalid > floor(xvalid))) {
-      warning("Non-integers passed to ddelap. These will have 0 probability.")
-    }
-    if (log) log_f <- 1L else log_f <- 0L
-    .Call(ddelap_C, x, as.double(alpha), as.double(beta), as.double(lambda),
-          log_f)
+  x <- as.double(x)
+  xvalid <- x[!(is.nan(x) | is.na(x))]
+  if (any(xvalid > floor(xvalid))) {
+    warning("Non-integers passed to ddelap. These will have 0 probability.")
   }
+  if (log) log_f <- 1L else log_f <- 0L
+  .Call(ddelap_C, x, as.double(alpha), as.double(beta), as.double(lambda), log_f)
 }
 
 pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE) {
   if (anyNA(c(alpha, beta, lambda))) {
-    return(rep.int(NA_real_, length(x)))
+    return(rep.int(NA_real_, length(q)))
   } else {
     # These interrupts throw errors even using expect_error. Excluding for now
     # nocov start

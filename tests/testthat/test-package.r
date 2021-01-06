@@ -4,7 +4,7 @@ test_that("Citation", {
                fixed = TRUE, all = FALSE)
 })
 
-skip("Different structure")
+skip("Only run manually; different file structure.")
 test_that("README", {
   expect_match(scan("../../README.md", what = 'character', skip = 23L,
                     nlines = 1L, quiet = TRUE),

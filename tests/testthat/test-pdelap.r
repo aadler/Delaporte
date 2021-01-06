@@ -26,7 +26,9 @@ test_that("Singleton NaN", {
   expect_warning(ddelap(NaN, 1, 4, 6), nanWarn)
   expect_warning(ddelap(NA, 1, 4, 12), nanWarn)
   tst <- suppressWarnings(pdelap(c(NA, 4, NaN), 0.5, 4, 0.2))
-  expect_equal(tst[is.finite(tst)], pdelap(4, 0.5, 4, 0.2))
+  expect_equal(tst, c(NaN, pdelap(4, 0.5, 4, 0.2), NaN))
+  expect_identical(suppressWarnings(pdelap(c(NA, NaN), 0.5, 4, 0.2)),
+                   rep(NaN, 2))
 })  
 test_that("Vector function accuracy", {
   expect_equal(pdelap(0:36, c(1, 2, 3), c(4, 1, 2), c(2, 5, 7)), VAL$PDELAP_Triple)
@@ -53,7 +55,10 @@ test_that("Vector NaN", {
   expect_warning(pdelap(c(3, NaN), c(2, 1, 2), c(1, 3, 2), c(1, 2, 4)))
   tst <- suppressWarnings(pdelap(c(NA, 0, NaN), c(1, 2, 3), c(4, 1, 2), 
                                  c(2, 5, 7)))
-  expect_equal(tst[is.finite(tst)], pdelap(0, 2, 1, 5))
+  expect_equal(tst, c(NaN, pdelap(0, 2, 1, 5), NaN))
+  tst <- suppressWarnings(pdelap(c(0, 0, 0), c(NA, 2, 3), c(4, 1, 2), 
+                                 c(2, 5, NaN)))
+  expect_equal(tst, c(NaN, pdelap(0, 2, 1, 5), NaN))
 })
 test_that("Negative values due to floating point issues are 0", {
   if (R.Version()$arch == "x86_64") {

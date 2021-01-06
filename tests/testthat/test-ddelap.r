@@ -11,6 +11,10 @@ test_that("alpha < 0.8", {
 test_that("Singleton log", {
   expect_equal(ddelap(0:36, 5, 3, 8, log = TRUE), log(ddelap(0:36, 5, 3, 8)))
 })
+test_that("Singleton NA", {
+  expect_warning(ddelap(1, NA, 2, 3), nanWarn)
+  expect_identical(suppressWarnings(ddelap(1:3, 4, NA, 3)), rep(NaN, 3))
+})
 test_that("Singleton NaN", {
   expect_warning(ddelap(1, 0, 1, 2), nanWarn)
   expect_warning(ddelap(1, -2, 1, 2), nanWarn)
@@ -30,6 +34,12 @@ test_that("Vector function accuracy", {
 test_that("Vector log", {
   expect_equal(ddelap(0:100, c(4, 9, 2), c(6, 12, 8), c(7, 14, 9), log = TRUE), 
               log(ddelap(0:100, c(4, 9, 2), c(6, 12, 8), c(7, 14, 9))))
+})
+test_that("Vector NA", {
+  expect_identical(suppressWarnings(ddelap(1:3, c(4, 1, 2), c(1, 5, 3), NA)),
+                   rep(NaN, 3))
+  tst <- suppressWarnings(ddelap(c(4, 4, 4), c(1, 0.5, NA), 4, c(NaN, 0.2, 4)))
+  expect_equal(tst, c(NaN, ddelap(4, 0.5, 4, 0.2), NaN))
 })
 test_that("Vector NaN", {
   expect_warning(ddelap(1:10, 0, 1, 2), nanWarn)

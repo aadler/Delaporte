@@ -7,9 +7,6 @@
 \alias{rdelap_C}
 \alias{MoMdelap_C}
 
-%% Strings
-\alias{plt0err}
-
 \title{Internal Delaporte Functions}
 \description{
   Internal Delaporte functions

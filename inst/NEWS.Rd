@@ -2,31 +2,49 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
-\section{Version 8.0.0 (2021-01-05)}{
+\section{Version 8.0.1 (2021-01-06)}{
+  \subsection{Removed}{
+    \itemize{
+      \item Removed SIMD calls added in 8.0.0 due to Solaris.
+      \item Removed LTO mentions from Makevars added in 8.0.0 per Brian Ripley.
+    }
+  }
+  \subsection{Changed}{
+    \itemize{
+      \item Pass more R-consistent error messages.
+      \item Made more robust to improper inputs such as negative, \code{NA}, or
+      \code{NaN} parameters or passed values.
+      \item R versions of \code{qdelap} and \code{rdelap} behave much more like
+      Fortran versions.
+    }
+  }
+}
+
+\section{Version 8.0.0 (2021-01-05) [YANKED]}{
   \subsection{Changed}{
     \itemize{
       \item Exact code more in line with R defaults for d/p/q/r functions in
-      that \code{NaN} inputs return \code{NaN} outputs
+      that \code{NaN} inputs return \code{NaN} outputs.
       \item Handling of \code{Inf} and \code{-Inf} now more in line with R
-      defaults for d/p/q/r functions
-      \item Parameter errors now check for \eqn{< 0} instead of \code{< EPS}
+      defaults for d/p/q/r functions.
+      \item Parameter errors now check for \eqn{< 0} instead of \code{< EPS}.
       \item \code{ddelap} and \code{pdelap} now use 8-byte integers (INT64) for
-      their counters so allow calculation for values up to \eqn{2^63}
+      their counters so allow calculation for values up to \eqn{2^63}.
       \itemize{
         \item \code{ddelap} will return 0 for all values \eqn{> 2^63} under the
         assumption that the pmf is spread too thinly.
-        \item \code{pdelap} will not run for values \eqn{> 2^63}
+        \item \code{pdelap} will not run for values \eqn{> 2^63}.
         \item \code{ddelap} of \code{Inf} returns 0 and \code{pdelap} of
-        \code{Inf} returns 1
+        \code{Inf} returns 1.
       }
       \item \code{pdelap} gives a warning for finite values \eqn{> 2^15} as,
       dependning on the parameters, this may take hours to finish (it's a double
       summation!). The user has to respond with 'y' for it to continue.
-      \item Updated help and tests
-      \item Allow compiler to use OpenMP SIMD constructs
-      \item Allow using \code{LTO}
+      \item Updated help and tests.
+      \item Allow compiler to use OpenMP SIMD constructs.
+      \item Allow using \code{LTO}.
       \item Switched CI from Travis/Appveyor to Github actions (thanks to Jim
-      Hester for his help in fixing the coverage check issue)
+      Hester for his help in fixing the coverage check issue).
     }
   }
 }
@@ -34,8 +52,8 @@
 \section{Version 7.0.5 (2020-11-10)}{
   \subsection{Fixed}{
     \itemize{
-      \item Corrected CRAN requests
-      \item Cleaned up NEWS
+      \item Corrected CRAN requests.
+      \item Cleaned up NEWS.
     }
   }
 }
@@ -43,14 +61,14 @@
 \section{Version 7.0.4 (2020-11-08)}{
   \subsection{Changed}{
     \itemize{
-      \item Converted tests to be compliant with \code{testthat}: 3rd edition
-      \item Cleaned up prose
+      \item Converted tests to be compliant with \code{testthat}: 3rd edition.
+      \item Cleaned up prose.
     }
   }
   \subsection{Added}{
     \itemize{
-      \item Added a citation to DESCRIPTION
-      \item Added a test to get codecov to 100\%
+      \item Added a citation to DESCRIPTION.
+      \item Added a test to get codecov to 100\%.
     }
   }
 }
@@ -58,22 +76,22 @@
 \section{Version 7.0.3 (2020-06-01)}{
   \subsection{Added}{
     \itemize{
-      \item CITATION file
-      \item Explicit citation information to README
-      \item Travis, AppVeyor, and CodeCov Integration
-      \item Added \code{R_forceSymbols(dll, TRUE)} to source per WRE 5.4
-      \item Tests for package versioning
+      \item CITATION file.
+      \item Explicit citation information to README.
+      \item Travis, AppVeyor, and CodeCov Integration.
+      \item Added \code{R_forceSymbols(dll, TRUE)} to source per WRE 5.4.
+      \item Tests for package versioning.
     }
   }
   \subsection{Changed}{
     \itemize{
-      \item Moved canonical repository to Github
-      \item Use FFLAGS instead of FCFLAGS in Makevars
+      \item Moved canonical repository to Github.
+      \item Use FFLAGS instead of FCFLAGS in Makevars.
     }
   }
   \subsection{Removed}{
     \itemize{
-      \item Removed depsy badge from README as site is now defunct
+      \item Removed depsy badge from README as site is now defunct.
     }
   }
 }
@@ -81,8 +99,8 @@
 \section{Version 7.0.2 (2019-05-17)}{
   \subsection{Changed}{
     \itemize{
-      \item Updated NEWS to reflect recent changes
-      \item Updated various file versions to reflect recent changes
+      \item Updated NEWS to reflect recent changes.
+      \item Updated various file versions to reflect recent changes.
     }
   }
 }
@@ -90,7 +108,7 @@
 \section{Version 7.0.1 (2019-04-26)}{
   \subsection{Changed}{
     \itemize{
-      \item Makevars adjusted by CRAN to prevent issues with parallel make
+      \item Makevars adjusted by CRAN to prevent issues with parallel make.
     }
   }
 }
@@ -101,17 +119,17 @@
       \item Changed Makevars flags and targets and forced dependance on R 3.6+
       to comply with new CRAN policies on Fortran and OpenMP.
       \item Preventing spurious floating point errors by implementing hard floor
-      of 0 and hard ceiling of 1
-      \item Updated comments in delaporte.f95 source code
-      \item Changed \code{rdelap} testing to always use a fixed seed
-      \item Documentation cleaned up
+      of 0 and hard ceiling of 1.
+      \item Updated comments in delaporte.f95 source code.
+      \item Changed \code{rdelap} testing to always use a fixed seed.
+      \item Documentation cleaned up.
     }
   }
   \subsection{Removed}{
     \itemize{
-      \item Removed the \code{cleanzeros} function
-      \item Removed unneeded Makevars target \code{cleanup}
-      \item Removed GNU-specific Makevars target \code{.NOTPARALLEL}
+      \item Removed the \code{cleanzeros} function.
+      \item Removed unneeded Makevars target \code{cleanup}.
+      \item Removed GNU-specific Makevars target \code{.NOTPARALLEL}.
     }
   }
 }
@@ -125,8 +143,8 @@
       \item Added items to README to comply with
       \href{https://bestpractices.coreinfrastructure.org/en}{CII}
       best practices and added badge.
-      \item Added various badges to README
-      \item Added copyright and license information inside R source code file
+      \item Added various badges to README.
+      \item Added copyright and license information inside R source code file.
     }
   }
 }
@@ -139,7 +157,7 @@
       (thanks to William Cipolli for the suggestion). Skew defaults to former
       selection so there should be no change to any values.
       \item Tests added for all three skewness variants.
-      \item ORCID added to author description
+      \item ORCID added to author description.
       \item Copyright date corrected to reflect actual copyright and not date of
       licensure change.
       }
@@ -232,7 +250,7 @@
       may remove the \code{.Defunct} calls and the references to the old version
       in the documentation.
       \item Removed \code{colClasses = 'double'} from tests. This should solve
-      Sun Sparc issues. (It didn't)
+      Sun Sparc issues (It didn't).
     }
   }
   \subsection{Added}{
@@ -278,7 +296,7 @@
 
 \section{Version 4.0.0 (2017-01-29) [YANKED]}{
   \itemize{
-    \item Did not build properly on various platforms such as Fedora and Solaris
+    \item Did not build properly on various platforms such as Fedora and Solaris.
   }
 }
 

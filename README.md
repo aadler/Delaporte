@@ -21,7 +21,7 @@ If you use the package, please cite it as:
 
   Avraham Adler (2013). Delaporte: Statistical Functions for the Delaporte
   Distribution.
-  R package version 8.0.0.
+  R package version 8.0.1.
   https://CRAN.R-project.org/package=Delaporte
 
 A BibTeX entry for LaTeX users is:
@@ -31,7 +31,7 @@ A BibTeX entry for LaTeX users is:
     title = {Delaporte: Statistical Functions for the Delaporte Distribution},
     author = {Avraham Adler},
     year = {2013},
-    note = {R package version 8.0.0},
+    note = {R package version 8.0.1},
     url = {https://CRAN.R-project.org/package=Delaporte},
   }
 ```
@@ -42,7 +42,8 @@ generally for his writings on R, C++, and Fortran and specifically for help with
 this project.
 
 ## Contributions
-Please ensure that all contributions comply with both [R and CRAN standards for packages](https://cran.r-project.org/doc/manuals/r-release/R-exts.html).
+Please ensure that all contributions comply with both
+[R and CRAN standards for packages](https://cran.r-project.org/doc/manuals/r-release/R-exts.html).
 
 ### Versioning
 This project attempts to follow [Semantic Versioning](https://semver.org/)

@@ -45,11 +45,13 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exa
     if (log.p) lp_f <- 1L else lp_f <- 0L
     QDLAP <- .Call(qdelap_C, p, alpha, beta, lambda, lt_f, lp_f)
   } else {
-    if (any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0))
-      stop(plt0err)
+    if (any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0)) {
+      warning('NaNs produced')
+      return(rep.int(NaN, length(p)))
+    }
     if (length(alpha) > 1 || length(beta) > 1 || length(lambda) > 1)
-      stop(paste('Quantile approximation relies on pooling and thus is not',
-                 'accurate when passing vector-valued parameters.',
+      stop(paste('Quantile approximation relies on pooling and is not accurate',
+                 'when passed vector-valued parameters.',
                  'Please use exact version.'))
     if (log.p) p <- exp(p)
     if (!lower.tail) p <- 1 - p
@@ -64,7 +66,7 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exa
     QNan <- rep.int(NaN, times = length(pNan))
     Q0 <- rep.int(0, times = length(p0))
     QInf <- rep.int(Inf, times = length(pInf))
-    QDLAP <- as.vector(c(QNan, Q0, QValid, QInf), mode = 'integer')
+    QDLAP <- as.vector(c(QNan, Q0, QValid, QInf), mode = 'double')
   }
   return(QDLAP)
 }
@@ -76,7 +78,10 @@ rdelap <- function(n, alpha, beta, lambda, exact = TRUE) {
   lambda <- as.double(lambda)
   RDLAP <- double(length(n))
   if (!exact) {
-    if (any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0)) stop(plt0err)
+    if (any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0)) {
+      warning('NaNs produced')
+      return(rep.int(NaN, n))
+    }
     ShiftedGammas <- rgamma(n, shape = alpha, scale = beta)
     RDLAP <- rpois(n, lambda = (ShiftedGammas + lambda))
   } else {

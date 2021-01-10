@@ -17,6 +17,7 @@ test_that("Singleton NA", {
 })
 test_that("Singleton NaN", {
   expect_warning(ddelap(1, 0, 1, 2), nanWarn)
+  expect_warning(ddelap(1:10, 0, 1, 2), nanWarn)
   expect_warning(ddelap(1, -2, 1, 2), nanWarn)
   expect_warning(ddelap(0, 1, 0, 2), nanWarn)
   expect_warning(ddelap(0, 1, -4, 2), nanWarn)
@@ -26,7 +27,7 @@ test_that("Singleton NaN", {
   expect_warning(ddelap(NaN, 1, 4, 6), nanWarn)
   expect_warning(ddelap(NA, 1, 4, 12), nanWarn)
   tst <- suppressWarnings(ddelap(c(NA, 4, NaN), 0.5, 4, 0.2))
-  expect_equal(tst[is.finite(tst)], ddelap(4, 0.5, 4, 0.2))
+  expect_equal(tst, c(NaN, ddelap(4, 0.5, 4, 0.2), NaN))
 })
 test_that("Vector function accuracy", {
   expect_equal(ddelap(0:36, c(1, 2, 3), c(4, 1, 2), c(2, 5, 7)), VAL$DDELAP_Triple)
@@ -42,14 +43,13 @@ test_that("Vector NA", {
   expect_equal(tst, c(NaN, ddelap(4, 0.5, 4, 0.2), NaN))
 })
 test_that("Vector NaN", {
-  expect_warning(ddelap(1:10, 0, 1, 2), nanWarn)
   expect_warning(ddelap(1:3, c(0, 1, 2), c(1, 0, 2), c(1, 2, 0)), nanWarn)
   expect_warning(ddelap(1:3, c(-3, 1, 2), c(1, -5, 2), c(1, 2, -0.1)), nanWarn)
   expect_warning(ddelap(c(NA, 2), c(2, 1, 2), c(1, 3, 2), c(1, 2, 4)))
   expect_warning(ddelap(c(3, NaN), c(2, 1, 2), c(1, 3, 2), c(1, 2, 4)))
   tst <- suppressWarnings(ddelap(c(NA, 0, NaN), c(1, 2, 3), c(4, 1, 2),
                                  c(2, 5, 7)))
-  expect_equal(tst[is.finite(tst)], ddelap(0, 2, 1, 5))
+  expect_equal(tst, c(NaN, ddelap(0, 2, 1, 5), NaN))
 })
 test_that("Non-integer warning", {
   expect_warning(ddelap(1.1, 1, 2, 3), nonIntErr)

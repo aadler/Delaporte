@@ -31,7 +31,7 @@
 !                       consistently with base R. Should use ieee_arithmetic
 !                       once current oldrelease gets deprecated and min GCC
 !                       version is > 5. Using iso_fortran_env for INT64 to allow
-!                       wider range for d/pdelap
+!                       wider domain for d/pdelap
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -136,9 +136,8 @@ contains
 
         !$omp parallel do default(shared) private(i) schedule(static)
         do i = 1, nx
-                pmfv(i) = ddelap_f_s(x(i), a(mod(i - 1, na) + 1), &
-                                     b(mod(i - 1, nb) + 1), &
-                                     l(mod(i - 1, nl) + 1))
+            pmfv(i) = ddelap_f_s(x(i), a(mod(i - 1, na) + 1), &
+            b(mod(i - 1, nb) + 1), l(mod(i - 1, nl) + 1))
         end do
         !$omp end parallel do
         
@@ -175,7 +174,7 @@ contains
             .or. alpha /= alpha .or. beta /= beta .or. lambda /= lambda &
             .or. q /= q) then
             call set_nan(cdf)
-        else if (q > HUGE(q)) then
+        else if (q >= HUGE(q)) then
             cdf = ONE
         else
             k = floor(q, INT64)
@@ -217,7 +216,7 @@ contains
     integer                                          :: i, k
 
 ! If there are any complications at all, don't use the fast version. pdelap_f_s
-! and ddelap_f_s are robust to improper entries
+! and ddelap_f_s are more robust to improper entries
 
         if (na > 1 .or. nb > 1 .or. nl > 1 .or. minval(q) < ZERO .or. &
             maxval(q) > REAL(MAXVECSIZE, c_double) .or. any(q /= q)) then

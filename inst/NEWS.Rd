@@ -2,7 +2,7 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
-\section{Version 8.0.1 (2021-01-06)}{
+\section{Version 8.0.1 (2021-01-10)}{
   \subsection{Removed}{
     \itemize{
       \item Removed SIMD calls added in 8.0.0 due to Solaris.
@@ -14,7 +14,7 @@
       \item Pass more R-consistent error messages.
       \item Made more robust to improper inputs such as negative, \code{NA}, or
       \code{NaN} parameters or passed values.
-      \item R versions of \code{qdelap} and \code{rdelap} behave much more like
+      \item R versions of \code{qdelap} and \code{rdelap} behave more like the
       Fortran versions.
     }
   }

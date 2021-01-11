@@ -69,9 +69,9 @@ from this vector. This requires only one double summation instead of
 vector of length greater than 1, the function has to build the double summation
 for each entry in \code{q}.
 
-\code{ddelap} will return 0 for all values \eqn{> 2^31} whereas \code{pdelap}
+\code{ddelap} will return 0 for all values \eqn{> 2^{31}} whereas \code{pdelap}
 will not run at all, due to the limitations of integer represenatation. Also,
-for values \eqn{> 2^15}, \code{pdelap} will ask for positive input from the user
+for values \eqn{> 2^{15}}, \code{pdelap} will ask for positive input from the user
 to continue, as otherwise, depending on the parameters, the function can take
 hours to complete given its double-summation nature.
   

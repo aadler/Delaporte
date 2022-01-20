@@ -1,9 +1,10 @@
 <!-- badges: start -->
 [![](https://www.r-pkg.org/badges/version-last-release/Delaporte)]
 [![](http://cranlogs.r-pkg.org/badges/last-month/Delaporte)](https://cran.r-project.org/package=Delaporte)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5880051.svg)](https://doi.org/10.5281/zenodo.5880051)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2011/badge)](https://bestpractices.coreinfrastructure.org/projects/2011)
 [![R build status](https://github.com/aadler/Delaporte/workflows/R-CMD-check/badge.svg)](https://github.com/aadler/Delaporte/actions)
-[![Codecov test coverage](https://codecov.io/gh/aadler/Delaporte/branch/master/graph/badge.svg)](https://codecov.io/gh/aadler/Delaporte?branch=master)
+[![Codecov test coverage](https://codecov.io/gh/aadler/Delaporte/branch/master/graph/badge.svg)](https://app.codecov.io/gh/aadler/Delaporte?branch=master)
 <!-- badges: end -->
 
 # Delaporte
@@ -21,7 +22,8 @@ If you use the package, please cite it as:
 
   Avraham Adler (2013). Delaporte: Statistical Functions for the Delaporte
   Distribution.
-  R package version 8.0.1.
+  R package version 8.0.2.
+  doi: 10.5281/zenodo.5880051
   https://CRAN.R-project.org/package=Delaporte
 
 A BibTeX entry for LaTeX users is:
@@ -31,8 +33,9 @@ A BibTeX entry for LaTeX users is:
     title = {Delaporte: Statistical Functions for the Delaporte Distribution},
     author = {Avraham Adler},
     year = {2013},
-    note = {R package version 8.0.1},
+    doi = {10.5281/zenodo.5880051},
     url = {https://CRAN.R-project.org/package=Delaporte},
+    note = {R package version 8.0.2},
   }
 ```
 

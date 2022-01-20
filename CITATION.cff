@@ -1,0 +1,46 @@
+# -----------------------------------------------------------
+# CITATION file created with {cffr} R package, v0.2.1
+# See also: https://docs.ropensci.org/cffr/
+# -----------------------------------------------------------
+ 
+cff-version: 1.2.0
+message: 'To cite package "Delaporte" in publications use:'
+type: software
+license: BSD-2-Clause
+title: 'Delaporte: Statistical Functions for the Delaporte Distribution'
+version: 8.0.2
+doi: 10.5281/zenodo.5880051
+abstract: Provides probability mass, distribution, quantile, random-variate generation,
+  and method-of-moments parameter-estimation functions for the Delaporte distribution
+  with parameterization based on Vose (2008) <isbn:9780470512845>. The Delaporte is
+  a discrete probability distribution which can be considered the convolution of a
+  negative binomial distribution with a Poisson distribution. Alternatively, it can
+  be considered a counting distribution with both Poisson and negative binomial components.
+  It has been studied in actuarial science as a frequency distribution which has more
+  variability than the Poisson, but less than the negative binomial.
+authors:
+- family-names: Adler
+  given-names: Avraham
+  email: Avraham.Adler@gmail.com
+  orcid: https://orcid.org/0000-0002-3039-0703
+preferred-citation:
+  type: manual
+  title: 'Delaporte: Statistical Functions for the Delaporte Distribution'
+  authors:
+  - family-names: Adler
+    given-names: Avraham
+    email: Avraham.Adler@gmail.com
+    orcid: https://orcid.org/0000-0002-3039-0703
+  year: '2013'
+  doi: 10.5281/zenodo.5880051
+  url: https://CRAN.R-project.org/package=Delaporte
+  notes: R package version 8.0.2
+repository: https://CRAN.R-project.org/package=Delaporte
+repository-code: https://github.com/aadler/Delaporte
+url: https://github.com/aadler/Delaporte
+date-released: '2022-01-19'
+contact:
+- family-names: Adler
+  given-names: Avraham
+  email: Avraham.Adler@gmail.com
+  orcid: https://orcid.org/0000-0002-3039-0703

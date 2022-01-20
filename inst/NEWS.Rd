@@ -2,6 +2,21 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
+\section{Version 8.0.2 (2021-01-20)}{
+  \subsection{Changed}{
+    \itemize{
+      \item Converted unit testing framework to \code{tinytest} to reduce
+      dependencies
+      \item Augmented citation with DOI and CFF file
+    }
+  }
+  \subsection{Fixed}{
+    \itemize{
+      \item Corrected help file
+    }
+  }
+}
+
 \section{Version 8.0.1 (2021-01-10)}{
   \subsection{Removed}{
     \itemize{

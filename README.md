@@ -85,3 +85,12 @@ issue as well. To supply a pull request (PR), please:
  
 At this point, the PR will be discussed and eventually accepted or rejected by
 the lead maintainer.
+
+## Roadmap
+### Major
+
+ * There are no plans for major changes in 2022
+ 
+### Minor
+ * Achieve OpenSSF Best Practices
+ [silver](https://bestpractices.coreinfrastructure.org/en/criteria/1) status

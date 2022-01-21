@@ -78,6 +78,8 @@ issue as well. To supply a pull request (PR), please:
 
  1. Fork the project and then clone into your own local repository
  2. Create a branch in your repository in which you will make your changes
- 3. Push that branch and then create a pull request
+ 3. Ideally use -s to sign-off on commits under the
+ [Developer Certificate of Origin](https://developercertificate.org/).
+ 4. Push that branch and then create a pull request
  
 At this point, the PR will be discussed and eventually accepted or rejected.

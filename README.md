@@ -1,5 +1,5 @@
 <!-- badges: start -->
-[![](https://www.r-pkg.org/badges/version-last-release/Delaporte)]
+[![](https://www.r-pkg.org/badges/version-last-release/Delaporte)]()
 [![](http://cranlogs.r-pkg.org/badges/last-month/Delaporte)](https://cran.r-project.org/package=Delaporte)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5880051.svg)](https://doi.org/10.5281/zenodo.5880051)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2011/badge)](https://bestpractices.coreinfrastructure.org/projects/2011)

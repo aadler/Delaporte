@@ -80,7 +80,8 @@ issue as well. To supply a pull request (PR), please:
  2. Create a branch in your repository in which you will make your changes
  3. Ideally use -s to sign-off on commits under the
  [Developer Certificate of Origin](https://developercertificate.org/).
- 4. Push that branch and then create a pull request
+ 4. If possible, sign commits using a GPG key.
+ 5. Push that branch and then create a pull request
  
 At this point, the PR will be discussed and eventually accepted or rejected by
 the lead maintainer.

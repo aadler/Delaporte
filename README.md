@@ -82,4 +82,5 @@ issue as well. To supply a pull request (PR), please:
  [Developer Certificate of Origin](https://developercertificate.org/).
  4. Push that branch and then create a pull request
  
-At this point, the PR will be discussed and eventually accepted or rejected.
+At this point, the PR will be discussed and eventually accepted or rejected by
+the lead maintainer.

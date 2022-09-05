@@ -89,7 +89,7 @@ the lead maintainer.
 ## Roadmap
 ### Major
 
- * There are no plans for major changes in 2022
+ * There are no plans for major changes in 2022--2023
  
 ### Minor
  * Achieve OpenSSF Best Practices

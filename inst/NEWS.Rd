@@ -2,6 +2,15 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
+\sectionVersion 8.0.3 (2022-09-05)}{
+  \subsection{Changed}{
+    \itemize{
+      \item Updated package with information necessary to acheive OpenSSF silver
+      status
+    }
+  }
+}
+
 \section{Version 8.0.2 (2021-01-20)}{
   \subsection{Changed}{
     \itemize{

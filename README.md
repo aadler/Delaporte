@@ -22,7 +22,7 @@ If you use the package, please cite it as:
 
   Avraham Adler (2013). Delaporte: Statistical Functions for the Delaporte
   Distribution.
-  R package version 8.0.2.
+  R package version 8.0.3.
   doi: 10.5281/zenodo.5880051
   https://CRAN.R-project.org/package=Delaporte
 
@@ -35,7 +35,7 @@ A BibTeX entry for LaTeX users is:
     year = {2013},
     doi = {10.5281/zenodo.5880051},
     url = {https://CRAN.R-project.org/package=Delaporte},
-    note = {R package version 8.0.2},
+    note = {R package version 8.0.3},
   }
 ```
 
@@ -92,8 +92,8 @@ the lead maintainer.
  * There are no plans for major changes in 2022--2023
  
 ### Minor
- * Achieve OpenSSF Best Practices
- [silver](https://bestpractices.coreinfrastructure.org/en/criteria/1) status
+ 
+ * There are no plans for minor changes in 2022--2023
  
 ## Security
 ### Expectations

@@ -1,5 +1,5 @@
 <!-- badges: start -->
-[![](https://www.r-pkg.org/badges/version-last-release/Delaporte)]()
+[![](https://www.r-pkg.org/badges/version-last-release/Delaporte)](https://cran.r-project.org/package=Delaporte)
 [![](http://cranlogs.r-pkg.org/badges/last-month/Delaporte)](https://cran.r-project.org/package=Delaporte)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5880051.svg)](https://doi.org/10.5281/zenodo.5880051)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2011/badge)](https://bestpractices.coreinfrastructure.org/projects/2011)
@@ -49,11 +49,11 @@ Please ensure that all contributions comply with both
 [R and CRAN standards for packages](https://cran.r-project.org/doc/manuals/r-release/R-exts.html).
 
 ### Versioning
-This project attempts to follow [Semantic Versioning](https://semver.org/)
+This project attempts to follow [Semantic Versioning](https://semver.org/).
 
 ### Changelog
 This project attempts to follow the changelog system at
-[Keep a CHANGELOG](https://keepachangelog.com/)
+[Keep a CHANGELOG](https://keepachangelog.com/).
 
 ### Dependencies
 This project intends to have as few dependencies as possible. Please consider

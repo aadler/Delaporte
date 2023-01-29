@@ -209,4 +209,5 @@ legend(x = "topright", legend = c("Poisson {l=25}", "DP {a=2, b=2, l=21}",
        col=c("black", "blue", "green3","orange3", "red"), lwd = 2)
 }
 }
+
 \keyword{distribution}

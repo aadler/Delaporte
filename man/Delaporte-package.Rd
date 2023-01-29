@@ -18,5 +18,6 @@ The DESCRIPTION file:
 
 Maintainer: \packageMaintainer{Delaporte}
 }
+
 \keyword{package}
 \keyword{distribution}

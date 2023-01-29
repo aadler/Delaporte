@@ -18,7 +18,7 @@
 !                       Cleanzeros removed in favor of floor & ceiling of 0 & 1
 !          Version 1.5: 2021-01-03
 !                       Added parameter for pdelap max vector size
-!          Version 1.6: 2023-01-19
+!          Version 1.6: 2023-01-29
 !                       Updated to rely on Fortran 2008 intrinsics
 !
 ! LICENSE:

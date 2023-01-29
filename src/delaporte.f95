@@ -18,9 +18,9 @@
 !          Version 1.3: 2017-11-20
 !                       Updates.
 !          Version 1.4: 2018-06-18
-!                       Added skew bias correction option to MoMdelap
+!                       Added skew bias correction option to MoMdelap.
 !          Version 1.5: 2018-11-20
-!                       Zapping absolute values <= EPS to 0
+!                       Zapping absolute values <= EPS to 0.
 !          Version 1.6: 2018-12-10
 !                       Replaced zapping with setting min to 0 and max to 1
 !                       as appropriate. Less monkeying with values this way.
@@ -31,7 +31,10 @@
 !                       consistently with base R. Should use ieee_arithmetic
 !                       once current oldrelease gets deprecated and min GCC
 !                       version is > 5. Using iso_fortran_env for INT64 to allow
-!                       wider domain for d/pdelap
+!                       wider domain for d/pdelap.
+!          Version 2.1: 2023-01-29
+!                       Updated to rely on Fortran 2008 intrinsics and use
+!                       ieee_artithmetic.                
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -61,9 +64,9 @@
 module delaporte
     use, intrinsic :: iso_c_binding
     use, intrinsic :: iso_fortran_env
+    use, intrinsic :: ieee_arithmetic
     !$use omp_lib
     use utils
-    use lgam
 
     implicit none
     private
@@ -82,18 +85,16 @@ contains
 !              1 to prevent spurious floating point errors.
 !-------------------------------------------------------------------------------
 
-    function ddelap_f_s(x, alpha, beta, lambda) result(pmf)
-
-    external set_nan
+    elemental function ddelap_f_s(x, alpha, beta, lambda) result(pmf)
 
     real(kind = c_double), intent(in)   :: x, alpha, beta, lambda
     real(kind = c_double)               :: pmf, ii, kk
     integer(INT64)                      :: i, k                   
 
         if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. x < ZERO &
-            .or. alpha /= alpha .or. beta /= beta .or. lambda /= lambda &
-            .or. x /= x) then
-            call set_nan(pmf)
+            .or. ieee_is_nan(alpha) .or. ieee_is_nan(beta) .or. &
+            ieee_is_nan(lambda) .or. ieee_is_nan(x)) then
+            pmf = ieee_value(x, ieee_quiet_nan)
         else
             pmf = ZERO
             k = floor(x, INT64)
@@ -101,10 +102,10 @@ contains
             if (x < MAXD .and. x == kk) then
                 do i = 0_INT64, k
                     ii = real(i, c_double)
-                    pmf = pmf + exp(gamln(alpha + ii) + ii * log(beta) &
-                    + (kk - ii) * log(lambda) - lambda - gamln(alpha) &
-                    - gamln(ii + ONE) - (alpha + ii) * log1p(beta) &
-                    - gamln(kk - ii + ONE))
+                    pmf = pmf + exp(log_gamma(alpha + ii) + ii * log(beta) &
+                    + (kk - ii) * log(lambda) - lambda - log_gamma(alpha) &
+                    - log_gamma(ii + ONE) - (alpha + ii) * log1p(beta) &
+                    - log_gamma(kk - ii + ONE))
                 end do
             pmf = max(min(pmf, ONE), ZERO)        ! Clear floating point errors
             end if
@@ -125,7 +126,7 @@ contains
 !-------------------------------------------------------------------------------
 
     subroutine ddelap_f(x, nx, a, na, b, nb, l, nl, lg, pmfv) &
-                        bind(C, name="ddelap_f_")
+               bind(C, name="ddelap_f_")
                         
     integer(kind = c_int), intent(in), value         :: nx, na, nb, nl
     real(kind = c_double), intent(in), dimension(nx) :: x
@@ -145,7 +146,7 @@ contains
             pmfv = log(pmfv)
         end if
         
-        if (any(pmfv /= pmfv)) then
+        if (any(ieee_is_nan(pmfv))) then
             call rwarn("NaNs produced")
         end if
         
@@ -162,19 +163,17 @@ contains
 !              ceiling of 1 to prevent spurious floating point errors.
 !-------------------------------------------------------------------------------
 
-    function pdelap_f_s(q, alpha, beta, lambda) result(cdf)
-
-    external set_nan
+    elemental function pdelap_f_s(q, alpha, beta, lambda) result(cdf)
 
     real(kind = c_double)               :: cdf
     real(kind = c_double), intent(in)   :: q, alpha, beta, lambda
     integer(INT64)                      :: i, k
 
         if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. q < ZERO &
-            .or. alpha /= alpha .or. beta /= beta .or. lambda /= lambda &
-            .or. q /= q) then
-            call set_nan(cdf)
-        else if (q >= HUGE(q)) then
+            .or. ieee_is_nan(alpha) .or. ieee_is_nan(beta) .or. &
+            ieee_is_nan(lambda) .or. ieee_is_nan(q)) then
+            cdf = ieee_value(q, ieee_quiet_nan)
+        else if (.not. ieee_is_finite(q)) then
             cdf = ONE
         else
             k = floor(q, INT64)
@@ -203,10 +202,8 @@ contains
 !-------------------------------------------------------------------------------
 
     subroutine pdelap_f(q, nq, a, na, b, nb, l, nl, lt, lg, pmfv) &
-                        bind(C, name="pdelap_f_")
+               bind(C, name="pdelap_f_")
                         
-    external set_nan                        
-
     integer(kind = c_int), intent(in), value         :: nq, na, nb, nl
     real(kind = c_double), intent(in), dimension(nq) :: q
     real(kind = c_double), intent(out), dimension(nq):: pmfv
@@ -219,7 +216,8 @@ contains
 ! and ddelap_f_s are more robust to improper entries
 
         if (na > 1 .or. nb > 1 .or. nl > 1 .or. minval(q) < ZERO .or. &
-            maxval(q) > REAL(MAXVECSIZE, c_double) .or. any(q /= q)) then
+            maxval(q) > REAL(MAXVECSIZE, c_double) &
+            .or. any(ieee_is_nan(q))) then
             !$omp parallel do default(shared) private(i) schedule(static)
                 do i = 1, nq
                     pmfv(i) = pdelap_f_s(q(i), a(mod(i - 1, na) + 1), &
@@ -228,10 +226,9 @@ contains
             !$omp end parallel do
         else
             if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO .or. &
-                a(1) /= a(1) .or. b(1) /= b(1) .or. l(1) /= l(1)) then
-                do i = 1, nq
-                    call set_nan(pmfv(i))
-                end do
+                ieee_is_nan(a(1)) .or. ieee_is_nan(b(1)) .or. &
+                ieee_is_nan(l(1))) then
+                pmfv = ieee_value(q, ieee_quiet_nan)
             else
                 k = floor(maxval(q))
                 allocate (singlevec(k + 1))
@@ -257,7 +254,7 @@ contains
             pmfv = log(pmfv)
         end if
         
-        if (any(pmfv /= pmfv)) then
+        if (any(ieee_is_nan(pmfv))) then
             call rwarn("NaNs produced")
         end if
         
@@ -271,20 +268,17 @@ contains
 !              summation. Returns NaN and Inf where appropriate.
 !-------------------------------------------------------------------------------
 
-    function qdelap_f_s(p, alpha, beta, lambda) result(value)
-
-    external set_nan
-    external set_inf
+    elemental function qdelap_f_s(p, alpha, beta, lambda) result(value)
 
     real(kind = c_double), intent(in)   :: p, alpha, beta, lambda
     real(kind = c_double)               :: testcdf, value
 
         if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. p < ZERO &
-          .or. alpha /= alpha .or. beta /= beta .or. lambda /= lambda &
-          .or. p /= p) then
-            call set_nan(value)
+          .or. ieee_is_nan(alpha) .or. ieee_is_nan(beta) .or. &
+          ieee_is_nan(lambda) .or. ieee_is_nan(p)) then
+            value = ieee_value(p, ieee_quiet_nan)
         else if (p >= ONE) then
-            call set_inf(value)
+            value = ieee_value(p, ieee_positive_inf)
         else
             value = ZERO
             testcdf = exp(-lambda) / ((beta + ONE) ** alpha)
@@ -311,11 +305,8 @@ contains
 !-------------------------------------------------------------------------------
 
     subroutine qdelap_f(p, np, a, na, b, nb, l, nl, lt, lg, obsv) &
-                       bind(C, name="qdelap_f_")
+               bind(C, name="qdelap_f_")
 
-    external set_nan
-    external set_inf
-    
     integer(kind = c_int), intent(in), value           :: np, na, nb, nl
     real(kind = c_double), intent(inout), dimension(np):: p
     real(kind = c_double), intent(out), dimension(np)  :: obsv
@@ -335,9 +326,7 @@ contains
 
         if(na == 1 .and. nb == na .and. nl == nb) then
             if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO) then
-                do i = 1, np
-                    call set_nan(obsv(i))
-                end do
+                obsv = ieee_value(p, ieee_quiet_nan)
             else
                 x = maxval(p, 1, p < 1)
                 i = 1
@@ -355,12 +344,13 @@ contains
                                                        a(1), b(1), l(1))
                 end do
                 do i = 1, np
-                    if (p(i) < ZERO .or. p(i) /= p(i)) then
-                        call set_nan(obsv(i))
+                    if (p(i) < ZERO .or. ieee_is_nan(p(i))) then
+                        obsv(i) = ieee_value(p(i), ieee_quiet_nan)
                     else if (p(i) >= ONE) then
-                        call set_inf (obsv(i))
+                        obsv(i) = ieee_value(p(i), ieee_positive_inf)
                     else
-                        obsv(i) = real(position(p(i), svec) - 1)
+                        obsv(i) = real(minloc(svec, dim = 1, &
+                            mask = svec >= p(i), back = .FALSE.) - 1)
                     end if
                 end do
                 deallocate(svec)

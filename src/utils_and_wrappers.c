@@ -112,14 +112,6 @@ void F77_SUB(unifrnd) (int *n, double *x){
   PutRNGstate();
 }
 
-void F77_SUB(set_nan)(double *val){
-    *val = R_NaN;
-}
-
-void F77_SUB(set_inf)(double *val){
-    *val = R_PosInf;
-}
-
 static const R_CallMethodDef CallEntries[] = {
     {"ddelap_C",    (DL_FUNC) &ddelap_C,   5},
     {"pdelap_C",    (DL_FUNC) &pdelap_C,   6},

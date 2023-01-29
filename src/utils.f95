@@ -18,6 +18,8 @@
 !                       Cleanzeros removed in favor of floor & ceiling of 0 & 1
 !          Version 1.5: 2021-01-03
 !                       Added parameter for pdelap max vector size
+!          Version 1.6: 2023-01-19
+!                       Updated to rely on Fortran 2008 intrinsics
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -64,8 +66,8 @@ contains
 !-------------------------------------------------------------------------------
 ! FUNCTION: log1p
 !
-! DESCRIPTION: Fortran (2003/8) does not have log1p as an intrinsic. This serves
-!              as such.
+! DESCRIPTION: Fortran 2008 does not have log1p as an intrinsic. This serves as
+!              such.
 !-------------------------------------------------------------------------------
 
     elemental function log1p(x) result(y)
@@ -77,25 +79,5 @@ contains
         y = log(z) - ((z - ONE) - x) / z   !Eliminates catastrophic subtraction
 
     end function log1p
-  
-!-------------------------------------------------------------------------------
-! FUNCTION: Position
-!
-! DESCRIPTION: Returns the position in ordered vector 'a' of the smallest number
-!              greater than 'x'. Used in singleton version of qdelap.
-!-------------------------------------------------------------------------------
 
-    pure function position(x, a) result(k)
-    
-        real(kind = c_double), intent(in)                :: x
-        real(kind = c_double), intent(in), dimension(:)  :: a
-        integer                                          :: k
-
-        k = 1
-        do while (a(k) < x)
-            k = k + 1
-        end do
-        
-    end function position
-    
 end module utils

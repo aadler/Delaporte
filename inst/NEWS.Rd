@@ -2,6 +2,23 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
+\section{Version 8.1.0 (2023-01-29)}{
+  \subsection{Changed}{
+    \itemize{
+      \item Fortran source code now reliant on Fortran 2008
+      \item Fortran module ieee_arithmetic used
+    }
+  }
+  \subsection{Removed}{
+    \itemize{
+      \item \code{gamln} replaced with Fortran 2008 \code{log_gamma}
+      \item \code{position} replaced with Fortran \code{minloc}
+      \item \code{setnan} and \code{setinf} replaced with ieee_arithmetic calls
+      \item Checks for \code{NaN} now use ieee_arithmetic calls
+    }
+  }
+}
+
 \section{Version 8.0.3 (2022-09-05)}{
   \subsection{Changed}{
     \itemize{

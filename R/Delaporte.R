@@ -38,7 +38,6 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exa
   alpha <- as.double(alpha)
   beta <- as.double(beta)
   lambda <- as.double(lambda)
-  QDLAP <- double(length(p))
   if (exact) {
     if (lower.tail) lt_f <- 1L else lt_f <- 0L
     if (log.p) lp_f <- 1L else lp_f <- 0L
@@ -69,7 +68,7 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exa
       QDLAP <- as.vector(c(QNeg, Q0, QValid, QInf), mode = 'double')
     }
   }
-  if(any(is.nan(QDLAP))) warning('NaNs produced')
+  if (any(is.nan(QDLAP))) warning('NaNs produced')
   return(QDLAP)
 }
 
@@ -81,7 +80,6 @@ rdelap <- function(n, alpha, beta, lambda, exact = TRUE) {
   alpha <- as.double(alpha)
   beta <- as.double(beta)
   lambda <- as.double(lambda)
-  RDLAP <- double(length(n))
   if (!exact) {
     if (any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0)) {
       RDLAP <- (rep.int(NaN, n))
@@ -92,14 +90,13 @@ rdelap <- function(n, alpha, beta, lambda, exact = TRUE) {
   } else {
     RDLAP <- .Call(rdelap_C, n, alpha, beta, lambda)
   }
-  if(any(is.nan(RDLAP))) warning('NaNs produced')
+  if (any(is.nan(RDLAP))) warning('NaNs produced')
   return(RDLAP)
 }
 
 MoMdelap <- function(x, type = 2L) {
   type <- as.integer(type)
   if (!(type %in% c(1L, 2L, 3L))) stop('Skew type must be one of 1, 2, or 3.')
-  MoMDLAP <- double(3)
   MoMDLAP <- .Call(MoMdelap_C, as.double(x), type)
   if (any(MoMDLAP <= 0)) {
     stop(paste("Method of moments not appropriate for this data;",

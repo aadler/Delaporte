@@ -41,8 +41,8 @@ MoMdelap(x, type = 2L)
   and 3L will return \strong{b1}, as per \code{\link[e1071]{skewness}}.}
 }
 \details{
-The Delaporte distribution with parameters \code{alpha}, \code{beta}, and
-\code{lambda} is a discrete probability distribution which can be considered the
+The Delaporte distribution with parameters \eqn{\alpha}, \eqn{\beta}, and
+\eqn{\lambda} is a discrete probability distribution which can be considered the
 convolution of a negative binomial distribution with a Poisson distribution.
 Alternatively, it can be considered a counting distribution with both Poisson
 and negative binomial components. The Delaporte's probability mass function,
@@ -52,7 +52,7 @@ called via \code{ddelap}, is:
 
 for \eqn{n = 0, 1, 2, \ldots}; \eqn{\alpha, \beta, \lambda > 0}.
   
- If an element of \code{x} is not integer, the result of \code{ddelap} is zero
+If an element of \code{x} is not integer, the result of \code{ddelap} is zero
 with a warning.
   
 The Delaporte's cumulative distribution function, \code{pdelap}, is calculated
@@ -67,7 +67,7 @@ for all integers up to and including that value, and reads the remaining results
 from this vector. This requires only one double summation instead of
 \code{length(q)} such summations. If at least one of the parameters is itself a
 vector of length greater than 1, the function has to build the double summation
-for each entry in \code{q}.
+for each entry in \eqn{q}.
 
 \code{ddelap} will return 0 for all values \eqn{> 2^{31}} whereas \code{pdelap}
 will not run at all, due to the limitations of integer represenatation. Also,
@@ -79,14 +79,14 @@ The quantile function, \code{qdelap}, is right continuous:
 \code{qdelap(q, alpha, beta, lambda)} is the smallest integer \eqn{x} such that
 \eqn{P(X \le x) \ge q}. This has function has two versions. When
 \code{exact = TRUE}, the function builds a CDF vector and the first value for
-which the CDF is greater than or equal to \code{q} is returned as the quantile.
+which the CDF is greater than or equal to \eqn{q} is returned as the quantile.
 While this procedure is accurate, for sufficiently large \eqn{\alpha, \beta},
 or \eqn{\lambda} it can take a very long time. Therefore, when dealing with
 singleton parameters, \code{exact = FALSE} can be passed to take advantage of
 the Delaporte's definition as a counting distribution with both a Poisson and a
 negative binomial component. Based on Karlis & Xekalaki (2005) it will generate
-\code{n} gamma variates \eqn{\Gamma} with shape \eqn{\alpha} and scale
-\eqn{\beta} and then \code{n} pseudo-Delaporte variates as Poisson random
+\eqn{n} gamma variates \eqn{\Gamma} with shape \eqn{\alpha} and scale
+\eqn{\beta} and then \eqn{n} pseudo-Delaporte variates as Poisson random
 variables with parameter \eqn{\lambda + \Gamma}, finally calling the
 \code{\link{quantile}} function on the result. The \dQuote{exact} method is
 always more accurate and is also significantly faster for reasonable values of
@@ -98,15 +98,15 @@ versions return \code{NaN} for quantiles \eqn{< 0}, \eqn{0} for quantiles
 \eqn{= 0}, and \code{Inf} for quantiles \eqn{\ge 1}.
   
 The random variate generator, \code{rdelap}, also has multiple versions. When
-\code{exact = TRUE}, it uses inversion by creating a vector of \code{n}
+\code{exact = TRUE}, it uses inversion by creating a vector of \eqn{n}
 uniformly distributed random variates between \eqn{0} and \eqn{1}. If all the
 parameters are singletons, a single CDF vector is constructed as per the
 quantile function, and the entries corresponding to the uniform variates are
 read off of the constructed vector. If the parameters are themselves vectors,
 then it passes the entire uniform variate vector to \code{qdelap}, which is
 slower. When \code{exact = FALSE}, regardless of the length of the parameters,
-it generates \code{n} gamma variates \eqn{\Gamma} with shape \eqn{\alpha} and
-scale \eqn{\beta} and then \code{n} pseudo-Delaporte variates as Poisson random
+it generates \eqn{n} gamma variates \eqn{\Gamma} with shape \eqn{\alpha} and
+scale \eqn{\beta} and then \eqn{n} pseudo-Delaporte variates as Poisson random
 variables with parameter \eqn{\lambda + \Gamma}. As there is no pooling, each
 individual random variate reflects the parameter triplet which generated it. The
 non-inversion method is usually faster.
@@ -183,7 +183,7 @@ A <- c(0, seq_len(50))
 PMF <- ddelap(A, alpha = 3, beta = 4, lambda = 10)
 CDF <- pdelap(A, alpha = 3, beta = 4, lambda = 10)
 
-##Quantile
+## Quantile
 A <- seq(0,.95, .05)
 qdelap(A, alpha = 3, beta = 4, lambda = 10)
 A <- c(-1, A, 1, 2)
@@ -197,6 +197,7 @@ DP3 <- rdelap(10000, alpha = 4, beta = 5, lambda = 5)  ## Close to the Negative 
 NB <- rnbinom(10000, size = 5, mu = 25)                ## Will have the widest spread
 mean(P);mean(NB);mean(DP1);mean(DP2);mean(DP3)         ## Means should all be near 25
 MoMdelap(DP1);MoMdelap(DP2);MoMdelap(DP3)              ## Estimates should be close to originals
+
 \dontrun{
 plot(density(P), col = "black", lwd = 2, main = "Distribution Comparison",
      xlab = "Value", xlim = c(0, 80))

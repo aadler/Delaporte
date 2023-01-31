@@ -1,5 +1,5 @@
 # -----------------------------------------------------------
-# CITATION file created with {cffr} R package, v0.4.0
+# CITATION file created with {cffr} R package, v0.4.1
 # See also: https://docs.ropensci.org/cffr/
 # -----------------------------------------------------------
  
@@ -38,7 +38,7 @@ preferred-citation:
 repository: https://CRAN.R-project.org/package=Delaporte
 repository-code: https://github.com/aadler/Delaporte
 url: https://github.com/aadler/Delaporte
-date-released: '2023-01-29'
+date-released: '2023-02-01'
 contact:
 - family-names: Adler
   given-names: Avraham

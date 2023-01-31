@@ -2,7 +2,7 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
-\section{Version 8.1.0 (2023-01-29)}{
+\section{Version 8.1.0 (2023-02-01)}{
   \subsection{Changed}{
     \itemize{
       \item Fortran source code now reliant on Fortran 2008
@@ -13,7 +13,7 @@
     \itemize{
       \item \code{gamln} replaced with Fortran 2008 \code{log_gamma}
       \item \code{position} replaced with Fortran \code{minloc}
-      \item \code{setnan} and \code{setinf} replaced with ieee_arithmetic calls
+      \item \code{set_nan} & \code{set_inf} replaced with ieee_arithmetic calls
       \item Checks for \code{NaN} now use ieee_arithmetic calls
     }
   }

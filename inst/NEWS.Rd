@@ -7,6 +7,8 @@
     \itemize{
       \item Fortran source code now reliant on Fortran 2008
       \item Fortran module ieee_arithmetic used
+      \item Updated help documentation
+      \item Updated Github actions
     }
   }
   \subsection{Removed}{

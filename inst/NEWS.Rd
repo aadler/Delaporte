@@ -9,6 +9,7 @@
       \item Fortran module ieee_arithmetic used
       \item Updated help documentation
       \item Updated Github actions
+      \item Updated internal code to be more compliant with personal style guide
     }
   }
   \subsection{Removed}{

@@ -1,23 +1,26 @@
-nanWarn <- 'NaNs produced'
-inpErr <- 'Quantile approximation relies on pooling'
+tol <- 1e-12
+nanWarn <- "NaNs produced"
+inpErr <- "Quantile approximation relies on pooling"
 
 # Singleton exact function accuracy
-expect_equal(qdelap(.4, 1, 4, 2), 4)
+expect_equal(qdelap(0.4, 1, 4, 2), 4, tolerance = tol)
 testV <- c(3, 7, 23)
-expect_equal(qdelap(pdelap(testV, 5L, 2L, 3L), 5L, 2L, 3L), testV)
+expect_equal(qdelap(pdelap(testV, 5L, 2L, 3L), 5L, 2L, 3L), testV,
+             tolerance = tol)
 
 # Singleton exact lower.tail
-expect_equal(qdelap(0.49, 4, 6, 3, lower.tail = TRUE), 25)
+expect_equal(qdelap(0.49, 4, 6, 3, lower.tail = TRUE), 25, tolerance = tol)
 
 # Singleton exact log.p
-expect_equal(qdelap(-0.255, 20, 15, 50, log.p = TRUE), 400)
+expect_equal(qdelap(-0.255, 20, 15, 50, log.p = TRUE), 400, tolerance = tol)
 
 # Singleton exact lower.tail & log.p
-expect_equal(qdelap(-0.7, 4, 6, 3, lower.tail = TRUE, log.p = TRUE), 25)
+expect_equal(qdelap(-0.7, 4, 6, 3, lower.tail = TRUE, log.p = TRUE), 25,
+             tolerance = tol)
 
 # Singleton exact bad parameters
-expect_warning(qdelap(.05, 0, 1, 2), nanWarn)
-expect_warning(qdelap(.05, -2, 1, 2), nanWarn)
+expect_warning(qdelap(0.05, 0, 1, 2), nanWarn)
+expect_warning(qdelap(0.05, -2, 1, 2), nanWarn)
 expect_warning(qdelap(0.1, 1, 0, 2), nanWarn)
 expect_warning(qdelap(0.1, 1, -4e5, 2), nanWarn)
 expect_warning(qdelap(1, 1, 4, 0), nanWarn)
@@ -29,18 +32,19 @@ expect_warning(qdelap(NaN, 2, 3, 4), nanWarn)
 expect_warning(qdelap(c(0.3, NA), 2, 3, 4), nanWarn)
 
 # Singleton approx function accuracy lower tail
-expect_equal(qdelap(.4, 1, 4, 2, exact = FALSE), 4)
+expect_equal(qdelap(0.4, 1, 4, 2, exact = FALSE), 4, tolerance = tol)
 
 # Singleton approx function accuracy upper tail
-expect_equal(qdelap(.4, 1, 4, 2, exact = FALSE, lower.tail = FALSE), 6)
+expect_equal(qdelap(0.4, 1, 4, 2, exact = FALSE, lower.tail = FALSE), 6,
+             tolerance = tol)
 
 # Singleton approx lower.tail & log.p
 expect_equal(qdelap(-0.7, 4, 6, 3, lower.tail = TRUE, log.p = TRUE,
-                    exact = FALSE), 25)
+                    exact = FALSE), 25, tolerance = tol)
 
 # Singleton approx bad parameters
-expect_warning(qdelap(.05, 0, 1, 2, exact = FALSE), nanWarn)
-expect_warning(qdelap(.05, -2, 1, 2, exact = FALSE), nanWarn)
+expect_warning(qdelap(0.05, 0, 1, 2, exact = FALSE), nanWarn)
+expect_warning(qdelap(0.05, -2, 1, 2, exact = FALSE), nanWarn)
 expect_warning(qdelap(0.1, 1, 0, 2, exact = FALSE), nanWarn)
 expect_warning(qdelap(0.1, 1, -4e5, 2, exact = FALSE), nanWarn)
 expect_warning(qdelap(1, 1, 4, 0, exact = FALSE), nanWarn)
@@ -52,20 +56,22 @@ expect_error(qdelap(c(0.2, NaN), 2, 3, 4, exact = FALSE), inpErr)
 expect_error(qdelap(c(0.3, NA), 2, 3, 4, exact = FALSE), inpErr)
 
 # Vector exact function accuracy
-expect_equal(qdelap(c(.4, .07), c(1, 2), c(4, 1), c(2, 5)), c(4, 3))
+expect_equal(qdelap(c(0.4, 0.07), c(1, 2), c(4, 1), c(2, 5)), c(4, 3),
+             tolerance = tol)
 
 # Vector exact lower.tail
 expect_equal(qdelap(c(0.49, 0.131), c(4, 1), c(6, 9), c(3, 12),
-                    lower.tail = FALSE), c(25, 31))
+                    lower.tail = FALSE), c(25, 31), tolerance = tol)
 
 # Vector exact log.p
 expect_equal(qdelap(c(-0.9162907318741550, -2.6592600369327779), c(1, 2),
-                    c(4, 1), c(2, 5), log.p = TRUE), c(4, 3))
+                    c(4, 1), c(2, 5), log.p = TRUE), c(4, 3),
+             tolerance = tol)
 
 # Vector exact lower.tail & log.p
 expect_equal(qdelap(c(-0.69895775020315487, -1.98413706125967337), c(4, 1),
                     c(6, 9), c(3, 12), lower.tail = FALSE, log.p = TRUE),
-             c(25, 31))
+             c(25, 31), tolerance = tol)
 
 # Vector exact bad parameters
 t2 <- 1:2 / 10
@@ -83,7 +89,7 @@ expect_warning(qdelap(t3 / 10, c(6, 1, 2), c(1, 4, 2), c(1, 2, -1)), nanWarn)
 expect_warning(qdelap(c(-1, 3), c(1, 3), 1, 6), nanWarn)
 expect_warning(qdelap(c(NA, 4), c(1, 3), 1, 6), nanWarn)
 expect_warning(qdelap(c(5, NaN), c(1, 3), 1, 6), nanWarn)
-  
+
 # Vector approx bad parameters
 t2 <- 1:2 / 10
 t3 <- 1:3 / 10
@@ -102,7 +108,7 @@ expect_error(qdelap(t3 / 10, c(6, 1, 2), c(1, 4, 2), c(1, 2, -1),
 expect_error(qdelap(c(-1, 3), c(1, 3), 1, 6, exact = FALSE), inpErr)
 expect_error(qdelap(c(NA, 4), c(1, 3), 1, 6, exact = FALSE), inpErr)
 expect_error(qdelap(c(5, NaN), c(1, 3), 1, 6, exact = FALSE), inpErr)
-  
+
 # Singleton Inf
 expect_true(is.infinite(qdelap(1, 3, 1, 2)))
 expect_true(is.infinite(qdelap(1, 3, 1, 2, exact = FALSE)))
@@ -125,8 +131,8 @@ expect_warning(qdelap(0.1, 1, 0, 3, exact = FALSE), nanWarn)
 expect_warning(qdelap(0.1, 1, 2, -3, exact = FALSE), nanWarn)
 
 # Approximate throws error when parameter vectors are passed
-expect_error(qdelap(c(.4, .07), c(1, 2), c(4, 1), c(2, 5), exact = FALSE),
-             'Quantile approximation relies on pooling')
+expect_error(qdelap(c(0.4, 0.07), c(1, 2), c(4, 1), c(2, 5), exact = FALSE),
+             "Quantile approximation relies on pooling")
 
 # Non-double parameters converted
-expect_equal(qdelap(0.25, 1L, 2L, 3L), qdelap(0.25, 1, 2, 3))
+expect_equal(qdelap(0.25, 1L, 2L, 3L), qdelap(0.25, 1, 2, 3), tolerance = tol)

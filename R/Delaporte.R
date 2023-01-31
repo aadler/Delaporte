@@ -15,14 +15,14 @@ pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE) {
   # These interrupts throw errors even using expect_error. Excluding for now
   # nocov start
   if (any(q[is.finite(q)] >= 2^63)) {
-    stop('Function cannot handle values >= 2^63')
+    stop("Function cannot handle values >= 2^63")
   }
   if (any(q[is.finite(q)] >= 2^15)) {
     cat("There are values >= 32768.",
         "This may take minutes if not hours to compute. Are you sure?\n")
-    resp <- readline('Press "y" to continue.\n')
-    if (tolower(resp) != 'y') {
-      cat('Stopping\n')
+    resp <- readline("Press 'y' to continue.\n")
+    if (tolower(resp) != "y") {
+      cat("Stopping\n")
       return(invisible(NULL))
     }
   }
@@ -33,7 +33,8 @@ pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE) {
         as.double(lambda), lt_f, lp_f)
 }
 
-qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exact = TRUE) {
+qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE,
+                   exact = TRUE) {
   p <- as.double(p)
   alpha <- as.double(alpha)
   beta <- as.double(beta)
@@ -45,9 +46,9 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exa
   } else {
     if (length(alpha) > 1 || length(beta) > 1 || length(lambda) > 1 ||
         any(is.nan(p)) || anyNA(p)) {
-      stop(paste('Quantile approximation relies on pooling and is not accurate',
-                 'when passed vector-valued parameters, NaNs, or NAs.',
-                 'Please use exact version.'))
+      stop("Quantile approximation relies on pooling and is not accurate when",
+           "passed vector-valued parameters, NaNs, or NAs. Please use exact",
+           "version.")
     }
     if (any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0)) {
       QDLAP <- rep.int(NaN, length(p))
@@ -59,22 +60,22 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exa
       p0 <- p[p == 0]
       pInf <- p[p >= 1]
       n <- min(10 ^ (ceiling(log(alpha * beta + lambda, 10)) + 5), 1e7)
-      ShiftedGammas <- rgamma(n, shape = alpha, scale = beta)
-      DP <- rpois(n, lambda = (ShiftedGammas + lambda))
-      QValid <- as.vector(quantile(DP, pValid, na.rm = TRUE, type = 8))
-      QNeg <- rep.int(NaN, times = length(pNeg))
-      Q0 <- rep.int(0, times = length(p0))
-      QInf <- rep.int(Inf, times = length(pInf))
-      QDLAP <- as.vector(c(QNeg, Q0, QValid, QInf), mode = 'double')
+      shiftedGammas <- rgamma(n, shape = alpha, scale = beta)
+      DP <- rpois(n, lambda = (shiftedGammas + lambda))
+      qValid <- as.vector(quantile(DP, pValid, na.rm = TRUE, type = 8))
+      qNeg <- rep.int(NaN, times = length(pNeg))
+      q0 <- rep.int(0, times = length(p0))
+      qInf <- rep.int(Inf, times = length(pInf))
+      QDLAP <- as.vector(c(qNeg, q0, qValid, qInf), mode = "double")
     }
   }
-  if (any(is.nan(QDLAP))) warning('NaNs produced')
+  if (any(is.nan(QDLAP))) warning("NaNs produced")
   return(QDLAP)
 }
 
 rdelap <- function(n, alpha, beta, lambda, exact = TRUE) {
   if (n < 0) {
-    stop('invalid arguments')
+    stop("invalid arguments")
   }
   n <- as.integer(n)
   alpha <- as.double(alpha)
@@ -84,25 +85,25 @@ rdelap <- function(n, alpha, beta, lambda, exact = TRUE) {
     if (any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0)) {
       RDLAP <- (rep.int(NaN, n))
     } else {
-      ShiftedGammas <- rgamma(n, shape = alpha, scale = beta)
-      RDLAP <- rpois(n, lambda = (ShiftedGammas + lambda))
+      shiftedGammas <- rgamma(n, shape = alpha, scale = beta)
+      RDLAP <- rpois(n, lambda = (shiftedGammas + lambda))
     }
   } else {
     RDLAP <- .Call(rdelap_C, n, alpha, beta, lambda)
   }
-  if (any(is.nan(RDLAP))) warning('NaNs produced')
+  if (any(is.nan(RDLAP))) warning("NaNs produced")
   return(RDLAP)
 }
 
-MoMdelap <- function(x, type = 2L) {
+MoMdelap <- function(x, type = 2L) { #nolint
   type <- as.integer(type)
-  if (!(type %in% c(1L, 2L, 3L))) stop('Skew type must be one of 1, 2, or 3.')
-  MoMDLAP <- .Call(MoMdelap_C, as.double(x), type)
-  if (any(MoMDLAP <= 0)) {
-    stop(paste("Method of moments not appropriate for this data;",
-               "results include non-positive parameters."))
+  if (!(type %in% c(1L, 2L, 3L))) stop("Skew type must be one of 1, 2, or 3.")
+  moMDLAP <- .Call(MoMdelap_C, as.double(x), type)
+  if (any(moMDLAP <= 0)) {
+    stop("Method of moments not appropriate for this data; results include ",
+         "non-positive parameters.")
   }
-  return(MoMDLAP)
+  return(moMDLAP)
 }
 
 .onUnload <- function(libpath) {

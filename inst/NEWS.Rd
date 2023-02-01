@@ -10,6 +10,7 @@
       \item Updated help documentation
       \item Updated Github actions
       \item Updated internal code to be more compliant with personal style guide
+      \item Updated CITATION to use \code{bibentry} per CRAN request
     }
   }
   \subsection{Removed}{

@@ -2,6 +2,14 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
+\section{Version 8.1.1 (2023-06-19)}{
+  \subsection{Changed}{
+    \itemize{
+      \item Removed \code{-std=f2008} on the advice of Professor Ripley
+    }
+  }
+}
+
 \section{Version 8.1.0 (2023-02-01)}{
   \subsection{Changed}{
     \itemize{

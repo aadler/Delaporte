@@ -10,5 +10,5 @@ bibentry(bibtype     = "Manual",
          year         = "2013",
          url          = "https://CRAN.R-project.org/package=Delaporte",
          doi          = "10.5281/zenodo.5880051",
-         note         = "R package version 8.1.0"
+         note         = "R package version 8.1.1"
 )

@@ -2,6 +2,15 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
+\section{Version 8.1.2 (2023-08-07)}{
+  \subsection{Changed}{
+    \itemize{
+      \item Changed Fortran suffix to \code{.f90} for better compatibility with
+      the Intel Fortran compiler, per CRAN.
+    }
+  }
+}
+
 \section{Version 8.1.1 (2023-06-19)}{
   \subsection{Changed}{
     \itemize{

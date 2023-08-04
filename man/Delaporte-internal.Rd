@@ -1,6 +1,9 @@
+% Copyright (c) 2013, Avraham Adler All rights reserved
+% SPDX-License-Identifier: BSD-2-Clause
+
 \name{Delaporte-internal}
 
-%% These are the internal C functions called by the package
+% These are the internal C functions called by the package
 \alias{ddelap_C}
 \alias{pdelap_C}
 \alias{qdelap_C}

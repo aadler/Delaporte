@@ -1,3 +1,6 @@
+# Copyright (c) 2013, Avraham Adler All rights reserved
+# SPDX-License-Identifier: BSD-2-Clause
+
 tol <- 5e-4
 nanWarn <- "NaNs produced"
 nlErr <- "invalid arguments"

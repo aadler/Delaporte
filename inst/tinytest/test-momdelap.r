@@ -1,3 +1,6 @@
+# Copyright (c) 2013, Avraham Adler All rights reserved
+# SPDX-License-Identifier: BSD-2-Clause
+
 tol <- 1e-12
 testData <- c(5, 7, 9, 9, 10, 11, 11, 13, 17, 24)
 inapp <- paste("Method of moments not appropriate for this data;",

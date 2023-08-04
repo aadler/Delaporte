@@ -1,3 +1,6 @@
+% Copyright (c) 2013, Avraham Adler All rights reserved
+% SPDX-License-Identifier: BSD-2-Clause
+
 \name{Delaporte-package}
 \alias{Delaporte-package}
 \docType{package}

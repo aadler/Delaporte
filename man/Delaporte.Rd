@@ -1,3 +1,6 @@
+% Copyright (c) 2013, Avraham Adler All rights reserved
+% SPDX-License-Identifier: BSD-2-Clause
+
 \name{Delaporte}
 \alias{Delaporte}
 \alias{delaporte}
@@ -8,12 +11,14 @@
 \alias{MoMdelap}
 \title{The Delaporte Distribution}
 \description{
-Density, distribution, quantile, random variate generation, and method of moments parameter estimation functions for the Delaporte distribution with parameters \code{alpha}, \code{beta}, and \code{lambda}. 
+Density, distribution, quantile, random variate generation, and method of
+moments parameter estimation functions for the Delaporte distribution with
+parameters \code{alpha}, \code{beta}, and \code{lambda}. 
 }
 \usage{
 ddelap(x, alpha, beta, lambda, log = FALSE)
 pdelap(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE)
-qdelap(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exact=TRUE)
+qdelap(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE, exact = TRUE)
 rdelap(n, alpha, beta, lambda, exact = TRUE)
 
 MoMdelap(x, type = 2L)

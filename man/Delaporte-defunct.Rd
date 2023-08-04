@@ -1,3 +1,6 @@
+% Copyright (c) 2013, Avraham Adler All rights reserved
+% SPDX-License-Identifier: BSD-2-Clause
+
 \name{Delaporte-defunct}
 \alias{Delaporte-defunct}
 \title{Defunct functions in package \sQuote{Delaporte}}

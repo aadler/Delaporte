@@ -9,7 +9,15 @@
   \subsection{Changed}{
     \itemize{
       \item Changed Fortran suffix to \code{.f90} for better compatibility with
-      the Intel Fortran compiler, per CRAN.
+      the Intel Fortran compiler, per \acronym{CRAN}.
+      \item Tweaked minor linting and documentation issues.
+      \item Explicitly enumerated exports instead of using wide-ranging regex.
+    }
+  }
+  \subsection{Added}{
+    \itemize{
+      \item Added \acronym{SPDX} head to more files.
+      \item Added more unit tests.
     }
   }
 }
@@ -25,20 +33,21 @@
 \section{Version 8.1.0 (2023-02-01)}{
   \subsection{Changed}{
     \itemize{
-      \item Fortran source code now reliant on Fortran 2008
-      \item Fortran module ieee_arithmetic used
-      \item Updated help documentation
-      \item Updated Github actions
-      \item Updated internal code to be more compliant with personal style guide
-      \item Updated CITATION to use \code{bibentry} per CRAN request
+      \item Fortran source code now reliant on Fortran 2008.
+      \item Fortran module \code{ieee_arithmetic} used.
+      \item Updated help documentation.
+      \item Updated Github actions.
+      \item Updated internal code to be more compliant with personal style guide.
+      \item Updated CITATION to use \code{bibentry} per \acronym{CRAN} request.
     }
   }
   \subsection{Removed}{
     \itemize{
-      \item \code{gamln} replaced with Fortran 2008 \code{log_gamma}
-      \item \code{position} replaced with Fortran \code{minloc}
-      \item \code{set_nan} & \code{set_inf} replaced with ieee_arithmetic calls
-      \item Checks for \code{NaN} now use ieee_arithmetic calls
+      \item \code{gamln} replaced with Fortran 2008 \code{log_gamma}.
+      \item \code{position} replaced with Fortran \code{minloc}.
+      \item The \code{set_nan} and \code{set_inf} procedures were replaced with
+      \code{ieee_arithmetic} calls.
+      \item Checks for \code{NaN} now use \code{ieee_arithmetic} calls.
     }
   }
 }
@@ -46,8 +55,8 @@
 \section{Version 8.0.3 (2022-09-05)}{
   \subsection{Changed}{
     \itemize{
-      \item Updated package with information necessary to acheive OpenSSF silver
-      status
+      \item Updated package with information necessary to acheive
+      \acronym{OpenSSF} silver status.
     }
   }
 }
@@ -55,14 +64,14 @@
 \section{Version 8.0.2 (2021-01-20)}{
   \subsection{Changed}{
     \itemize{
-      \item Converted unit testing framework to \code{tinytest} to reduce
-      dependencies
-      \item Augmented citation with DOI and CFF file
+      \item Converted unit testing framework to \pkg{tinytest} to reduce
+      dependencies.
+      \item Augmented citation with \acronym{DOI} and \acronym{CFF} file.
     }
   }
   \subsection{Fixed}{
     \itemize{
-      \item Corrected help file
+      \item Corrected help file.
     }
   }
 }
@@ -70,13 +79,14 @@
 \section{Version 8.0.1 (2021-01-10)}{
   \subsection{Removed}{
     \itemize{
-      \item Removed SIMD calls added in 8.0.0 due to Solaris.
-      \item Removed LTO mentions from Makevars added in 8.0.0 per Brian Ripley.
+      \item Removed \acronym{SIMD} calls added in 8.0.0 due to Solaris.
+      \item Removed \acronym{LTO} mentions from Makevars added in 8.0.0 per
+      Brian Ripley.
     }
   }
   \subsection{Changed}{
     \itemize{
-      \item Pass more R-consistent error messages.
+      \item Pass more \R-consistent error messages.
       \item Made more robust to improper inputs such as negative, \code{NA}, or
       \code{NaN} parameters or passed values.
       \item R versions of \code{qdelap} and \code{rdelap} behave more like the
@@ -93,23 +103,26 @@
       \item Handling of \code{Inf} and \code{-Inf} now more in line with R
       defaults for d/p/q/r functions.
       \item Parameter errors now check for \eqn{< 0} instead of \code{< EPS}.
-      \item \code{ddelap} and \code{pdelap} now use 8-byte integers (INT64) for
-      their counters so allow calculation for values up to \eqn{2^63}.
+      \item \code{ddelap} and \code{pdelap} now use 8-byte integers
+      (\acronym{INT64}) for their counters which allows calculation for values
+      up to \eqn{2^{63}}{2^63}.
       \itemize{
-        \item \code{ddelap} will return 0 for all values \eqn{> 2^63} under the
-        assumption that the pmf is spread too thinly.
-        \item \code{pdelap} will not run for values \eqn{> 2^63}.
+        \item \code{ddelap} will return 0 for all values \eqn{> 2^{63}}{> 2^63}
+        under the assumption that the \acronym{PMF} is spread too thinly.
+        \item \code{pdelap} will not run for values \eqn{> 2^{63}}{> 2^63}.
         \item \code{ddelap} of \code{Inf} returns 0 and \code{pdelap} of
         \code{Inf} returns 1.
       }
-      \item \code{pdelap} gives a warning for finite values \eqn{> 2^15} as,
-      dependning on the parameters, this may take hours to finish (it's a double
-      summation!). The user has to respond with 'y' for it to continue.
+      \item \code{pdelap} gives a warning for finite values
+      \eqn{> 2^{15}}{> 2^15} as, depending on the parameters, this may take
+      hours to finish (it's a double summation!). The user has to respond with
+      \kbd{y} to continue.
       \item Updated help and tests.
-      \item Allow compiler to use OpenMP SIMD constructs.
-      \item Allow using \code{LTO}.
-      \item Switched CI from Travis/Appveyor to Github actions (thanks to Jim
-      Hester for his help in fixing the coverage check issue).
+      \item Allow compiler to use OpenMP \acronym{SIMD} constructs.
+      \item Allow using \acronym{LTO}.
+      \item Switched continuous integration from Travis/Appveyor to Github
+      actions (thanks to Jim Hester for his help in fixing the coverage check
+      issue).
     }
   }
 }
@@ -117,7 +130,7 @@
 \section{Version 7.0.5 (2020-11-10)}{
   \subsection{Fixed}{
     \itemize{
-      \item Corrected CRAN requests.
+      \item Corrected \acronym{CRAN} requests.
       \item Cleaned up NEWS.
     }
   }
@@ -126,14 +139,14 @@
 \section{Version 7.0.4 (2020-11-08)}{
   \subsection{Changed}{
     \itemize{
-      \item Converted tests to be compliant with \code{testthat}: 3rd edition.
+      \item Converted tests to be compliant with \pkg{testthat}: 3rd edition.
       \item Cleaned up prose.
     }
   }
   \subsection{Added}{
     \itemize{
       \item Added a citation to DESCRIPTION.
-      \item Added a test to get codecov to 100\%.
+      \item Added a test to increase code coverage.
     }
   }
 }
@@ -143,15 +156,16 @@
     \itemize{
       \item CITATION file.
       \item Explicit citation information to README.
-      \item Travis, AppVeyor, and CodeCov Integration.
-      \item Added \code{R_forceSymbols(dll, TRUE)} to source per WRE 5.4.
+      \item Travis, AppVeyor, and CodeCov integration.
+      \item Added \code{R_forceSymbols(dll, TRUE)} to source per \acronym{WRE}
+      5.4.
       \item Tests for package versioning.
     }
   }
   \subsection{Changed}{
     \itemize{
       \item Moved canonical repository to Github.
-      \item Use FFLAGS instead of FCFLAGS in Makevars.
+      \item Use \code{FFLAGS} instead of \code{FCFLAGS} in Makevars.
     }
   }
   \subsection{Removed}{
@@ -173,7 +187,8 @@
 \section{Version 7.0.1 (2019-04-26)}{
   \subsection{Changed}{
     \itemize{
-      \item Makevars adjusted by CRAN to prevent issues with parallel make.
+      \item Makevars adjusted by \acronym{CRAN} to prevent issues with parallel
+      make.
     }
   }
 }
@@ -181,11 +196,11 @@
 \section{Version 7.0.0 (2019-02-12)}{
   \subsection{Changed}{
     \itemize{
-      \item Changed Makevars flags and targets and forced dependance on R 3.6+
-      to comply with new CRAN policies on Fortran and OpenMP.
+      \item Changed Makevars flags and targets and forced dependance on \R 3.6+
+      to comply with new \acronym{CRAN} policies on Fortran and OpenMP.
       \item Preventing spurious floating point errors by implementing hard floor
       of 0 and hard ceiling of 1.
-      \item Updated comments in delaporte.f95 source code.
+      \item Updated comments in \file{delaporte.f95} source code.
       \item Changed \code{rdelap} testing to always use a fixed seed.
       \item Documentation cleaned up.
     }
@@ -194,7 +209,7 @@
     \itemize{
       \item Removed the \code{cleanzeros} function.
       \item Removed unneeded Makevars target \code{cleanup}.
-      \item Removed GNU-specific Makevars target \code{.NOTPARALLEL}.
+      \item Removed \acronym{GNU}-specific Makevars target \code{.NOTPARALLEL}.
     }
   }
 }
@@ -202,14 +217,14 @@
 \section{Version 6.3.0 (2018-11-21)}{
   \subsection{Added}{
     \itemize{
-      \item Added \code{cleanzeros} function that zaps to 0 any value less or
-      equal to EPS (thanks Kipper Fletez-Brant).
+      \item Added \code{cleanzeros} function that zaps to 0 any value less than
+      or equal to \acronym{EPS} (thanks Kipper Fletez-Brant).
       \item Test for zeros (thanks Kipper Fletez-Brant).
       \item Added items to README to comply with
-      \href{https://bestpractices.coreinfrastructure.org/en}{CII}
+      \href{https://bestpractices.coreinfrastructure.org/en}{\acronym{CII}}
       best practices and added badge.
       \item Added various badges to README.
-      \item Added copyright and license information inside R source code file.
+      \item Added copyright and license information inside \R source code file.
     }
   }
 }
@@ -222,7 +237,7 @@
       (thanks to William Cipolli for the suggestion). Skew defaults to former
       selection so there should be no change to any values.
       \item Tests added for all three skewness variants.
-      \item ORCID added to author description.
+      \item \acronym{ORCID} added to author description.
       \item Copyright date corrected to reflect actual copyright and not date of
       licensure change.
       }
@@ -251,14 +266,14 @@
   \subsection{Changed}{
     \itemize{
       \item In the continued struggle to have the package pass all its tests on
-      Solaris SPARC, all logicals needing to be passed to Fortran are now passed
-      as integers and not booleans. While all other platforms had no problem
-      using Fortran 2003's ISO_C_bindings, Solaris SPARC did.
+      Solaris \acronym{SPARC}, all logicals needing to be passed to Fortran are
+      now passed as integers and not booleans. While all other platforms had no
+      problem using Fortran 2003's ISO_C_bindings, Solaris \acronym{SPARC} did.
     }
   }
   \subsection{Added}{
     \itemize{
-      \item Added note to README about Solaris SPARC.
+      \item Added note to README about Solaris \acronym{SPARC}.
       \item More tests including for singleton approximate \code{qdelap}.
     }
   }  
@@ -274,9 +289,9 @@
   \subsection{Changed}{
     \itemize{
       \item Solaris, being big-endian, appears unable to use the same bit-mask
-      transfer for `NaN` and INF as any other R platform. Therefore, the package
-      has to revert to calling C to call the R magic words which should
-      recognize the platform.
+      transfer for \code{NaN} and \code{Inf} as any other \R platform.
+      Therefore, the package has to revert to calling C to call the \R magic
+      words which should recognize the platform.
     }
   }
 }
@@ -284,19 +299,20 @@
 \section{Version 5.0.0 (2017-03-05)}{
   \subsection{Changed}{
     \itemize{
-      \item Changed handling of non-integers to be in line with R convention
+      \item Changed handling of non-integers to be in line with \R convention
       that they have 0 probability instead of being considered the next integer.
       \code{ddelap} will return 0 for each non-integral value and will pass one
-      warning, unlike base R which passes one warning per non-integral value.
+      warning, unlike base \R which passes one warning per non-integral value.
       \code{qdelap} will just return the value for the last integer and no
-      warnings, similar to base R.
-      \item Use bit-representation of NaN and INF to remove need to call C for
-      setting these values. This allows the log-gamma, and singleton d/p/qdelap
-      functions to be elemental.
-      \item Changed registration of the C SEXP functions seen by the package to
-      use \code{R_CallMethodDef} as now preferred by CRAN.
-      \item Explicitly listed the five C SEXP functions seen by the package as
-      R_RegisterCCallable for potential downstream package use.
+      warnings, similar to base \R.
+      \item Use bit-representation of \code{NaN} and \code{Inf} to remove need
+      to call C for setting these values. This allows the log-gamma and
+      singleton d/p/qdelap functions to be elemental.
+      \item Changed registration of the C \acronym{SEXP} functions seen by the
+      package to use \code{R_CallMethodDef} as now preferred by \acronym{CRAN}.
+      \item Explicitly listed the five C \acronym{SEXP} functions seen by the
+      package as \code{R_RegisterCCallable} for potential downstream package
+      use.
       \item Corrected some prose in documentation page.
       \item Older NEWS entries refactored for accuracy.
     }
@@ -304,7 +320,7 @@
   \subsection{Fixed}{
     \itemize{
       \item Explicitly cast \code{n} as an integer in loggamma routine. This
-      should suppress warning on OSX mavericks.
+      should suppress warning on \acronym{OSX} mavericks.
     }
   }
   \subsection{Removed}{
@@ -315,7 +331,7 @@
       may remove the \code{.Defunct} calls and the references to the old version
       in the documentation.
       \item Removed \code{colClasses = 'double'} from tests. This should solve
-      Sun Sparc issues (It didn't).
+      Sun \acronym{SPARC} issues (It didn't).
     }
   }
   \subsection{Added}{
@@ -328,15 +344,16 @@
 \section{Version 4.0.3 (2017-01-30)}{
   \subsection{Changed}{
     \itemize{
-      \item Back end code ported from C++ & Rcpp to Fortran and C. In most cases
-      this alone showed an increase in speed. There should be no noticeable
-      difference in results. Random numbers generated with the same seeds should
-      be the same as in previous packages.
+      \item Back end code ported from C++ & \pkg{Rcpp} to Fortran and C. In
+      most cases this alone showed an increase in speed. There should be no
+      noticeable difference in results. Random numbers generated with the same
+      seeds should be the same as in previous packages.
       \item OpenMP calls activated for systems which have it which allows
       parallel processing of certain loops resulting in further speed increases
       over and above those supplied by Fortran. OpenMP compatibility is
-      approximately version 3.1; no SIMD instructions are used.
-      \item License changed from GPL2+/LGPL3+ to BSD-2 clause.
+      approximately version 3.1; no \acronym{SIMD} instructions are used.
+      \item License changed from \acronym{GPL2+/LGPL3+} to \acronym{BSD-2}
+      clause.
     }
   }
   \subsection{Fixed}{
@@ -373,8 +390,8 @@
       machine epsilon). Within vectors, valid triplets should still return
       proper values. The approximate versions of \code{qdelap} and \code{rdelap}
       do not handle 0 properly, and an error is thrown directing the user to the
-      exact version. Thanks are due to Jonathan Cairns and Jin-Rui Xu for their
-      help in testing.
+      exact version (thanks are due to Jonathan Cairns and Jin-Rui Xu for their
+      help in testing).
       }
     }
   \subsection{Added}{
@@ -406,13 +423,13 @@
 \section{Version 2.3.0 (2016-06-02)}{
   \subsection{Deprecated}{
     \itemize{
-      \item In the next release (\strong{3.0.0}), passing FALSE to \code{exact}
-      in \code{rdelap} and \code{qdelap} will use the method described in
-      section 3.9 of Karlis & Xekalaki (2005) to generate approximately
-      Delaporte random variates much more quickly for large \code{n} and large
-      values of the parameters. However, when implemented, this will break
-      reproducible even for specifically set seeds. The new code is commented
-      out in the function.
+      \item In the next release (\strong{3.0.0}), passing \code{FALSE} to
+      \code{exact} in \code{rdelap} and \code{qdelap} will use the method
+      described in section 3.9 of Karlis & Xekalaki (2005) to generate
+      approximately Delaporte random variates much more quickly for large
+      \code{n} and large values of the parameters. However, when implemented,
+      this will break reproducible even for specifically set seeds. The new code
+      is commented out in the function.
     }
   }
   \subsection{Changed}{
@@ -436,7 +453,7 @@
     \itemize{
       \item Explicitly import code from package \code{\link{stats}}.
       \item Updated code in unit tests to reflect change in
-      \code{\link{testthat}} package (move to \code{expect_equal}).
+      \pkg{testthat} package (move to \code{expect_equal}).
       \item Minor tweaks to prose and grammar and expanded description.
     }
   }
@@ -503,8 +520,8 @@
 \section{Version 2.0-1 (2014-02-05)}{
   \subsection{Changed}{
     \itemize{
-      \item Minor cleanup after Rcpp update (remove Makevar files; tweak
-      documentation).
+      \item Minor cleanup after \pkg{Rcpp} update (remove \file{Makevar} files
+      and tweak documentation).
     }
   }
 }
@@ -512,9 +529,9 @@
 \section{Version 2.0-0 (2014-02-05)}{
   \subsection{Changed}{
     \itemize{
-      \item Updating for changes made to Rcpp 0.11.0. Previous versions may no
-      longer compile properly and the current version may no longer work with
-      older versions of Rcpp.
+      \item Updating for changes made to \pkg{Rcpp} 0.11.0. Previous versions
+      may no longer compile properly and the current version may no longer work
+      with older versions of \pkg{Rcpp}.
     }
   }
 }
@@ -522,11 +539,11 @@
 \section{Version 1.1-0 (2014-01-17)}{
   \subsection{Changed}{
     \itemize{
-      \item Change \dQuote{Depends} to \dQuote{LinkingTo} in line with CRAN
-      philosophy on package dependencies.
+      \item Change \dQuote{Depends} to \dQuote{LinkingTo} in line with
+      \acronym{CRAN} philosophy on package dependencies.
       \item Update documentation to give rough estimate as to when
-      \dQuote{exact = FALSE} should be used (rarely).
-      \item Have R code be written in a consistent style.
+      \code{exact = FALSE} should be used (rarely).
+      \item Have \R code be written in a consistent style.
     }
   }
 }
@@ -534,7 +551,7 @@
 \section{Version 1.0-1 (2013-09-01)}{
   \subsection{Changed}{
     \itemize{
-      \item Update README now that CRAN uses it as well.
+      \item Update README now that \acronym{CRAN} uses it as well.
       \item Minor grammar and typography tweaks to documentation.
     }
   }
@@ -554,7 +571,7 @@
   \subsection{Added}{
     \itemize{
       \item Converted NEWS to NEWS.Rd.
-      \item Added repository and bug report URL to DESCRIPTION.
+      \item Added repository and bug report \acronym{URL} to DESCRIPTION.
     }
   }  
   \subsection{Fixed}{

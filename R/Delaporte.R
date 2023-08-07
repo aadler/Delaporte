@@ -106,9 +106,11 @@ MoMdelap <- function(x, type = 2L) { #nolint
   return(moMDLAP)
 }
 
+# nocov start
 .onUnload <- function(libpath) {
-  library.dynam.unload("Delaporte", libpath) # nocov
+  library.dynam.unload("Delaporte", libpath)
 }
+
 
 limitCores <- function(ncores) {
   if (missing(ncores)) ncores <- getOption("Ncpus", 2L)
@@ -118,3 +120,4 @@ limitCores <- function(ncores) {
               is.numeric(ncores) || is.character(ncores))
   Sys.setenv("OMP_NUM_THREADS" = as.integer(ncores))
 }
+# nocov end

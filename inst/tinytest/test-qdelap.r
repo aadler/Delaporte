@@ -1,6 +1,8 @@
 # Copyright (c) 2013, Avraham Adler All rights reserved
 # SPDX-License-Identifier: BSD-2-Clause
 
+Delaporte:::limitCores(2L)
+
 tol <- 1e-12
 nanWarn <- "NaNs produced"
 inpErr <- "Quantile approximation relies on pooling"

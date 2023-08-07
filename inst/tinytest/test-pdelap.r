@@ -1,6 +1,8 @@
 # Copyright (c) 2013, Avraham Adler All rights reserved
 # SPDX-License-Identifier: BSD-2-Clause
 
+Delaporte:::limitCores(2L)
+
 tol <- sqrt(.Machine$double.eps)
 VAL <- data.frame(read.csv(file = file.path(".", "RawTest.csv"), header = TRUE))
 nanWarn <- "NaNs produced"

@@ -1,3 +1,3 @@
 useDynLib(Delaporte, .registration = TRUE)
 export("ddelap", "pdelap", "qdelap", "rdelap", "MoMdelap")
-importFrom(stats, rpois, quantile, rgamma)
+importFrom(stats, rpois, quantile, rgamma, na.omit)

@@ -39,7 +39,8 @@ MoMdelap(x, type = 2L)
     Must be strictly positive, but need not be integer.}
   \item{log, log.p}{logical; if TRUE, probabilities p are given as log(p).}
   \item{lower.tail}{logical; if TRUE (default), probabilities are
-    \eqn{P[X \le x]}, otherwise, \eqn{P[X > x]}.}
+    \eqn{P\left[X \le x\right]}{P[X \le x]}, otherwise,
+    \eqn{P\left[X > x\right]}{P[X > x]}.}
   \item{exact}{logical; if TRUE uses double summation to generate quantiles or
   random variates. Otherwise uses Poisson-negative binomial approximation.}
   \item{type}{integer; 1L will return \strong{g1}, 2L will return \strong{G1},
@@ -53,7 +54,10 @@ Alternatively, it can be considered a counting distribution with both Poisson
 and negative binomial components. The Delaporte's probability mass function,
 called via \code{ddelap}, is:
 
-  \deqn{p(n) = \sum_{i=0}^n\frac{\Gamma(\alpha+i)\beta^i\lambda^{n-i}e^{-\lambda}}{\Gamma(\alpha) i! (1+\beta)^{\alpha+i}(n-i)!}}{p(n) = \sum (i=0:n) [\Gamma(\alpha+i) \beta^i \lambda^(n-i) exp(-\lambda)] / [\Gamma(\alpha) i! (1+\beta)^(\alpha+i) (n-i)!]}
+  \deqn{p(n) = \sum_{i=0}^n\frac{\Gamma(\alpha+i)\beta^i\lambda^{n-i}
+  e^{-\lambda}}{\Gamma(\alpha) i! (1+\beta)^{\alpha+i}(n-i)!}}{p(n) =
+  \sum (i=0:n) [\Gamma(\alpha+i) \beta^i \lambda^(n-i) exp(-\lambda)] /
+  [\Gamma(\alpha) i! (1+\beta)^(\alpha+i) (n-i)!]}
 
 for \eqn{n = 0, 1, 2, \ldots}; \eqn{\alpha, \beta, \lambda > 0}.
   
@@ -63,52 +67,57 @@ with a warning.
 The Delaporte's cumulative distribution function, \code{pdelap}, is calculated
 through double summation:
 
-  \deqn{CDF(n) = \sum_{j=0}^n \sum_{i=0}^j\frac{\Gamma(\alpha+i)\beta^i\lambda^{j-i}e^{-\lambda}}{\Gamma(\alpha)i!(1+\beta)^{\alpha+i}(j-i)!}}{CDF(n) = \sum(j=0:n) \sum(i=0:j) [\Gamma(\alpha+i) \beta^i \lambda^(j-i) exp(-\lambda)] / [\Gamma(\alpha) i! (1+\beta)^(\alpha+i) (j-i)!]}
+  \deqn{CDF(n) = \sum_{j=0}^n \sum_{i=0}^j\frac{\Gamma(\alpha+i)\beta^i
+  \lambda^{j-i}e^{-\lambda}}{\Gamma(\alpha)i!(1+\beta)^{\alpha+i}(j-i)!}}{
+  CDF(n) = \sum(j=0:n) \sum(i=0:j) [\Gamma(\alpha+i) \beta^i \lambda^(j-i)
+  exp(-\lambda)] / [\Gamma(\alpha) i! (1+\beta)^(\alpha+i) (j-i)!]}
 
-for \eqn{n = 0, 1, 2, \ldots}; \eqn{\alpha, \beta, \lambda > 0}. If only
-singleton values for the parameters are passed in, the function uses a shortcut.
-It identifies the largest value passed to it, computes a vector of CDF values
-for all integers up to and including that value, and reads the remaining results
-from this vector. This requires only one double summation instead of
-\code{length(q)} such summations. If at least one of the parameters is itself a
-vector of length greater than 1, the function has to build the double summation
-for each entry in \eqn{q}.
+for \eqn{n = 0, 1, 2, \ldots}; \eqn{\alpha, \beta, \lambda > 0}.
 
-\code{ddelap} will return 0 for all values \eqn{> 2^{31}} whereas \code{pdelap}
-will not run at all, due to the limitations of integer representation. Also,
-for values \eqn{> 2^{15}}, \code{pdelap} will ask for positive input from the user
-to continue, as otherwise, depending on the parameters, the function can take
-hours to complete given its double-summation nature.
+If only singleton values for the parameters are passed in, the function uses a
+shortcut. It identifies the largest value passed to it, computes a vector of
+\acronym{CDF} values for all integers up to and including that value, and reads
+the remaining results from this vector. This requires only one double summation
+instead of \code{length(q)} such summations. If at least one of the parameters
+is itself a vector of length greater than 1, the function has to build the
+double summation for each entry in \eqn{q}.
+
+\code{ddelap} will return 0 for all values \eqn{> 2^{31}}{> 2^31} whereas
+\code{pdelap} will not run at all, due to the limitations of integer
+representation. Also, for values \eqn{> 2^{15}}{> 2^14}, \code{pdelap} will ask
+for positive input from the user to continue, as otherwise, depending on the
+parameters, the function can take hours to complete given its double-summation
+nature.
   
 The quantile function, \code{qdelap}, is right continuous:
 \code{qdelap(q, alpha, beta, lambda)} is the smallest integer \eqn{x} such that
-\eqn{P(X \le x) \ge q}. This has function has two versions. When
-\code{exact = TRUE}, the function builds a CDF vector and the first value for
-which the CDF is greater than or equal to \eqn{q} is returned as the quantile.
-While this procedure is accurate, for sufficiently large \eqn{\alpha, \beta},
-or \eqn{\lambda} it can take a very long time. Therefore, when dealing with
-singleton parameters, \code{exact = FALSE} can be passed to take advantage of
-the Delaporte's definition as a counting distribution with both a Poisson and a
-negative binomial component. Based on Karlis & Xekalaki (2005) it will generate
-\eqn{n} gamma variates \eqn{\Gamma} with shape \eqn{\alpha} and scale
-\eqn{\beta} and then \eqn{n} pseudo-Delaporte variates as Poisson random
-variables with parameter \eqn{\lambda + \Gamma}, finally calling the
-\code{\link{quantile}} function on the result. The \dQuote{exact} method is
-always more accurate and is also significantly faster for reasonable values of
-the parameters. Also, the \dQuote{exact} method must be used when passing
-parameter vectors, as the pooling would become intractable. Ad-hoc testing
-indicates that the \dQuote{exact} method should always be used until
-\eqn{\alpha\beta + \lambda \approx 2500}{\alpha\beta + \lambda ~ 2500}. Both
-versions return \code{NaN} for quantiles \eqn{< 0}, \eqn{0} for quantiles
-\eqn{= 0}, and \code{Inf} for quantiles \eqn{\ge 1}.
+\eqn{P(X \le x) \ge q}. This function has two versions. When
+\code{exact = TRUE}, the function builds a \acronym{CDF} vector and the first
+value for which the \acronym{CDF} is greater than or equal to \eqn{q} is
+returned as the quantile. While this procedure is accurate, for sufficiently
+large \eqn{\alpha, \beta}, or \eqn{\lambda} it can take a very long time.
+Therefore, when dealing with singleton parameters, \code{exact = FALSE} can be
+passed to take advantage of the Delaporte's definition as a counting
+distribution with both a Poisson and a negative binomial component. Based on
+Karlis & Xekalaki (2005) it will generate \eqn{n} gamma variates \eqn{\Gamma}
+with shape \eqn{\alpha} and scale \eqn{\beta} and then \eqn{n} pseudo-Delaporte
+variates as Poisson random variables with parameter \eqn{\lambda + \Gamma},
+finally calling the \code{\link{quantile}} function on the result.
+The \dQuote{exact} method is always more accurate and is also significantly
+faster for reasonable values of the parameters. Also, the \dQuote{exact} method
+\emph{must} be used when passing parameter vectors, as the pooling would become
+intractable. Ad-hoc testing indicates that the \dQuote{exact} method should be
+used until \eqn{\alpha\beta + \lambda \approx 2500}{\alpha\beta +
+\lambda ~ 2500}. Both versions return \code{NaN} for quantiles \eqn{< 0},
+\eqn{0} for quantiles \eqn{= 0}, and \code{Inf} for quantiles \eqn{\ge 1}.
   
 The random variate generator, \code{rdelap}, also has multiple versions. When
 \code{exact = TRUE}, it uses inversion by creating a vector of \eqn{n}
 uniformly distributed random variates between \eqn{0} and \eqn{1}. If all the
-parameters are singletons, a single CDF vector is constructed as per the
-quantile function, and the entries corresponding to the uniform variates are
+parameters are singletons, a single \acronym{CDF} vector is constructed as per
+the quantile function, and the entries corresponding to the uniform variates are
 read off of the constructed vector. If the parameters are themselves vectors,
-then it passes the entire uniform variate vector to \code{qdelap}, which is
+it then passes the entire uniform variate vector to \code{qdelap}, which is
 slower. When \code{exact = FALSE}, regardless of the length of the parameters,
 it generates \eqn{n} gamma variates \eqn{\Gamma} with shape \eqn{\alpha} and
 scale \eqn{\beta} and then \eqn{n} pseudo-Delaporte variates as Poisson random

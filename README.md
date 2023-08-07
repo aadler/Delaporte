@@ -2,10 +2,10 @@
 [![](https://www.r-pkg.org/badges/version-last-release/Delaporte)](https://cran.r-project.org/package=Delaporte)
 [![](http://cranlogs.r-pkg.org/badges/last-month/Delaporte)](https://cran.r-project.org/package=Delaporte)
 [![](https://cranlogs.r-pkg.org/badges/grand-total/Delaporte)](https://cran.r-project.org/package=Delaporte)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5880051.svg)](https://doi.org/10.5281/zenodo.5880051)
-[![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/2011/badge)](https://bestpractices.coreinfrastructure.org/projects/2011)
 [![R-CMD-check](https://github.com/aadler/Delaporte/workflows/R-CMD-check/badge.svg)](https://github.com/aadler/Delaporte/actions)
 [![Codecov test coverage](https://codecov.io/gh/aadler/Delaporte/branch/master/graph/badge.svg)](https://app.codecov.io/gh/aadler/Delaporte?branch=master)
+[![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/2011/badge)](https://bestpractices.coreinfrastructure.org/projects/2011)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5880051.svg)](https://doi.org/10.5281/zenodo.5880051)
 <!-- badges: end -->
 
 # Delaporte
@@ -100,7 +100,7 @@ the lead maintainer.
 ### Expectations
 This package is a calculation engine and requires no secrets or private
 information. It is checked for memory leaks prior to releases to CRAN using
-ASAN/UBSBAN. Dissemination is handled by CRAN. Bugs are reported via the tracker
+ASAN/UBSAN. Dissemination is handled by CRAN. Bugs are reported via the tracker
 and handled as soon as possible.
 
 ### Assurance

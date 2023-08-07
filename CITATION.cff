@@ -34,7 +34,7 @@ preferred-citation:
   year: '2013'
   url: https://CRAN.R-project.org/package=Delaporte
   doi: 10.5281/zenodo.5880051
-  notes: R package version 8.1.1
+  notes: R package version 8.1.2
 repository: https://CRAN.R-project.org/package=Delaporte
 repository-code: https://github.com/aadler/Delaporte
 url: https://github.com/aadler/Delaporte

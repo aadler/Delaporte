@@ -1,7 +1,8 @@
 # Copyright (c) 2013, Avraham Adler All rights reserved
 # SPDX-License-Identifier: BSD-2-Clause
 
-Delaporte:::limitCores(2L)
+# For CRAN
+setThreads(2L)
 
 tol <- sqrt(.Machine$double.eps)
 nonIntErr <- "Non-integers passed to ddelap. These will have 0 probability."

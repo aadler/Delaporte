@@ -8,8 +8,8 @@
 \section{Version 8.2.0 (2023-08-08)}{
   \subsection{Added}{
     \itemize{
-      \item Added \code{getThreads} and \code{setThreads} to explicitly control
-      OpenMP thread usage based on
+      \item Added \code{getDelapThreads} and \code{setDelapThreads} to
+      explicitly control OpenMP thread usage based on
       \href{https://cran.r-project.org/doc/manuals/R-exts.html#OpenMP-support}{
       WRE 1.2.1.1}.
       \item Added \acronym{SPDX} head to more files.

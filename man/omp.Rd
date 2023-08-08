@@ -38,9 +38,9 @@ allowed threads.
  \code{\link[parallel]{detectCores}} in \pkg{parallel} package.
 }
 \examples{
-getThreads()
-setThreads(2L)
-getThreads()
+getDelapThreads()
+setDelapThreads(2L)
+getDelapThreads()
 }
 
 \keyword{data}

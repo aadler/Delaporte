@@ -92,8 +92,9 @@ contains
     subroutine gOMPT_f(n) bind(C, name="gOMPT_f_")
     
     integer(kind = c_int), intent(out) :: n
-    n = 1_c_int
-    !$ n = omp_get_max_threads()
+    
+        n = 1_c_int
+        !$ n = omp_get_max_threads()
     
     end subroutine gOMPT_f
     
@@ -107,7 +108,8 @@ contains
     subroutine sOMPT_f(n) bind(C, name="sOMPT_f_")
     
     integer(kind = c_int), intent(in) :: n
-    !$ call omp_set_num_threads(n)
+    
+        !$ call omp_set_num_threads(n)
     
     end subroutine sOMPT_f    
 

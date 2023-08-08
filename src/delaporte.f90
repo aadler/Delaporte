@@ -135,7 +135,7 @@ contains
     real(kind = c_double), intent(out), dimension(nx):: pmfv
     real(kind = c_double), intent(in)                :: a(na), b(nb), l(nl)
     integer(kind = c_int), intent(in)                :: lg, threads
-    integer                                          :: i, j
+    integer                                          :: i
     
         !$omp parallel do num_threads(threads) default(shared) private(i) &
         !$omp schedule(static)

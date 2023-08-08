@@ -54,7 +54,7 @@ This project attempts to follow [Semantic Versioning](https://semver.org/).
 
 ### Changelog
 This project attempts to follow the changelog system at
-[Keep a CHANGELOG](https://keepachangelog.com/).
+[Keep a Changelog](https://keepachangelog.com/).
 
 ### Dependencies
 This project intends to have as few dependencies as possible. Please consider

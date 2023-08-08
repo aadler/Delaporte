@@ -169,8 +169,7 @@ distributions.
 
   Joanes, D. N. and Gill, C. A. (1998) Comparing Measures of Sample Skewness and
   Kurtosis. \emph{Journal of the Royal Statistical Society. Series D
-  (The Statistician)} \bold{47}(1), 183--189.
-  \url{https://www.jstor.org/stable/2988433}
+  (The Statistician)} \bold{47}(1), 183--189. \doi{10.1111/1467-9884.00122}
   
   Johnson, N. L., Kemp, A. W. and Kotz, S. (2005)
   \emph{Univariate discrete distributions} (Third ed.). John Wiley & Sons.
@@ -181,7 +180,7 @@ distributions.
   \url{https://projecteuclid.org/euclid.isr/1112304811}
 
   Vose, D. (2008) \emph{Risk analysis: a quantitative guide} (Third, illustrated
-  ed.). John Wiley & Sons. pp. 618--619 ISBN 978-0-470-51284-5
+  ed.). John Wiley & Sons. pp. 618--619. ISBN 978-0-470-51284-5
 }  
 
 \seealso{

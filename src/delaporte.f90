@@ -32,9 +32,11 @@
 !                       once current oldrelease gets deprecated and min GCC
 !                       version is > 5. Using iso_fortran_env for INT64 to allow
 !                       wider domain for d/pdelap.
-!          Version 2.1: 2023-01-29
+!          Version 3.0: 2023-01-29
 !                       Updated to rely on Fortran 2008 intrinsics and use
-!                       ieee_artithmetic.                
+!                       ieee_artithmetic.
+!          Version 4.0: 2023-08-08
+!                       Added OpenMP thread control functionality
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -65,7 +67,7 @@ module delaporte
     use, intrinsic :: iso_c_binding
     use, intrinsic :: iso_fortran_env
     use, intrinsic :: ieee_arithmetic
-    !$use omp_lib
+    !$ use omp_lib
     use utils
 
     implicit none
@@ -125,17 +127,18 @@ contains
 !              summation loop. 
 !-------------------------------------------------------------------------------
 
-    subroutine ddelap_f(x, nx, a, na, b, nb, l, nl, lg, pmfv) &
+    subroutine ddelap_f(x, nx, a, na, b, nb, l, nl, lg, threads, pmfv) &
                bind(C, name="ddelap_f_")
                         
     integer(kind = c_int), intent(in), value         :: nx, na, nb, nl
     real(kind = c_double), intent(in), dimension(nx) :: x
     real(kind = c_double), intent(out), dimension(nx):: pmfv
     real(kind = c_double), intent(in)                :: a(na), b(nb), l(nl)
-    integer(kind = c_int), intent(in)                :: lg
-    integer                                          :: i
-
-        !$omp parallel do default(shared) private(i) schedule(static)
+    integer(kind = c_int), intent(in)                :: lg, threads
+    integer                                          :: i, j
+    
+        !$omp parallel do num_threads(threads) default(shared) private(i) &
+        !$omp schedule(static)
         do i = 1, nx
             pmfv(i) = ddelap_f_s(x(i), a(mod(i - 1, na) + 1), &
             b(mod(i - 1, nb) + 1), l(mod(i - 1, nl) + 1))
@@ -201,14 +204,14 @@ contains
 !              hard ceiling of 1 to prevent spurious floating point errors.
 !-------------------------------------------------------------------------------
 
-    subroutine pdelap_f(q, nq, a, na, b, nb, l, nl, lt, lg, pmfv) &
+    subroutine pdelap_f(q, nq, a, na, b, nb, l, nl, lt, lg, threads, pmfv) &
                bind(C, name="pdelap_f_")
                         
     integer(kind = c_int), intent(in), value         :: nq, na, nb, nl
     real(kind = c_double), intent(in), dimension(nq) :: q
     real(kind = c_double), intent(out), dimension(nq):: pmfv
     real(kind = c_double), intent(in)                :: a(na), b(nb), l(nl)
-    integer(kind = c_int), intent(in)                :: lg, lt
+    integer(kind = c_int), intent(in)                :: lg, lt, threads
     real(kind = c_double), allocatable, dimension(:) :: singlevec
     integer                                          :: i, k
 
@@ -218,7 +221,8 @@ contains
         if (na > 1 .or. nb > 1 .or. nl > 1 .or. minval(q) < ZERO .or. &
             maxval(q) > REAL(MAXVECSIZE, c_double) &
             .or. any(ieee_is_nan(q))) then
-            !$omp parallel do default(shared) private(i) schedule(static)
+            !$omp parallel do num_threads(threads) default(shared) private(i) &
+            !$omp schedule(static)
                 do i = 1, nq
                     pmfv(i) = pdelap_f_s(q(i), a(mod(i - 1, na) + 1), &
                     b(mod(i - 1, nb) + 1), l(mod(i - 1, nl) + 1))
@@ -304,14 +308,14 @@ contains
 !              calling q_delap_f_s on each entry.
 !-------------------------------------------------------------------------------
 
-    subroutine qdelap_f(p, np, a, na, b, nb, l, nl, lt, lg, obsv) &
+    subroutine qdelap_f(p, np, a, na, b, nb, l, nl, lt, lg, threads, obsv) &
                bind(C, name="qdelap_f_")
 
     integer(kind = c_int), intent(in), value           :: np, na, nb, nl
     real(kind = c_double), intent(inout), dimension(np):: p
     real(kind = c_double), intent(out), dimension(np)  :: obsv
     real(kind = c_double), intent(in)                  :: a(na), b(nb), l(nl)
-    integer(kind = c_int), intent(in)                  :: lg, lt
+    integer(kind = c_int), intent(in)                  :: lg, lt, threads
     real(kind = c_double), allocatable, dimension(:)   :: svec, tvec
     real(kind = c_double)                              :: x
     integer                                            :: i
@@ -356,7 +360,8 @@ contains
                 deallocate(svec)
             end if
         else
-            !$omp parallel do default(shared) private(i) schedule(static)
+            !$omp parallel do num_threads(threads) default(shared) private(i) &
+            !$omp schedule(static)
             do i = 1, np
                 obsv(i) = qdelap_f_s(p(i), a(mod(i - 1, na) + 1), &
                                      b(mod(i - 1, nb) + 1), &
@@ -385,7 +390,8 @@ contains
 !              uses the trick for a net speedup. Only rdelap suffers slightly.
 !-------------------------------------------------------------------------------
 
-    subroutine rdelap_f(n, a, na, b, nb, l, nl, vars) bind(C, name="rdelap_f_")
+    subroutine rdelap_f(n, a, na, b, nb, l, nl, threads, vars) &
+               bind(C, name="rdelap_f_")
 
     external unifrnd
 
@@ -393,12 +399,12 @@ contains
     real(kind = c_double), intent(out), dimension(n)   :: vars
     real(kind = c_double), intent(in)                  :: a(na), b(nb), l(nl)
     real(kind = c_double), dimension(n)                :: p
-    integer(kind = c_int)                              :: lg, lt
+    integer(kind = c_int)                              :: lg, lt, threads
 
         call unifrnd(n, p)
         lt = 1_c_int
         lg = 0_c_int
-        call qdelap_f(p, n, a, na, b, nb, l, nl, lt, lg, vars)
+        call qdelap_f(p, n, a, na, b, nb, l, nl, lt, lg, threads, vars)
 
     end subroutine rdelap_f
 

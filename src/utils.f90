@@ -18,8 +18,10 @@
 !                       Cleanzeros removed in favor of floor & ceiling of 0 & 1
 !          Version 1.5: 2021-01-03
 !                       Added parameter for pdelap max vector size
-!          Version 1.6: 2023-01-29
+!          Version 2.0: 2023-01-29
 !                       Updated to rely on Fortran 2008 intrinsics
+!          Version 2.1: 2023-08-08
+!                       Added OpenMP control functions
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -47,8 +49,9 @@
 !-------------------------------------------------------------------------------
 
 module utils
-    use, intrinsic :: iso_c_binding, only: c_double
+    use, intrinsic :: iso_c_binding
     use, intrinsic :: iso_fortran_env
+    !$ use omp_lib
     implicit none
 
     real(kind = c_double), parameter :: ZERO = 0._c_double
@@ -76,8 +79,36 @@ contains
         real(kind = c_double) :: y, z
 
         z = x + ONE
-        y = log(z) - ((z - ONE) - x) / z   !Eliminates catastrophic subtraction
+        y = log(z) - ((z - ONE) - x) / z   ! Eliminates catastrophic subtraction
 
     end function log1p
+    
+!-------------------------------------------------------------------------------
+! FUNCTION: gOMPT
+!
+! DESCRIPTION: Gets current OMP Threads
+!-------------------------------------------------------------------------------
+
+    subroutine gOMPT_f(n) bind(C, name="gOMPT_f_")
+    
+    integer(kind = c_int), intent(out) :: n
+    n = 1_c_int
+    !$ n = omp_get_max_threads()
+    
+    end subroutine gOMPT_f
+    
+    
+!-------------------------------------------------------------------------------
+! FUNCTION: sOMPT
+!
+! DESCRIPTION: Sets current OMP Threads
+!-------------------------------------------------------------------------------
+
+    subroutine sOMPT_f(n) bind(C, name="sOMPT_f_")
+    
+    integer(kind = c_int), intent(in) :: n
+    !$ call omp_set_num_threads(n)
+    
+    end subroutine sOMPT_f    
 
 end module utils

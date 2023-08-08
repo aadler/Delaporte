@@ -8,7 +8,8 @@ ddelap <- function(x, alpha, beta, lambda, log = FALSE) {
     warning("Non-integers passed to ddelap. These will have 0 probability.")
   }
   if (log) log_f <- 1L else log_f <- 0L
-  .Call(ddelap_C, x, as.double(alpha), as.double(beta), as.double(lambda), log_f)
+  .Call(ddelap_C, x, as.double(alpha), as.double(beta), as.double(lambda),
+        log_f, getThreads())
 }
 
 pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE) {
@@ -30,7 +31,7 @@ pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE) {
   if (lower.tail) lt_f <- 1L else lt_f <- 0L
   if (log.p) lp_f <- 1L else lp_f <- 0L
   .Call(pdelap_C, as.double(q), as.double(alpha), as.double(beta),
-        as.double(lambda), lt_f, lp_f)
+        as.double(lambda), lt_f, lp_f, getThreads())
 }
 
 qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE,
@@ -42,7 +43,7 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE,
   if (exact) {
     if (lower.tail) lt_f <- 1L else lt_f <- 0L
     if (log.p) lp_f <- 1L else lp_f <- 0L
-    QDLAP <- .Call(qdelap_C, p, alpha, beta, lambda, lt_f, lp_f)
+    QDLAP <- .Call(qdelap_C, p, alpha, beta, lambda, lt_f, lp_f, getThreads())
   } else {
     if (length(alpha) > 1 || length(beta) > 1 || length(lambda) > 1 ||
           any(is.nan(p)) || anyNA(p)) {
@@ -89,7 +90,7 @@ rdelap <- function(n, alpha, beta, lambda, exact = TRUE) {
       RDLAP <- rpois(n, lambda = (shiftedGammas + lambda))
     }
   } else {
-    RDLAP <- .Call(rdelap_C, n, alpha, beta, lambda)
+    RDLAP <- .Call(rdelap_C, n, alpha, beta, lambda, getThreads())
   }
   if (any(is.nan(RDLAP))) warning("NaNs produced")
   return(RDLAP)
@@ -105,19 +106,3 @@ MoMdelap <- function(x, type = 2L) { #nolint
   }
   return(moMDLAP)
 }
-
-# nocov start
-.onUnload <- function(libpath) {
-  library.dynam.unload("Delaporte", libpath)
-}
-
-
-limitCores <- function(ncores) {
-  if (missing(ncores)) ncores <- getOption("Ncpus", 2L)
-  ompcores <- as.integer(Sys.getenv("OMP_THREAD_LIMIT"))
-  ncores <- min(na.omit(c(ncores, ompcores)))
-  stopifnot("The 'ncores' argument must be numeric or character" =
-              is.numeric(ncores) || is.character(ncores))
-  Sys.setenv("OMP_NUM_THREADS" = as.integer(ncores))
-}
-# nocov end

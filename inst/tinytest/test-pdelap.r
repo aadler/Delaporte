@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 # For CRAN
-setThreads(2L)
+setDelapThreads(2L)
 
 tol <- sqrt(.Machine$double.eps)
 VAL <- data.frame(read.csv(file = file.path(".", "RawTest.csv"), header = TRUE))

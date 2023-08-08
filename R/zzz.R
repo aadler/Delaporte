@@ -7,7 +7,7 @@
 
 .onDetach <- function(libpath) {
   # Restore reasonable option and remove holding variable
-  setThreads(getOption("DLPCPU"))
+  setDelapThreads(getOption("DLPCPU"))
   options("DLPCPU" = NULL)
 }
 

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 # For CRAN
-setThreads(2L)
+setDelapThreads(2L)
 
 tol <- sqrt(.Machine$double.eps)
 nonIntErr <- "Non-integers passed to ddelap. These will have 0 probability."

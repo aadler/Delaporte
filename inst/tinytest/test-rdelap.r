@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 # For CRAN
-setThreads(2L)
+setDelapThreads(2L)
 
 tol <- 5e-4
 nanWarn <- "NaNs produced"

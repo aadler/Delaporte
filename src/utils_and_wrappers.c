@@ -29,7 +29,7 @@
 
 void F77_NAME(gOMPT_f)(int *ret);
 
-extern SEXP gOMPT_C(){
+extern SEXP gOMPT_C(void){
   SEXP ret;
   PROTECT(ret = allocVector(INTSXP, 1));
   F77_CALL(gOMPT_f)(INTEGER(ret));

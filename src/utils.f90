@@ -69,18 +69,21 @@ contains
 !-------------------------------------------------------------------------------
 ! FUNCTION: log1p
 !
-! DESCRIPTION: Fortran 2008 does not have log1p as an intrinsic. This serves as
-!              such.
+! DESCRIPTION: Fortran 2008 does not have log1p as an intrinsic. This uses the
+!              Taylor expansion for small x to reduce relative error.
 !-------------------------------------------------------------------------------
 
     elemental function log1p(x) result(y)
 
         real(kind = c_double), intent(in) :: x
-        real(kind = c_double) :: y, z
+        real(kind = c_double) :: y
 
-        z = x + ONE
-        y = log(z) - ((z - ONE) - x) / z   ! Eliminates catastrophic subtraction
-
+        if (abs(x) <= 1.e-4_c_double) then
+            y = (-x * HALF + ONE) * x
+        else
+            y = log(x + ONE)
+        end if
+            
     end function log1p
     
 !-------------------------------------------------------------------------------

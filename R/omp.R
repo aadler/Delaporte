@@ -9,7 +9,7 @@ getDelapThreads <- function() {
 setDelapThreads <- function(n) {
   n <- as.integer(floor(n))
   if (n <= 0L) {
-    stop("Number of threads must be >= 0.")
+    stop("Number of threads must be > 0.")
   }
   ncpus <- getOption("DLPCPU")
   if (n > ncpus && !is.na(ncpus)) {

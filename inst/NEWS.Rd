@@ -5,6 +5,19 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
+\section{Version 8.2.1 (2023-08-23)}{
+  \subsection{Changed}{
+    \itemize{
+      \item Removed \code{back} keyword from \code{minloc} call in the Fortran
+      implementation of \code{qdelap}. Technically uneeded since its value is
+      the default \code{FALSE} and this allows for systems with only partial
+      implementation of Fortran 2008 to compile (see
+      \href{https://github.com/aadler/Delaporte/issues/3}{Issue 3} and thanks to
+      \href{https://github.com/dpascall}{David Pascall}).
+    }
+  }
+}
+
 \section{Version 8.2.0 (2023-08-08)}{
   \subsection{Added}{
     \itemize{

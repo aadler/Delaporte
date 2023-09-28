@@ -354,7 +354,7 @@ contains
                         obsv(i) = ieee_value(p(i), ieee_positive_inf)
                     else
                         obsv(i) = real(minloc(svec, dim = 1, &
-                            mask = svec >= p(i), back = .FALSE.) - 1)
+                            mask = svec >= p(i)) - 1)
                     end if
                 end do
                 deallocate(svec)

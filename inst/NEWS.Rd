@@ -21,6 +21,7 @@
       \href{https://github.com/dpascall}{David Pascall}).
       \item Correct error message of \code{setDelapThreads} to reflect that
       setting threadcount to 0 is also an error. Functionality has not changed.
+      \item Tweaked documentation for clarity.
     }
   }
 }

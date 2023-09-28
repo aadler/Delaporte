@@ -1,23 +1,22 @@
 % Copyright (c) 2023, Avraham Adler All rights reserved
 % SPDX-License-Identifier: BSD-2-Clause
 
-\name{getDelapThreads}
-\alias{getDelapThreads}
+\name{setDelapThreads}
 \alias{setDelapThreads}
+\alias{getDelapThreads}
 \alias{openMP}
 \alias{openmp}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Set or get number of OpenMP threads \pkg{Delaporte} should use
+Set or get the number of OpenMP threads \pkg{Delaporte} should use
 }
 \description{
-Set and get number OpenMP threads to be used in \pkg{Delaporte} functions which
+Set or get number OpenMP threads to be used by \pkg{Delaporte} functions which
 are parallelized. These include \code{ddelap}, \code{pdelap}, \code{qdelap}, and
 \code{rdelap}.
 }
 \usage{
-getDelapThreads()
 setDelapThreads(n)
+getDelapThreads()
 }
 \arguments{
   \item{n}{integer: maximum number of threads to be used.}

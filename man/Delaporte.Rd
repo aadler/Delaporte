@@ -47,6 +47,7 @@ MoMdelap(x, type = 2L)
   and 3L will return \strong{b1}, as per \code{\link[e1071]{skewness}}.}
 }
 \details{
+\subsection{Definition}{
 The Delaporte distribution with parameters \eqn{\alpha}, \eqn{\beta}, and
 \eqn{\lambda} is a discrete probability distribution which can be considered the
 convolution of a negative binomial distribution with a Poisson distribution.
@@ -81,14 +82,17 @@ the remaining results from this vector. This requires only one double summation
 instead of \code{length(q)} such summations. If at least one of the parameters
 is itself a vector of length greater than 1, the function has to build the
 double summation for each entry in \eqn{q}.
-
+}
+\subsection{Distributional Functions}{
+\subsection{Density and Distribution}{
 \code{ddelap} will return 0 for all values \eqn{> 2^{31}}{> 2^31} whereas
 \code{pdelap} will not run at all, due to the limitations of integer
 representation. Also, for values \eqn{> 2^{15}}{> 2^14}, \code{pdelap} will ask
 for positive input from the user to continue, as otherwise, depending on the
 parameters, the function can take hours to complete given its double-summation
 nature.
-  
+}
+\subsection{Quantile}{
 The quantile function, \code{qdelap}, is right continuous:
 \code{qdelap(q, alpha, beta, lambda)} is the smallest integer \eqn{x} such that
 \eqn{P(X \le x) \ge q}. This function has two versions. When
@@ -110,7 +114,8 @@ intractable. Ad-hoc testing indicates that the \dQuote{exact} method should be
 used until \eqn{\alpha\beta + \lambda \approx 2500}{\alpha\beta +
 \lambda ~ 2500}. Both versions return \code{NaN} for quantiles \eqn{< 0},
 \eqn{0} for quantiles \eqn{= 0}, and \code{Inf} for quantiles \eqn{\ge 1}.
-  
+}
+\subsection{Random Variate Generation}{
 The random variate generator, \code{rdelap}, also has multiple versions. When
 \code{exact = TRUE}, it uses inversion by creating a vector of \eqn{n}
 uniformly distributed random variates between \eqn{0} and \eqn{1}. If all the
@@ -124,7 +129,8 @@ scale \eqn{\beta} and then \eqn{n} pseudo-Delaporte variates as Poisson random
 variables with parameter \eqn{\lambda + \Gamma}. As there is no pooling, each
 individual random variate reflects the parameter triplet which generated it. The
 non-inversion method is usually faster.
-
+}
+\subsection{Method of Moments Fitting}{
 \code{MoMdelap} uses the definition of the Delaporte's mean, variance, and skew
 to calculate the method of moments estimates of \eqn{\alpha}, \eqn{\beta}, and
 \eqn{\lambda}, which it returns as a numeric vector. This estimate is also a
@@ -132,11 +138,12 @@ reasonable starting point for maximum likelihood estimation using nonlinear
 optimizers such as \code{\link{optim}} or \code{\link[nloptr]{nloptr}}. If the
 data is clustered near 0, there are times when method of moments would result in
 a non-positive parameter. In these cases \code{MoMdelap} will throw an error.
-For the sample skew, the user has the choice to select \strong{g1}, \strong{G1},
-or \strong{b1} as defined in Joanes & Gill (1997) and found in
-\code{\link[e1071]{skewness}}. The selection defaults to option 2, \strong{G1},
-which Joanes & Gill found to have the least mean-square error for non-normal
-distributions.
+For the sample skew, the user has the choice to select \eqn{g_1}{g1},
+\eqn{G_1}{G1}, or \eqn{b_1}{b1} as defined in Joanes & Gill (1997) and found in
+\code{\link[e1071]{skewness}}. The selection defaults to option 2,
+\eqn{G_1}{G1}, which Joanes & Gill found to have the least mean-square error for
+non-normal distributions.
+}}
 }
 \value{
   \code{ddelap} gives the probability mass function, \code{pdelap} gives the

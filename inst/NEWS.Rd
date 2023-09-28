@@ -5,15 +5,22 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
-\section{Version 8.2.1 (2023-08-23)}{
+\section{Version 8.3.0 (2023-09-28)}{
   \subsection{Changed}{
     \itemize{
+      \item Converted \code{log1p} implementation to one based on its Taylor
+      sequence, instead of catastrophic substitution elimination, as some
+      compilers may optimize out that subtraction. Since any difference in
+      result should be at machine precision or lower, this is considered a
+      minor update.
       \item Removed \code{back} keyword from \code{minloc} call in the Fortran
       implementation of \code{qdelap}. Technically uneeded since its value is
-      the default \code{FALSE} and this allows for systems with only partial
+      the default \code{FALSE}. This allows for systems with an only partial
       implementation of Fortran 2008 to compile (see
       \href{https://github.com/aadler/Delaporte/issues/3}{Issue 3} and thanks to
       \href{https://github.com/dpascall}{David Pascall}).
+      \item Correct error message of \code{setDelapThreads} to reflect that
+      setting threadcount to 0 is also an error. Functionality has not changed.
     }
   }
 }

@@ -23,7 +23,7 @@ If you use the package, please cite it as:
 
   Avraham Adler (2013). Delaporte: Statistical Functions for the Delaporte
   Distribution.
-  R package version 8.2.0.
+  R package version 8.3.0.
   doi: 10.5281/zenodo.5880051
   https://CRAN.R-project.org/package=Delaporte
 
@@ -36,7 +36,7 @@ A BibTeX entry for LaTeX users is:
     year = {2013},
     doi = {10.5281/zenodo.5880051},
     url = {https://CRAN.R-project.org/package=Delaporte},
-    note = {R package version 8.2.0},
+    note = {R package version 8.3.0},
   }
 ```
 

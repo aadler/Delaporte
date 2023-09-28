@@ -22,6 +22,8 @@
 !                       Updated to rely on Fortran 2008 intrinsics
 !          Version 2.1: 2023-08-08
 !                       Added OpenMP control functions
+!          Version 3.0: 2023-09-28
+!                       Converted log1p to one based on its Taylor expansion
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler

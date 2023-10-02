@@ -5,7 +5,7 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
-\section{Version 8.3.0 (2023-09-28)}{
+\section{Version 8.3.0 (2023-10-02)}{
   \subsection{Changed}{
     \itemize{
       \item Converted \code{log1p} implementation to one based on its Taylor

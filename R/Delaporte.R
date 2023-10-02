@@ -47,7 +47,7 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE,
                    getDelapThreads())
   } else {
     if (length(alpha) > 1L || length(beta) > 1L || length(lambda) > 1L ||
-        anyNA(p)) {
+          anyNA(p)) {
       stop("Quantile approximation relies on pooling and is not accurate when",
            "passed vector-valued parameters, NaNs, or NAs. Please use exact",
            "version.")

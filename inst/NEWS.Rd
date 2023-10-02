@@ -26,6 +26,12 @@
       \item Tweaked documentation for clarity.
     }
   }
+  \subsection{Added}{
+    \itemize{
+      \item Added unit test for new \code{log1p} function.
+      \item Added \code{LTO_OPT} and \code{LTO_FC_OPT} flags to \file{Makevars}.
+    }
+  }
 }
 
 \section{Version 8.2.0 (2023-08-08)}{

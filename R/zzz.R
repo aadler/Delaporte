@@ -1,8 +1,9 @@
 # nocov start
 .onLoad <- function(libname, pkgname) {
   # Get reasonable selction for "max" cpus
-  options("DLPCPU" = as.integer(getOption("DLPCPU",
-                                          default = parallel::detectCores())))
+  options("DLPCPU" = as.integer(
+    getOption("DLPCPU", default = parallel::detectCores())
+  ))
 }
 
 .onDetach <- function(libpath) {

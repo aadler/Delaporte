@@ -5,6 +5,16 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
+\section{Version 8.3.1 (2024-01-10)}{
+  \subsection{Changed}{
+    \itemize{
+      \item Refactor \file{README.md} into component \acronym{MD} files for
+      Github purposes.
+      \item Capture and restore original thread count after running tests.
+    }
+  }
+}
+
 \section{Version 8.3.0 (2023-10-02)}{
   \subsection{Changed}{
     \itemize{
@@ -59,7 +69,7 @@
 \section{Version 8.1.1 (2023-06-19)}{
   \subsection{Changed}{
     \itemize{
-      \item Removed \code{-std=f2008} on the advice of Professor Ripley
+      \item Removed \code{-std=f2008} on the advice of Professor Ripley.
     }
   }
 }

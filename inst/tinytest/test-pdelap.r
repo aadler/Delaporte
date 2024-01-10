@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 # For CRAN
+oldThreads <- getDelapThreads()
 setDelapThreads(2L)
 
 tol <- sqrt(.Machine$double.eps)
@@ -91,3 +92,6 @@ expect_true(pdelap(1000, 8, 15, 100) <= 1)
 expect_identical(pdelap(Inf, 1L, 2L, 3L), 1)
 expect_identical(pdelap(c(Inf, Inf), c(1L, 2L), 2L, 3L), c(1, 1))
 expect_warning(pdelap(-Inf, 1L, 2L, 3L), nanWarn)
+
+# Restore original thread count
+setDelapThreads(oldThreads)

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 # For CRAN
+oldThreads <- getDelapThreads()
 setDelapThreads(2L)
 
 tol <- 5e-4
@@ -67,3 +68,6 @@ INTG <- rdelap(3, 1L, 2L, 3L)
 set.seed(17L)
 DOUBL <- rdelap(3, 1, 2, 3)
 expect_equal(INTG, DOUBL, tolerance = 1e-12)
+
+# Restore original thread count
+setDelapThreads(oldThreads)

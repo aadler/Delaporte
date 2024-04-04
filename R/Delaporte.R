@@ -74,7 +74,6 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE,
       }
     }
   }
-  
   if (any(is.nan(QDLAP))) warning("NaNs produced")
   return(QDLAP)
 }
@@ -87,15 +86,15 @@ rdelap <- function(n, alpha, beta, lambda, exact = TRUE) {
   alpha <- as.double(alpha)
   beta <- as.double(beta)
   lambda <- as.double(lambda)
-  if (!exact) {
+  if (exact) {
+    RDLAP <- .Call(rdelap_C, n, alpha, beta, lambda, getDelapThreads())
+  } else {
     if (any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0)) {
       RDLAP <- (rep.int(NaN, n))
     } else {
       shiftedGammas <- rgamma(n, shape = alpha, scale = beta)
       RDLAP <- rpois(n, lambda = (shiftedGammas + lambda))
     }
-  } else {
-    RDLAP <- .Call(rdelap_C, n, alpha, beta, lambda, getDelapThreads())
   }
   if (any(is.nan(RDLAP))) warning("NaNs produced")
   return(RDLAP)

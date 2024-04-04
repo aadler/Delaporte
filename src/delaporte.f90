@@ -36,7 +36,9 @@
 !                       Updated to rely on Fortran 2008 intrinsics and use
 !                       ieee_artithmetic.
 !          Version 4.0: 2023-08-08
-!                       Added OpenMP thread control functionality
+!                       Added OpenMP thread control functionality.
+!          Version 4.1: 2024-04-04
+!                       Use "source" when allocating arrays in qdelap_f.
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler

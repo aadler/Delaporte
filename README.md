@@ -29,14 +29,14 @@ this project.
 
 ## Citation
 If you use the package, please cite it as per
-[CITATION](https://CRAN.R-project.org/package=lamW/citation.html).
+[CITATION](https://CRAN.R-project.org/package=Delaporte/citation.html).
 
 ## Contributions
 Please see
-[CONTRIBUTING](https://github.com/aadler/lamW/blob/master/CONTRIBUTING.md).
+[CONTRIBUTING](https://github.com/aadler/delaporte/blob/master/CONTRIBUTING.md).
 
 ## Security
-Please see [SECURITY](https://github.com/aadler/lamW/blob/master/SECURITY.md).
+Please see [SECURITY](https://github.com/aadler/delaporte/blob/master/SECURITY.md).
 
 ## Roadmap
 ### Major

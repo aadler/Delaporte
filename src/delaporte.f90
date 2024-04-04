@@ -333,15 +333,14 @@ contains
                 obsv = ieee_value(p, ieee_quiet_nan)
             else
                 x = maxval(p, 1, p < 1)
+                allocate(svec(1), source = exp(-l(1)) / ((b(1) + ONE) ** a(1)))
                 i = 1
-                allocate(svec(i))
-                svec(1) = exp(-l(1)) / ((b(1) + ONE) ** a(1))
                 do
                     if (svec(i) >= x) then
                         exit
                     end if
                     i = i + 1
-                    allocate(tvec(1:i))
+                    allocate(tvec(1:i), source = ZERO)
                     tvec(1:i-1) = svec
                     call move_alloc(tvec, svec)
                     svec(i) = svec(i - 1) + ddelap_f_s(real(i - 1, c_double), &

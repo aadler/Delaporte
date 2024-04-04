@@ -40,37 +40,41 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE,
   alpha <- as.double(alpha)
   beta <- as.double(beta)
   lambda <- as.double(lambda)
+  if (lower.tail) lt_f <- 1L else lt_f <- 0L
+  if (log.p) lp_f <- 1L else lp_f <- 0L
   if (exact) {
-    if (lower.tail) lt_f <- 1L else lt_f <- 0L
-    if (log.p) lp_f <- 1L else lp_f <- 0L
     QDLAP <- .Call(qdelap_C, p, alpha, beta, lambda, lt_f, lp_f,
                    getDelapThreads())
   } else {
     if (length(alpha) > 1L || length(beta) > 1L || length(lambda) > 1L ||
           anyNA(p)) {
-      stop("Quantile approximation relies on pooling and is not accurate when",
-           "passed vector-valued parameters, NaNs, or NAs. Please use exact",
-           "version.")
-    }
-    if (any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0)) {
-      QDLAP <- rep.int(NaN, length(p))
+      warning("Quantile approximation relies on pooling and is not accurate ",
+              "when passed vector-valued parameters, NaNs, or NAs. Using ",
+              "exact version instead.")
+      QDLAP <- .Call(qdelap_C, p, alpha, beta, lambda, lt_f, lp_f,
+                     getDelapThreads())
     } else {
-      if (log.p) p <- exp(p)
-      if (!lower.tail) p <- 1 - p
-      pValid <- p[p > 0 & p < 1]
-      pNeg <- p[p < 0]
-      p0 <- p[p == 0]
-      pInf <- p[p >= 1]
-      n <- min(10 ^ (ceiling(log(alpha * beta + lambda, 10)) + 5), 1e7)
-      shiftedGammas <- rgamma(n, shape = alpha, scale = beta)
-      DP <- rpois(n, lambda = (shiftedGammas + lambda))
-      qValid <- as.vector(quantile(DP, pValid, na.rm = TRUE, type = 8))
-      qNeg <- rep.int(NaN, times = length(pNeg))
-      q0 <- rep.int(0, times = length(p0))
-      qInf <- rep.int(Inf, times = length(pInf))
-      QDLAP <- as.vector(c(qNeg, q0, qValid, qInf), mode = "double")
+      if (any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0)) {
+        QDLAP <- rep.int(NaN, length(p))
+      } else {
+        if (log.p) p <- exp(p)
+        if (!lower.tail) p <- 1 - p
+        pValid <- p[p > 0 & p < 1]
+        pNeg <- p[p < 0]
+        p0 <- p[p == 0]
+        pInf <- p[p >= 1]
+        n <- min(10 ^ (ceiling(log(alpha * beta + lambda, 10)) + 5), 1e7)
+        shiftedGammas <- rgamma(n, shape = alpha, scale = beta)
+        DP <- rpois(n, lambda = (shiftedGammas + lambda))
+        qValid <- as.vector(quantile(DP, pValid, na.rm = TRUE, type = 8))
+        qNeg <- rep.int(NaN, times = length(pNeg))
+        q0 <- rep.int(0, times = length(p0))
+        qInf <- rep.int(Inf, times = length(pInf))
+        QDLAP <- as.vector(c(qNeg, q0, qValid, qInf), mode = "double")
+      }
     }
   }
+  
   if (any(is.nan(QDLAP))) warning("NaNs produced")
   return(QDLAP)
 }

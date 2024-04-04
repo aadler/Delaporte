@@ -1,5 +1,5 @@
 # -----------------------------------------------------------
-# CITATION file created with {cffr} R package, v0.5.0
+# CITATION file created with {cffr} R package, v1.0.0
 # See also: https://docs.ropensci.org/cffr/
 # -----------------------------------------------------------
  
@@ -8,7 +8,7 @@ message: 'To cite package "Delaporte" in publications use:'
 type: software
 license: BSD-2-Clause
 title: 'Delaporte: Statistical Functions for the Delaporte Distribution'
-version: 8.3.1
+version: 8.4.0
 doi: 10.5281/zenodo.5880051
 abstract: Provides probability mass, distribution, quantile, random-variate generation,
   and method-of-moments parameter-estimation functions for the Delaporte distribution
@@ -34,11 +34,11 @@ preferred-citation:
   year: '2013'
   url: https://CRAN.R-project.org/package=Delaporte
   doi: 10.5281/zenodo.5880051
-  notes: R package version 8.3.0
+  notes: R package version 8.4.0
 repository: https://CRAN.R-project.org/package=Delaporte
 repository-code: https://github.com/aadler/Delaporte
 url: https://github.com/aadler/Delaporte
-date-released: '2024-01-10'
+date-released: '2024-04-04'
 contact:
 - family-names: Adler
   given-names: Avraham

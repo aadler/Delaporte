@@ -5,12 +5,16 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
-\section{Version 8.3.1 (2024-01-10)}{
+\section{Version 8.4.0 (2024-04-04)}{
   \subsection{Changed}{
     \itemize{
+      \item \code{qdelap} now automatically calls the \code{exact = TRUE}
+      version when passed inappropriate parameters instead of just stopping with
+      an error.
       \item Refactor \file{README.md} into component \acronym{MD} files for
       Github purposes.
       \item Capture and restore original thread count after running tests.
+      \item Efficiency tweaks to underlying Fortran code.
     }
   }
 }

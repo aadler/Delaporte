@@ -89,7 +89,7 @@ contains
 !              1 to prevent spurious floating point errors.
 !-------------------------------------------------------------------------------
 
-    elemental function ddelap_f_s(x, alpha, beta, lambda) result(pmf)
+    pure elemental function ddelap_f_s(x, alpha, beta, lambda) result(pmf)
 
     real(kind = c_double), intent(in)   :: x, alpha, beta, lambda
     real(kind = c_double)               :: pmf, ii, kk
@@ -167,7 +167,7 @@ contains
 !              ceiling of 1 to prevent spurious floating point errors.
 !-------------------------------------------------------------------------------
 
-    elemental function pdelap_f_s(q, alpha, beta, lambda) result(cdf)
+    pure elemental function pdelap_f_s(q, alpha, beta, lambda) result(cdf)
 
     real(kind = c_double)               :: cdf
     real(kind = c_double), intent(in)   :: q, alpha, beta, lambda
@@ -271,7 +271,7 @@ contains
 !              summation. Returns NaN and Inf where appropriate.
 !-------------------------------------------------------------------------------
 
-    elemental function qdelap_f_s(p, alpha, beta, lambda) result(value)
+    pure elemental function qdelap_f_s(p, alpha, beta, lambda) result(value)
 
     real(kind = c_double), intent(in)   :: p, alpha, beta, lambda
     real(kind = c_double)               :: testcdf, value
@@ -414,7 +414,7 @@ contains
 !              https://www.johndcook.com/blog/skewness_kurtosis/
 !-------------------------------------------------------------------------------
 
-    subroutine momdelap_f(obs, n, tp, params) bind(C, name="momdelap_f_")
+    pure subroutine momdelap_f(obs, n, tp, params) bind(C, name="momdelap_f_")
 
     integer(kind = c_int), intent(in), value           :: n
     integer(kind = c_int), intent(in)                  :: tp

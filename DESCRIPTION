@@ -24,3 +24,4 @@ ByteCompile: yes
 NeedsCompilation: yes
 UseLTO: yes
 SystemRequirements: A version of Fortran supporting the LOG_GAMMA Intrinsic
+    and the ieee_arithmetic module.

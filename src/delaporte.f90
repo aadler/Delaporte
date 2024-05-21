@@ -96,8 +96,7 @@ contains
     integer(INT64)                      :: i, k                   
 
         if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. x < ZERO &
-            .or. ieee_is_nan(alpha) .or. ieee_is_nan(beta) .or. &
-            ieee_is_nan(lambda) .or. ieee_is_nan(x)) then
+            .or. ieee_is_nan(alpha + beta + lambda + x)) then
             pmf = ieee_value(x, ieee_quiet_nan)
         else
             pmf = ZERO
@@ -175,8 +174,7 @@ contains
     integer(INT64)                      :: i, k
 
         if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. q < ZERO &
-            .or. ieee_is_nan(alpha) .or. ieee_is_nan(beta) .or. &
-            ieee_is_nan(lambda) .or. ieee_is_nan(q)) then
+            .or. ieee_is_nan(alpha + beta + lambda + q)) then
             cdf = ieee_value(q, ieee_quiet_nan)
         else if (.not. ieee_is_finite(q)) then
             cdf = ONE
@@ -232,8 +230,7 @@ contains
             !$omp end parallel do
         else
             if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO .or. &
-                ieee_is_nan(a(1)) .or. ieee_is_nan(b(1)) .or. &
-                ieee_is_nan(l(1))) then
+                ieee_is_nan(a(1) + b(1) + l(1))) then
                 pmfv = ieee_value(q, ieee_quiet_nan)
             else
                 k = floor(maxval(q))
@@ -280,8 +277,7 @@ contains
     real(kind = c_double)               :: testcdf, value
 
         if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. p < ZERO &
-          .or. ieee_is_nan(alpha) .or. ieee_is_nan(beta) .or. &
-          ieee_is_nan(lambda) .or. ieee_is_nan(p)) then
+          .or. ieee_is_nan(alpha + beta + lambda + p)) then
             value = ieee_value(p, ieee_quiet_nan)
         else if (p >= ONE) then
             value = ieee_value(p, ieee_positive_inf)

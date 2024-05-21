@@ -26,6 +26,8 @@
 !                       Converted log1p to one based on its Taylor expansion.
 !                       This is also the degree 2 polynomial minimax
 !                       approximation.
+!          Version 3.1: 2024-05-21
+!                       Added pure header to log1p.
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -77,7 +79,7 @@ contains
 !              Taylor expansion for small x to reduce relative error.
 !-------------------------------------------------------------------------------
 
-    elemental function log1p(x) result(y)
+    pure elemental function log1p(x) result(y)
 
         real(kind = c_double), intent(in) :: x
         real(kind = c_double) :: y

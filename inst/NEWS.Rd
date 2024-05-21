@@ -5,6 +5,15 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
+\section{Version 8.4.0.9000 (2024-06-30)}{
+  \subsection{Changed}{
+    \itemize{
+      \item Added package metadata tests.
+      \item Updated \file{DESCRIPTION}.
+    }
+  }
+}
+
 \section{Version 8.4.0 (2024-04-04)}{
   \subsection{Changed}{
     \itemize{

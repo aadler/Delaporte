@@ -420,23 +420,23 @@ contains
     integer(kind = c_int), intent(in)                  :: tp
     real(kind = c_double), intent(in), dimension(n)    :: obs
     real(kind = c_double), intent(out), dimension(3)   :: params
-    real(kind = c_double)                              :: nm1, P, Mu_D, M2, M3
-    real(kind = c_double)                              :: T1, delta, delta_i, nr
+    real(kind = c_double)                              :: nnm1, P, Mu_D, M2, M3
+    real(kind = c_double)                              :: T1, delta, delta_i, nn
     real(kind = c_double)                              :: Var_D, Skew_D, VmM_D
     real(kind = c_double)                              :: ii
     integer                                            :: i
 
-        nr = real(n, c_double)
-        nm1 = nr - ONE
+        nn = real(n, c_double)
+        nnm1 = nn - ONE
         select case (tp)
             case (1)
                 P = ONE
             case (2)
-                P = sqrt(nr * nm1) / (nr - TWO)
+                P = sqrt(nn * nnm1) / (nn - TWO)
             case (3)
-                P = (nm1 / nr) ** THREEHALFS
+                P = (nnm1 / nn) ** THREEHALFS
             case default
-                P = sqrt(nr * nm1) / (nr - TWO)
+                P = sqrt(nn * nnm1) / (nn - TWO)
         end select
         Mu_D = ZERO
         M2 = ZERO
@@ -450,8 +450,8 @@ contains
             M3 = M3 + (T1 * delta_i * (ii - TWO) - THREE * delta_i * M2)
             M2 = M2 + T1
         end do
-        Var_D = M2 / nm1
-        Skew_D = P * sqrt(nr) * M3 / (M2 ** THREEHALFS)
+        Var_D = M2 / nnm1
+        Skew_D = P * sqrt(nn) * M3 / (M2 ** THREEHALFS)
         VmM_D = Var_D - Mu_D
         params(2) = HALF * (Skew_D * (Var_D ** THREEHALFS) - Mu_D - THREE &
                             * VmM_D) / VmM_D

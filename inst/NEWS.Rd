@@ -11,6 +11,7 @@
       \item Added package metadata tests.
       \item Updated \file{DESCRIPTION}.
       \item Testing for \code{NaN} within Fortran now more efficient.
+      \item Other minor tweaks in C and Fortran code.
     }
   }
 }

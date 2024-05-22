@@ -29,9 +29,8 @@
 
 void F77_NAME(gOMPT_f)(int *ret);
 
-extern SEXP gOMPT_C(void){
-  SEXP ret;
-  PROTECT(ret = allocVector(INTSXP, 1));
+extern SEXP gOMPT_C(void) {
+  SEXP ret = PROTECT(allocVector(INTSXP, 1));
   F77_CALL(gOMPT_f)(INTEGER(ret));
   UNPROTECT(1);
   return(ret);
@@ -39,7 +38,7 @@ extern SEXP gOMPT_C(void){
 
 void F77_NAME(sOMPT_f)(int *n);
 
-extern SEXP sOMPT_C(SEXP n){
+extern SEXP sOMPT_C(SEXP n) {
   F77_CALL(sOMPT_f)(INTEGER(n));
   return(n);
 }
@@ -48,13 +47,12 @@ void F77_NAME(ddelap_f)(double *x, int nx, double *a, int na, double *b,
               int nb, double *l, int nl, int *lg, int *threads, double *ret);
 
 extern SEXP ddelap_C(SEXP x, SEXP alpha, SEXP beta, SEXP lambda, SEXP lg,
-                     SEXP threads){
+                     SEXP threads) {
   const int nx = LENGTH(x);
   const int na = LENGTH(alpha);
   const int nb = LENGTH(beta);
   const int nl = LENGTH(lambda);
-  SEXP ret;
-  PROTECT(ret = allocVector(REALSXP, nx));
+  SEXP ret = PROTECT(allocVector(REALSXP, nx));
   F77_CALL(ddelap_f)(REAL(x), nx, REAL(alpha), na, REAL(beta), nb, REAL(lambda),
            nl, INTEGER(lg), INTEGER(threads), REAL(ret));
   UNPROTECT(1);
@@ -65,13 +63,12 @@ void F77_NAME(pdelap_f)(double *q, int nq, double *a, int na, double *b, int nb,
               double *l, int nl, int *lt, int *lg, int *threads, double *ret);
 
 extern SEXP pdelap_C(SEXP q, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt,
-                     SEXP lg, SEXP threads){
+                     SEXP lg, SEXP threads) {
   const int nq = LENGTH(q);
   const int na = LENGTH(alpha);
   const int nb = LENGTH(beta);
   const int nl = LENGTH(lambda);
-  SEXP ret;
-  PROTECT(ret = allocVector(REALSXP, nq));
+  SEXP ret = PROTECT(allocVector(REALSXP, nq));
   F77_CALL(pdelap_f)(REAL(q), nq, REAL(alpha), na, REAL(beta), nb, REAL(lambda),
            nl, INTEGER(lt), INTEGER(lg), INTEGER(threads), REAL(ret));
   UNPROTECT(1);
@@ -82,13 +79,12 @@ void F77_NAME(qdelap_f)(double *p, int np, double *a, int na, double *b, int nb,
               double *l, int nl, int *lt, int *lg, int *threads, double *ret);
 
 extern SEXP qdelap_C(SEXP p, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt,
-                     SEXP lg, SEXP threads){
+                     SEXP lg, SEXP threads) {
   const int np = LENGTH(p);
   const int na = LENGTH(alpha);
   const int nb = LENGTH(beta);
   const int nl = LENGTH(lambda);
-  SEXP ret;
-  PROTECT(ret = allocVector(REALSXP, np));
+  SEXP ret = PROTECT(allocVector(REALSXP, np));
   F77_CALL(qdelap_f)(REAL(p), np, REAL(alpha), na, REAL(beta), nb, REAL(lambda),
            nl, INTEGER(lt), INTEGER(lg), INTEGER(threads), REAL(ret));
   UNPROTECT(1);
@@ -98,13 +94,12 @@ extern SEXP qdelap_C(SEXP p, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt,
 void F77_NAME(rdelap_f)(int n, double *a, int na, double *b, int nb, double *l,
               int nl, int *threads, double *ret);
 
-extern SEXP rdelap_C(SEXP n, SEXP alpha, SEXP beta, SEXP lambda, SEXP threads){
+extern SEXP rdelap_C(SEXP n, SEXP alpha, SEXP beta, SEXP lambda, SEXP threads) {
   const int nn = INTEGER(n)[0];
   const int na = LENGTH(alpha);
   const int nb = LENGTH(beta);
   const int nl = LENGTH(lambda);
-  SEXP ret;
-  PROTECT(ret = allocVector(REALSXP, nn));
+  SEXP ret = PROTECT(allocVector(REALSXP, nn));
   F77_CALL(rdelap_f)(nn, REAL(alpha), na, REAL(beta), nb, REAL(lambda), nl,
            INTEGER(threads), REAL(ret));
   UNPROTECT(1);
@@ -113,16 +108,15 @@ extern SEXP rdelap_C(SEXP n, SEXP alpha, SEXP beta, SEXP lambda, SEXP threads){
 
 void F77_NAME(momdelap_f)(double *x, int nx, int *tp, double *ret);
 
-extern SEXP MoMdelap_C(SEXP x, SEXP tp){
+extern SEXP MoMdelap_C(SEXP x, SEXP tp) {
   const int nx = LENGTH(x);
-  SEXP ret;
-  PROTECT(ret = allocVector(REALSXP, 3));
+  SEXP ret = PROTECT(allocVector(REALSXP, 3));
   F77_CALL(momdelap_f)(REAL(x), nx, INTEGER(tp), REAL(ret));
   UNPROTECT(1);
   return(ret);
 }
 
-void F77_SUB(unifrnd) (int *n, double *x){
+void F77_SUB(unifrnd)(int *n, double *x){
   GetRNGstate();
   for (int i = 0; i < *n; ++i){
     *(x + i) = unif_rand();

@@ -54,7 +54,7 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE,
       QDLAP <- .Call(qdelap_C, p, alpha, beta, lambda, lt_f, lp_f,
                      getDelapThreads())
     } else {
-      if (any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0)) {
+      if (alpha <= 0 || beta <= 0 || lambda <= 0) {
         QDLAP <- rep.int(NaN, length(p))
       } else {
         if (log.p) p <- exp(p)

@@ -39,11 +39,13 @@
 !                       Added OpenMP thread control functionality.
 !          Version 4.1: 2024-04-04
 !                       Use "source" when allocating arrays in qdelap_f.
-!          Version 4.2: 2024-06-02
-!                       Use imk helper function. OpenMP is still significantly
-!                       faster than extending parameter vectors and applying
-!                       singleton as it is an elemental function. Also turn
-!                       floating point error clearer into a function.
+!          Version 5.0: 2024-06-02
+!                       OpenMP is still significantly faster than extending
+!                       parameter vectors and applying the elemental singleton
+!                       function. Use imk helper function to calculate position
+!                       for vector recycling. Turn floating point error cleaner
+!                       into a function. Add OpenMP SIMD directives (try again)
+!                       now that Solaris SPARC is a thing of the past.
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -117,7 +119,7 @@ contains
                     - log_gamma(ii + ONE) - (alpha + ii) * log1p(beta) &
                     - log_gamma(kk - ii + ONE))
                 end do
-            pmf = cFPe(pmf)                      ! Clear floating point errors
+            pmf = cFPe(pmf)                       ! Clear floating point errors
             end if
         end if
 
@@ -146,7 +148,7 @@ contains
     integer                                          :: i
     
         !$omp parallel do simd num_threads(threads) default(shared) private(i) &
-        !$omp schedule(static)
+        !$omp schedule(simd:static)
         do i = 1, nx
             pmfv(i) = ddelap_f_s(x(i), a(imk(i, na)), b(imk(i, nb)), &
             l(imk(i, nl)))
@@ -192,7 +194,7 @@ contains
             do i = 1_INT64, k
                 cdf = cdf + ddelap_f_s(real(i, c_double), alpha, beta, lambda)
             end do
-        cdf = cFPe(cdf)                      ! Clear floating point errors
+        cdf = cFPe(cdf)                           ! Clear floating point errors
         end if
 
     end function pdelap_f_s
@@ -224,13 +226,13 @@ contains
     integer                                          :: i, k
 
 ! If there are any complications at all, don't use the fast version. pdelap_f_s
-! and ddelap_f_s are more robust to improper entries
+! and ddelap_f_s are more robust to improper entries.
 
         if (na > 1 .or. nb > 1 .or. nl > 1 .or. minval(q) < ZERO .or. &
             maxval(q) > REAL(MAXVECSIZE, c_double) &
             .or. any(ieee_is_nan(q))) then
             !$omp parallel do simd num_threads(threads) default(shared) &
-            !$omp private(i) schedule(static)
+            !$omp private(i) schedule(simd:static)
                 do i = 1, nq
                     pmfv(i) = pdelap_f_s(q(i), a(imk(i, na)), b(imk(i, nb)), &
                     l(imk(i, nl)))
@@ -253,7 +255,7 @@ contains
                     pmfv(i) = singlevec(k + 1)
                 end do
                 deallocate(singlevec)
-                pmfv = cFPe(pmfv)                ! Clear floating point errors
+                pmfv = cFPe(pmfv)                 ! Clear floating point errors
             end if
         end if
         
@@ -367,7 +369,7 @@ contains
             end if
         else
             !$omp parallel do simd num_threads(threads) default(shared) &
-            !$omp private(i) schedule(static)
+            !$omp private(i) schedule(simd:static)
             do i = 1, np
                 obsv(i) = qdelap_f_s(p(i), a(imk(i, na)), b(imk(i, nb)), &
                           l(imk(i, nl)))

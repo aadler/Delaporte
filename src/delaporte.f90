@@ -175,6 +175,7 @@ contains
 !-------------------------------------------------------------------------------
 
     pure elemental function pdelap_f_s(q, alpha, beta, lambda) result(cdf)
+    !$omp declare simd (pdelap_f_s) inbranch
 
     real(kind = c_double)               :: cdf
     real(kind = c_double), intent(in)   :: q, alpha, beta, lambda
@@ -228,13 +229,13 @@ contains
         if (na > 1 .or. nb > 1 .or. nl > 1 .or. minval(q) < ZERO .or. &
             maxval(q) > REAL(MAXVECSIZE, c_double) &
             .or. any(ieee_is_nan(q))) then
-            !$omp parallel do num_threads(threads) default(shared) private(i) &
-            !$omp schedule(static)
+            !$omp parallel do simd num_threads(threads) default(shared) &
+            !$omp private(i) schedule(static)
                 do i = 1, nq
                     pmfv(i) = pdelap_f_s(q(i), a(imk(i, na)), b(imk(i, nb)), &
                     l(imk(i, nl)))
                 end do
-            !$omp end parallel do
+            !$omp end parallel do simd
         else
             if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO .or. &
                 ieee_is_nan(a(1) + b(1) + l(1))) then
@@ -279,6 +280,7 @@ contains
 !-------------------------------------------------------------------------------
 
     pure elemental function qdelap_f_s(p, alpha, beta, lambda) result(value)
+    !$omp declare simd (qdelap_f_s) inbranch
 
     real(kind = c_double), intent(in)   :: p, alpha, beta, lambda
     real(kind = c_double)               :: testcdf, value
@@ -364,13 +366,13 @@ contains
                 deallocate(svec)
             end if
         else
-            !$omp parallel do num_threads(threads) default(shared) private(i) &
-            !$omp schedule(static)
+            !$omp parallel do simd num_threads(threads) default(shared) &
+            !$omp private(i) schedule(static)
             do i = 1, np
                 obsv(i) = qdelap_f_s(p(i), a(imk(i, na)), b(imk(i, nb)), &
                           l(imk(i, nl)))
             end do
-            !$omp end parallel do
+            !$omp end parallel do simd
         end if
         
     end subroutine qdelap_f

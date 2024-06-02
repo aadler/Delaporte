@@ -84,6 +84,8 @@ contains
 !-------------------------------------------------------------------------------
 
     pure elemental function log1p(x) result(y)
+    !$omp declare simd (log1p) inbranch
+    !$omp declare simd (log1p) notinbranch
 
         real(kind = c_double), intent(in) :: x
         real(kind = c_double) :: y

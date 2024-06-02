@@ -95,6 +95,8 @@ contains
 !-------------------------------------------------------------------------------
 
     pure elemental function ddelap_f_s(x, alpha, beta, lambda) result(pmf)
+    !$omp declare simd (ddelap_f_s) inbranch
+    !$omp declare simd (ddelap_f_s) notinbranch
 
     real(kind = c_double), intent(in)   :: x, alpha, beta, lambda
     real(kind = c_double)               :: pmf, ii, kk
@@ -143,13 +145,13 @@ contains
     integer(kind = c_int), intent(in)                :: lg, threads
     integer                                          :: i
     
-        !$omp parallel do num_threads(threads) default(shared) private(i) &
+        !$omp parallel do simd num_threads(threads) default(shared) private(i) &
         !$omp schedule(static)
         do i = 1, nx
             pmfv(i) = ddelap_f_s(x(i), a(imk(i, na)), b(imk(i, nb)), &
             l(imk(i, nl)))
         end do
-        !$omp end parallel do
+        !$omp end parallel do simd
         
         if (lg == 1) then
             pmfv = log(pmfv)

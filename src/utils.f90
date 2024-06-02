@@ -133,6 +133,8 @@ contains
 !-------------------------------------------------------------------------------
 
     pure elemental function imk(i, k) result(j)
+    !$omp declare simd (imk) inbranch
+    !$omp declare simd (imk) notinbranch
     
     integer(kind = c_int), intent(in) :: i, k
     integer(kind = c_int)             :: j
@@ -148,6 +150,8 @@ contains
 !-------------------------------------------------------------------------------
 
     pure elemental function cFPe(x) result(y)
+    !$omp declare simd (cFPe) inbranch
+    !$omp declare simd (cFPe) notinbranch
     
     real(kind = c_double), intent(in) :: x
     real(kind = c_double)             :: y

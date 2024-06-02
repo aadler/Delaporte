@@ -28,6 +28,10 @@
 !                       approximation.
 !          Version 3.1: 2024-05-21
 !                       Added pure header to log1p.
+!          Version 4.0: 2024-06-02
+!                       Added imk helper function. A smidgen faster—I'm not sure
+!                       why, perhaps due to pre-compilation in module—and easier
+!                       to read.
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -122,4 +126,19 @@ contains
     
     end subroutine sOMPT_f    
 
+!-------------------------------------------------------------------------------
+! FUNCTION: imk
+!
+! DESCRIPTION: Calculates mod(i - 1, k) + 1 for vector recyling
+!-------------------------------------------------------------------------------
+
+    pure elemental function imk(i, k) result(j)
+    
+    integer(kind = c_int), intent(in) :: i, k
+    integer(kind = c_int)             :: j
+    
+        j = mod(i - 1, k) + 1
+    
+    end function imk
+    
 end module utils

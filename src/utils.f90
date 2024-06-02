@@ -31,7 +31,8 @@
 !          Version 4.0: 2024-06-02
 !                       Added imk helper function. A smidgen faster—I'm not sure
 !                       why, perhaps due to pre-compilation in module—and easier
-!                       to read. Also turn FP error cleaning into a function.
+!                       to read. Turn FP error cleaning into a function. Add
+!                       necessary OpenMP SIMD declarations.
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -135,8 +136,8 @@ contains
 !-------------------------------------------------------------------------------
 
     pure elemental function imk(i, k) result(j)
-    !$omp declare simd (imk) inbranch
-    !$omp declare simd (imk) notinbranch
+    !$omp declare simd (imk) inbranch linear(i:1) uniform(k)
+    !$omp declare simd (imk) notinbranch linear(i:1) uniform(k)
     
     integer(kind = c_int), intent(in) :: i, k
     integer(kind = c_int)             :: j

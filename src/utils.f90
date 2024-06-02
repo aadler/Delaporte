@@ -31,7 +31,7 @@
 !          Version 4.0: 2024-06-02
 !                       Added imk helper function. A smidgen faster—I'm not sure
 !                       why, perhaps due to pre-compilation in module—and easier
-!                       to read.
+!                       to read. Also turn FP error cleaning into a function.
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -129,7 +129,7 @@ contains
 !-------------------------------------------------------------------------------
 ! FUNCTION: imk
 !
-! DESCRIPTION: Calculates mod(i - 1, k) + 1 for vector recyling
+! DESCRIPTION: Calculates mod(i - 1, k) + 1 for vector recyling.
 !-------------------------------------------------------------------------------
 
     pure elemental function imk(i, k) result(j)
@@ -140,5 +140,20 @@ contains
         j = mod(i - 1, k) + 1
     
     end function imk
+    
+!-------------------------------------------------------------------------------
+! FUNCTION: clearFPerrors
+!
+! DESCRIPTION: Restricts solutions to [0, 1] and eliminates spurious FP errors.
+!-------------------------------------------------------------------------------
+
+    pure elemental function cFPe(x) result(y)
+    
+    real(kind = c_double), intent(in) :: x
+    real(kind = c_double)             :: y
+    
+        y = max(min(x, ONE), ZERO)
+    
+    end function cFPe
     
 end module utils

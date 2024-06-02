@@ -39,6 +39,11 @@
 !                       Added OpenMP thread control functionality.
 !          Version 4.1: 2024-04-04
 !                       Use "source" when allocating arrays in qdelap_f.
+!          Version 4.2: 2024-06-02
+!                       Use imk helper function. OpenMP is still significantly
+!                       faster than extending parameter vectors and applying
+!                       singleton as it is an elemental function. Also turn
+!                       floating point error clearer into a function.
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -110,7 +115,7 @@ contains
                     - log_gamma(ii + ONE) - (alpha + ii) * log1p(beta) &
                     - log_gamma(kk - ii + ONE))
                 end do
-            pmf = max(min(pmf, ONE), ZERO)        ! Clear floating point errors
+            pmf = cFPe(pmf)                      ! Clear floating point errors
             end if
         end if
 
@@ -141,8 +146,8 @@ contains
         !$omp parallel do num_threads(threads) default(shared) private(i) &
         !$omp schedule(static)
         do i = 1, nx
-            pmfv(i) = ddelap_f_s(x(i), a(mod(i - 1, na) + 1), &
-            b(mod(i - 1, nb) + 1), l(mod(i - 1, nl) + 1))
+            pmfv(i) = ddelap_f_s(x(i), a(imk(i, na)), b(imk(i, nb)), &
+            l(imk(i, nl)))
         end do
         !$omp end parallel do
         
@@ -155,7 +160,7 @@ contains
         end if
         
     end subroutine ddelap_f
-
+    
 !-------------------------------------------------------------------------------
 ! FUNCTION: pdelap_f_s
 !
@@ -184,7 +189,7 @@ contains
             do i = 1_INT64, k
                 cdf = cdf + ddelap_f_s(real(i, c_double), alpha, beta, lambda)
             end do
-        cdf = max(min(cdf, ONE), ZERO)        ! Clear floating point errors
+        cdf = cFPe(cdf)                      ! Clear floating point errors
         end if
 
     end function pdelap_f_s
@@ -224,8 +229,8 @@ contains
             !$omp parallel do num_threads(threads) default(shared) private(i) &
             !$omp schedule(static)
                 do i = 1, nq
-                    pmfv(i) = pdelap_f_s(q(i), a(mod(i - 1, na) + 1), &
-                    b(mod(i - 1, nb) + 1), l(mod(i - 1, nl) + 1))
+                    pmfv(i) = pdelap_f_s(q(i), a(imk(i, na)), b(imk(i, nb)), &
+                    l(imk(i, nl)))
                 end do
             !$omp end parallel do
         else
@@ -245,7 +250,7 @@ contains
                     pmfv(i) = singlevec(k + 1)
                 end do
                 deallocate(singlevec)
-                pmfv = max(min(pmfv, ONE), ZERO) ! Clear floating point errors
+                pmfv = cFPe(pmfv)                ! Clear floating point errors
             end if
         end if
         
@@ -360,9 +365,8 @@ contains
             !$omp parallel do num_threads(threads) default(shared) private(i) &
             !$omp schedule(static)
             do i = 1, np
-                obsv(i) = qdelap_f_s(p(i), a(mod(i - 1, na) + 1), &
-                                     b(mod(i - 1, nb) + 1), &
-                                     l(mod(i - 1, nl) + 1))
+                obsv(i) = qdelap_f_s(p(i), a(imk(i, na)), b(imk(i, nb)), &
+                          l(imk(i, nl)))
             end do
             !$omp end parallel do
         end if

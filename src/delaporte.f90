@@ -259,7 +259,7 @@ contains
         end if
         
         if (lt == 0) then
-            pmfv = ONE - pmfv
+            pmfv = HALF - pmfv + HALF          ! See See dpq.h in R source code
         end if
         
         if (lg == 1) then
@@ -333,7 +333,7 @@ contains
         end if
 
         if (lt == 0) then
-            p = ONE - p
+            p = HALF - p + HALF             ! See See dpq.h in R source code
         end if
 
         if(na == 1 .and. nb == na .and. nl == nb) then

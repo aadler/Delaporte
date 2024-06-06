@@ -5,7 +5,7 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
-\section{Version 8.4.0.9100 (2024-06-30)}{
+\section{Version 8.4.1 (2024-06-06)}{
   \subsection{Added}{
     \itemize{
       \item Once again, try to allow compiler to use OpenMP \acronym{SIMD}
@@ -17,8 +17,7 @@
       \item Added package metadata tests.
       \item Updated \file{DESCRIPTION}.
       \item Testing for \code{NaN} within Fortran now more efficient.
-      \item Other minor tweaks in C and Fortran code for efficiency and 
-      readability.
+      \item Other changes to C and Fortran code for efficiency and readability.
       \item Set up new version of \pkg{rhub} checking.
     }
   }

@@ -151,12 +151,11 @@ contains
         do i = 1, nx
             pmfv(i) = ddelap_f_s(x(i), a(imk(i, na)), b(imk(i, nb)), &
             l(imk(i, nl)))
+            if (lg == 1) then
+                pmfv(i) = log(pmfv(i))
+            end if
         end do
         !$omp end parallel do simd
-        
-        if (lg == 1) then
-            pmfv = log(pmfv)
-        end if
         
         if (any(ieee_is_nan(pmfv))) then
             call rwarn("NaNs produced")

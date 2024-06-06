@@ -39,13 +39,20 @@
 !                       Added OpenMP thread control functionality.
 !          Version 4.1: 2024-04-04
 !                       Use "source" when allocating arrays in qdelap_f.
-!          Version 5.0: 2024-06-02
+!          Version 5.0: 2024-06-06
 !                       OpenMP is still significantly faster than extending
 !                       parameter vectors and applying the elemental singleton
 !                       function. Use imk helper function to calculate position
 !                       for vector recycling. Turn floating point error cleaner
 !                       into a function. Add OpenMP SIMD directives (try again)
-!                       now that Solaris SPARC is a thing of the past.
+!                       now that Solaris SPARC is a thing of the past. Move lt
+!                       and lg for p/delap into existing loops. While elemental
+!                       functions can be even faster than OpenMP loops, they are
+!                       still another loop. Saving the overhead by calling the
+!                       conditionals inside the necessary loops is still faster.
+!                       This is not useful for qdelap as we need to know every
+!                       "real" percentile first. So run those before anything
+!                       else.
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler

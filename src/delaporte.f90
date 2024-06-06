@@ -93,7 +93,10 @@ contains
 !              explicit summation. Follows R convention that real observations
 !              are errors and have 0 probability, so calls floor to build to
 !              the last integer. Implements hard floor of 0 and hard ceiling of
-!              1 to prevent spurious floating point errors.
+!              1 to prevent spurious floating point errors. The single vector
+!              trick from pdelap actually slows ddelap down in almost all case
+!              unless the passed vectors are very close to one another and small
+!              in magnitude, so it is not worth programming for now.
 !-------------------------------------------------------------------------------
 
     pure elemental function ddelap_f_s(x, alpha, beta, lambda) result(pmf)
@@ -206,7 +209,7 @@ contains
 !              up to that point. Building the vector has each succesive value
 !              piggyback off of the prior instead of calling p_delap_f_s each
 !              time which increases the speed dramatically. Once created,
-!              remaining values are simple lookups off of the singlevec vector.
+!              remaining values are simple lookups off of the svec vector.
 !              Otherwise, each entry will need to build its own pmf value by
 !              calling p_delap_f_s on each entry. Implements hard floor of 0 and
 !              hard ceiling of 1 to prevent spurious floating point errors.
@@ -220,7 +223,7 @@ contains
     real(kind = c_double), intent(out), dimension(nq):: pmfv
     real(kind = c_double), intent(in)                :: a(na), b(nb), l(nl)
     integer(kind = c_int), intent(in)                :: lg, lt, threads
-    real(kind = c_double), allocatable, dimension(:) :: singlevec
+    real(kind = c_double), allocatable, dimension(:) :: svec
     integer                                          :: i, k
 
 ! If there are any complications at all, don't use the fast version. pdelap_f_s
@@ -234,35 +237,35 @@ contains
                 do i = 1, nq
                     pmfv(i) = pdelap_f_s(q(i), a(imk(i, na)), b(imk(i, nb)), &
                     l(imk(i, nl)))
+                    if (lt == 0) then
+                        pmfv(i) = HALF - pmfv(i) + HALF ! See See dpq.h in R src
+                    end if
+                    if (lg == 1) then
+                        pmfv(i) = log(pmfv(i))
+                    end if
                 end do
             !$omp end parallel do simd
+        else if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO .or. &
+                 ieee_is_nan(a(1) + b(1) + l(1))) then
+            pmfv = ieee_value(q, ieee_quiet_nan)
         else
-            if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO .or. &
-                ieee_is_nan(a(1) + b(1) + l(1))) then
-                pmfv = ieee_value(q, ieee_quiet_nan)
-            else
-                k = floor(maxval(q))
-                allocate (singlevec(k + 1))
-                singlevec(1) = exp(-l(1)) / ((b(1) + ONE) ** a(1))
-                do i = 2, k + 1
-                    singlevec(i) = singlevec(i - 1) &
-                    + ddelap_f_s(real(i - 1, c_double), a(1), b(1), l(1))
-                end do
-                do i = 1, nq
-                    k = floor(q(i))
-                    pmfv(i) = singlevec(k + 1)
-                end do
-                deallocate(singlevec)
-                pmfv = cFPe(pmfv)                 ! Clear floating point errors
-            end if
-        end if
-        
-        if (lt == 0) then
-            pmfv = HALF - pmfv + HALF          ! See See dpq.h in R source code
-        end if
-        
-        if (lg == 1) then
-            pmfv = log(pmfv)
+            k = floor(maxval(q))
+            allocate (svec(k + 1))
+            svec(1) = cFPe(exp(-l(1)) / ((b(1) + ONE) ** a(1)))
+            do i = 2, k + 1
+                svec(i) = cFPe(svec(i - 1) + &
+                ddelap_f_s(real(i - 1, c_double), a(1), b(1), l(1)))
+            end do
+            do i = 1, nq
+                pmfv(i) = svec(floor(q(i)) + 1)
+                if (lt == 0) then
+                    pmfv(i) = HALF - pmfv(i) + HALF  ! See See dpq.h in R src
+                end if
+                if (lg == 1) then
+                    pmfv(i) = log(pmfv(i))
+                end if
+            end do
+            deallocate(svec)
         end if
         
         if (any(ieee_is_nan(pmfv))) then
@@ -292,10 +295,10 @@ contains
             value = ieee_value(p, ieee_positive_inf)
         else
             value = ZERO
-            testcdf = exp(-lambda) / ((beta + ONE) ** alpha)
+            testcdf = cFPe(exp(-lambda) / ((beta + ONE) ** alpha))
             do while (p > testcdf)
                 value = value + ONE
-                testcdf = testcdf + ddelap_f_s(value, alpha, beta, lambda)
+                testcdf = cFPe(testcdf + ddelap_f_s(value, alpha, beta, lambda))
             end do
         end if
 
@@ -310,7 +313,7 @@ contains
 !              that point. Building the vector has each succesive value
 !              piggyback off of the prior instead of calling p_delap_f_s each
 !              time which increases the speed dramatically. Once created,
-!              remaining values are lookups off of the singlevec vector.
+!              remaining values are lookups off of the svec vector.
 !              Otherwise, each entry will need to build its own pmf value by
 !              calling q_delap_f_s on each entry.
 !-------------------------------------------------------------------------------
@@ -340,7 +343,8 @@ contains
                 obsv = ieee_value(p, ieee_quiet_nan)
             else
                 x = maxval(p, 1, p < 1)
-                allocate(svec(1), source = exp(-l(1)) / ((b(1) + ONE) ** a(1)))
+                allocate(svec(1), &
+                         source = cFPe(exp(-l(1)) / ((b(1) + ONE) ** a(1))))
                 i = 1
                 do
                     if (svec(i) >= x) then
@@ -350,8 +354,8 @@ contains
                     allocate(tvec(1:i), source = ZERO)
                     tvec(1:i-1) = svec
                     call move_alloc(tvec, svec)
-                    svec(i) = svec(i - 1) + ddelap_f_s(real(i - 1, c_double), &
-                                                       a(1), b(1), l(1))
+                    svec(i) = cFPe(svec(i - 1) + &
+                            ddelap_f_s(real(i - 1, c_double), a(1), b(1), l(1)))
                 end do
                 do i = 1, np
                     if (p(i) < ZERO .or. ieee_is_nan(p(i))) then

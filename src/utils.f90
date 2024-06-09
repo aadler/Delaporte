@@ -85,7 +85,7 @@ contains
 !-------------------------------------------------------------------------------
 
     pure elemental function log1p(x) result(y)
-    !$omp declare simd (log1p) notinbranch
+    !$omp declare simd(log1p) notinbranch
 
         real(kind = c_double), intent(in) :: x
         real(kind = c_double) :: y
@@ -135,7 +135,7 @@ contains
 !-------------------------------------------------------------------------------
 
     pure elemental function imk(i, k) result(j)
-    !$omp declare simd (imk) notinbranch linear(i:1) uniform(k)
+    !$omp declare simd(imk) notinbranch linear(i:1) uniform(k)
     
     integer(kind = c_int), intent(in) :: i, k
     integer(kind = c_int)             :: j
@@ -151,7 +151,7 @@ contains
 !-------------------------------------------------------------------------------
 
     pure elemental function cFPe(x) result(y)
-    !$omp declare simd (cFPe) notinbranch
+    !$omp declare simd(cFPe) notinbranch
     
     real(kind = c_double), intent(in) :: x
     real(kind = c_double)             :: y

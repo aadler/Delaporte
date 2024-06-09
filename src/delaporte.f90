@@ -166,10 +166,8 @@ contains
         end do
         !$omp end parallel do simd
         
-        if (any(ieee_is_nan(pmfv))) then
-            call rwarn("NaNs produced")
-        end if
-        
+        if (any(ieee_is_nan(pmfv))) call rwarn("NaNs produced")
+
     end subroutine ddelap_f
     
 !-------------------------------------------------------------------------------
@@ -242,12 +240,8 @@ contains
                 do i = 1, nq
                     pmfv(i) = pdelap_f_s(q(i), a(imk(i, na)), b(imk(i, nb)), &
                     l(imk(i, nl)))
-                    if (lt == 0) then
-                        pmfv(i) = HALF - pmfv(i) + HALF ! See See dpq.h in R src
-                    end if
-                    if (lg == 1) then
-                        pmfv(i) = log(pmfv(i))
-                    end if
+                    if (lt == 0) pmfv(i) = HALF - pmfv(i) + HALF ! See See dpq.h
+                    if (lg == 1) pmfv(i) = log(pmfv(i))
                 end do
             !$omp end parallel do simd
         else if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO .or. &
@@ -263,19 +257,13 @@ contains
             end do
             do i = 1, nq
                 pmfv(i) = svec(floor(q(i)) + 1)
-                if (lt == 0) then
-                    pmfv(i) = HALF - pmfv(i) + HALF  ! See See dpq.h in R src
-                end if
-                if (lg == 1) then
-                    pmfv(i) = log(pmfv(i))
-                end if
+                if (lt == 0) pmfv(i) = HALF - pmfv(i) + HALF  ! See See dpq.h
+                if (lg == 1) pmfv(i) = log(pmfv(i))
             end do
             deallocate(svec)
         end if
         
-        if (any(ieee_is_nan(pmfv))) then
-            call rwarn("NaNs produced")
-        end if
+        if (any(ieee_is_nan(pmfv))) call rwarn("NaNs produced")
         
     end subroutine pdelap_f
 
@@ -335,13 +323,9 @@ contains
     real(kind = c_double)                           :: x
     integer                                         :: i
 
-        if (lg == 1) then
-            p = exp(p)
-        end if
+        if (lg == 1) p = exp(p)
 
-        if (lt == 0) then
-            p = HALF - p + HALF             ! See See dpq.h in R source code
-        end if
+        if (lt == 0) p = HALF - p + HALF       ! See See dpq.h in R source code
 
         if(na == 1 .and. nb == na .and. nl == nb) then
             if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO) then
@@ -351,15 +335,13 @@ contains
                 allocate(svec(1), source = exp(-l(1)) / ((b(1) + ONE) ** a(1)))
                 i = 1
                 do
-                    if (svec(i) >= x) then
-                        exit
-                    end if
+                    if (svec(i) >= x) exit
                     i = i + 1
                     allocate(tvec(1:i), source = ZERO)
                     tvec(1:i-1) = svec
                     call move_alloc(tvec, svec)
                     svec(i) = svec(i - 1) + &
-                        ddelap_f_s(real(i - 1, c_double), a(1), b(1), l(1)))
+                        ddelap_f_s(real(i - 1, c_double), a(1), b(1), l(1))
                 end do
                 do i = 1, np
                     if (p(i) < ZERO .or. ieee_is_nan(p(i))) then

@@ -72,8 +72,8 @@ module utils
     real(kind = c_double), parameter :: TWO = 2._c_double
     real(kind = c_double), parameter :: THREE = 3._c_double
     real(kind = c_double), parameter :: EPS = 2.2204460492503131e-16_c_double
-    integer, parameter               :: MAXVECSIZE = 16384
     real(kind = c_double), parameter :: MAXD = REAL(HUGE(1_INT64), c_double)
+    integer, parameter               :: MAXVECSIZE = 16384
 
 contains
 
@@ -129,7 +129,7 @@ contains
     end subroutine sOMPT_f    
 
 !-------------------------------------------------------------------------------
-! FUNCTION: imk
+! FUNCTION: imk (i mod k)
 !
 ! DESCRIPTION: Calculates mod(i - 1, k) + 1 for vector recyling.
 !-------------------------------------------------------------------------------
@@ -145,7 +145,7 @@ contains
     end function imk
     
 !-------------------------------------------------------------------------------
-! FUNCTION: clearFPerrors
+! FUNCTION: cFPe (clearFPerrors)
 !
 ! DESCRIPTION: Restricts solutions to [0, 1] and eliminates spurious FP errors.
 !-------------------------------------------------------------------------------

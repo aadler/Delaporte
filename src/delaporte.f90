@@ -160,9 +160,7 @@ contains
         do i = 1, nx
             pmfv(i) = ddelap_f_s(x(i), a(imk(i, na)), b(imk(i, nb)), &
             l(imk(i, nl)))
-            if (lg == 1) then
-                pmfv(i) = log(pmfv(i))
-            end if
+            if (lg == 1) pmfv(i) = log(pmfv(i))
         end do
         !$omp end parallel do simd
         
@@ -199,7 +197,7 @@ contains
             do i = 1_INT64, k
                 cdf = cdf + ddelap_f_s(real(i, c_double), alpha, beta, lambda)
             end do
-        cdf = cFPe(cdf)                           ! Clear floating point errors
+            cdf = cFPe(cdf)                       ! Clear floating point errors
         end if
 
     end function pdelap_f_s

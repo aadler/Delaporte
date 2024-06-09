@@ -300,10 +300,10 @@ contains
             value = ieee_value(p, ieee_positive_inf)
         else
             value = ZERO
-            testcdf = cFPe(exp(-lambda) / ((beta + ONE) ** alpha))
+            testcdf = exp(-lambda) / ((beta + ONE) ** alpha)
             do while (p > testcdf)
                 value = value + ONE
-                testcdf = cFPe(testcdf + ddelap_f_s(value, alpha, beta, lambda))
+                testcdf = testcdf + ddelap_f_s(value, alpha, beta, lambda)
             end do
         end if
 
@@ -348,8 +348,7 @@ contains
                 obsv = ieee_value(p, ieee_quiet_nan)
             else
                 x = maxval(p, 1, p < 1)
-                allocate(svec(1), &
-                         source = cFPe(exp(-l(1)) / ((b(1) + ONE) ** a(1))))
+                allocate(svec(1), source = exp(-l(1)) / ((b(1) + ONE) ** a(1)))
                 i = 1
                 do
                     if (svec(i) >= x) then
@@ -359,8 +358,8 @@ contains
                     allocate(tvec(1:i), source = ZERO)
                     tvec(1:i-1) = svec
                     call move_alloc(tvec, svec)
-                    svec(i) = cFPe(svec(i - 1) + &
-                            ddelap_f_s(real(i - 1, c_double), a(1), b(1), l(1)))
+                    svec(i) = svec(i - 1) + &
+                        ddelap_f_s(real(i - 1, c_double), a(1), b(1), l(1)))
                 end do
                 do i = 1, np
                     if (p(i) < ZERO .or. ieee_is_nan(p(i))) then

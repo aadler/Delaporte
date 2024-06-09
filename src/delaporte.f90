@@ -149,12 +149,11 @@ contains
     subroutine ddelap_f(x, nx, a, na, b, nb, l, nl, lg, threads, pmfv) &
                bind(C, name="ddelap_f_")
                         
-    integer(kind = c_int), intent(in), value         :: nx, na, nb, nl
-    real(kind = c_double), intent(in), dimension(nx) :: x
-    real(kind = c_double), intent(out), dimension(nx):: pmfv
-    real(kind = c_double), intent(in)                :: a(na), b(nb), l(nl)
-    integer(kind = c_int), intent(in)                :: lg, threads
-    integer                                          :: i
+    integer(kind = c_int), intent(in), value     :: nx, na, nb, nl
+    real(kind = c_double), intent(in)            :: x(nx), a(na), b(nb), l(nl)
+    integer(kind = c_int), intent(in)            :: lg, threads
+    real(kind = c_double), intent(out)           :: pmfv(nx)
+    integer                                      :: i
     
         !$omp parallel do simd num_threads(threads) default(shared) private(i) &
         !$omp schedule(simd:static)
@@ -187,8 +186,8 @@ contains
     pure elemental function pdelap_f_s(q, alpha, beta, lambda) result(cdf)
     !$omp declare simd (pdelap_f_s) notinbranch
 
-    real(kind = c_double)               :: cdf
     real(kind = c_double), intent(in)   :: q, alpha, beta, lambda
+    real(kind = c_double)               :: cdf
     integer(INT64)                      :: i, k
 
         if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. q < ZERO &
@@ -225,13 +224,12 @@ contains
     subroutine pdelap_f(q, nq, a, na, b, nb, l, nl, lt, lg, threads, pmfv) &
                bind(C, name="pdelap_f_")
                         
-    integer(kind = c_int), intent(in), value         :: nq, na, nb, nl
-    real(kind = c_double), intent(in), dimension(nq) :: q
-    real(kind = c_double), intent(out), dimension(nq):: pmfv
-    real(kind = c_double), intent(in)                :: a(na), b(nb), l(nl)
-    integer(kind = c_int), intent(in)                :: lg, lt, threads
-    real(kind = c_double), allocatable, dimension(:) :: svec
-    integer                                          :: i, k
+    integer(kind = c_int), intent(in), value    :: nq, na, nb, nl
+    real(kind = c_double), intent(in)           :: q(nq), a(na), b(nb), l(nl)
+    integer(kind = c_int), intent(in)           :: lg, lt, threads
+    real(kind = c_double), intent(out)          :: pmfv(nq)
+    real(kind = c_double), allocatable          :: svec(:)
+    integer                                     :: i, k
 
 ! If there are any complications at all, don't use the fast version. pdelap_f_s
 ! and ddelap_f_s are more robust to improper entries.
@@ -328,14 +326,14 @@ contains
     subroutine qdelap_f(p, np, a, na, b, nb, l, nl, lt, lg, threads, obsv) &
                bind(C, name="qdelap_f_")
 
-    integer(kind = c_int), intent(in), value           :: np, na, nb, nl
-    real(kind = c_double), intent(inout), dimension(np):: p
-    real(kind = c_double), intent(out), dimension(np)  :: obsv
-    real(kind = c_double), intent(in)                  :: a(na), b(nb), l(nl)
-    integer(kind = c_int), intent(in)                  :: lg, lt, threads
-    real(kind = c_double), allocatable, dimension(:)   :: svec, tvec
-    real(kind = c_double)                              :: x
-    integer                                            :: i
+    integer(kind = c_int), intent(in), value        :: np, na, nb, nl
+    real(kind = c_double), intent(in)               :: a(na), b(nb), l(nl)
+    integer(kind = c_int), intent(in)               :: lg, lt, threads
+    real(kind = c_double), intent(inout)            :: p(np) 
+    real(kind = c_double), intent(out)              :: obsv(np)
+    real(kind = c_double), allocatable              :: svec(:), tvec(:)
+    real(kind = c_double)                           :: x
+    integer                                         :: i
 
         if (lg == 1) then
             p = exp(p)
@@ -412,9 +410,9 @@ contains
     external unifrnd
 
     integer(kind = c_int), intent(in), value           :: n, na, nb, nl
-    real(kind = c_double), intent(out), dimension(n)   :: vars
     real(kind = c_double), intent(in)                  :: a(na), b(nb), l(nl)
-    real(kind = c_double), dimension(n)                :: p
+    real(kind = c_double), intent(out)                 :: vars(n)
+    real(kind = c_double)                              :: p(n)
     integer(kind = c_int)                              :: lg, lt, threads
 
         call unifrnd(n, p)
@@ -435,15 +433,14 @@ contains
 
     pure subroutine momdelap_f(obs, n, tp, params) bind(C, name="momdelap_f_")
 
-    integer(kind = c_int), intent(in), value           :: n
-    integer(kind = c_int), intent(in)                  :: tp
-    real(kind = c_double), intent(in), dimension(n)    :: obs
-    real(kind = c_double), intent(out), dimension(3)   :: params
-    real(kind = c_double)                              :: nnm1, P, Mu_D, M2, M3
-    real(kind = c_double)                              :: T1, delta, delta_i, nn
-    real(kind = c_double)                              :: Var_D, Skew_D, VmM_D
-    real(kind = c_double)                              :: ii
-    integer                                            :: i
+    integer(kind = c_int), intent(in), value :: n
+    integer(kind = c_int), intent(in)        :: tp
+    real(kind = c_double), intent(in)        :: obs(n)
+    real(kind = c_double), intent(out)       :: params(3)
+    real(kind = c_double)                    :: nnm1, P, Mu_D, M2, M3, T1
+    real(kind = c_double)                    :: delta, delta_i, nn, Var_D
+    real(kind = c_double)                    :: Skew_D, VmM_D, ii
+    integer                                  :: i
 
         nn = real(n, c_double)
         nnm1 = nn - ONE

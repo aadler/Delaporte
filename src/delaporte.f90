@@ -52,7 +52,7 @@
 !                       conditionals inside the necessary loops is still faster.
 !                       This is not useful for qdelap as we need to know every
 !                       "real" percentile first. So run those before anything
-!                       else.
+!                       else. Other minor tweaks to code for efficiency.
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler

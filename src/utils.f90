@@ -135,7 +135,7 @@ contains
 !-------------------------------------------------------------------------------
 
     pure elemental function imk(i, k) result(j)
-    !$omp declare simd(imk) linear(uval(i):1) uniform(k) notinbranch
+    !$omp declare simd(imk) linear(uval(i)) uniform(k) notinbranch
     
     integer(kind = c_int), intent(in) :: i, k
     integer(kind = c_int)             :: j

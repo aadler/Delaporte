@@ -107,7 +107,7 @@ contains
 !-------------------------------------------------------------------------------
 
     pure elemental function ddelap_f_s(x, alpha, beta, lambda) result(pmf)
-    !$omp declare simd (ddelap_f_s) notinbranch
+    !$omp declare simd(ddelap_f_s) linear(ref(x)) notinbranch
 
     real(kind = c_double), intent(in)   :: x, alpha, beta, lambda
     real(kind = c_double)               :: pmf, ii, kk
@@ -180,7 +180,7 @@ contains
 !-------------------------------------------------------------------------------
 
     pure elemental function pdelap_f_s(q, alpha, beta, lambda) result(cdf)
-    !$omp declare simd (pdelap_f_s) notinbranch
+    !$omp declare simd(pdelap_f_s) linear(ref(q)) notinbranch
 
     real(kind = c_double), intent(in)   :: q, alpha, beta, lambda
     real(kind = c_double)               :: cdf
@@ -274,7 +274,7 @@ contains
 !-------------------------------------------------------------------------------
 
     pure elemental function qdelap_f_s(p, alpha, beta, lambda) result(value)
-    !$omp declare simd (qdelap_f_s) notinbranch
+    !$omp declare simd(qdelap_f_s) linear(ref(p)) notinbranch
 
     real(kind = c_double), intent(in)   :: p, alpha, beta, lambda
     real(kind = c_double)               :: testcdf, value

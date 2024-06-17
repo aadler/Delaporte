@@ -6,12 +6,6 @@
 \title{NEWS file for the Delaporte package}
 
 \section{Version 8.4.1 (2024-06-06)}{
-  \subsection{Added}{
-    \itemize{
-      \item Implement OpenMP \acronym{SIMD} constructs.
-      constructs.
-    }
-  }
   \subsection{Changed}{
     \itemize{
       \item Added package metadata tests.

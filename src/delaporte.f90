@@ -39,20 +39,22 @@
 !                       Added OpenMP thread control functionality.
 !          Version 4.1: 2024-04-04
 !                       Use "source" when allocating arrays in qdelap_f.
-!          Version 5.0: 2024-06-06
+!          Version 5.0: 2024-06-17
 !                       OpenMP is still significantly faster than extending
 !                       parameter vectors and applying the elemental singleton
 !                       function. Use imk helper function to calculate position
 !                       for vector recycling. Turn floating point error cleaner
-!                       into a function. Add OpenMP SIMD directives (try again)
-!                       now that Solaris SPARC is a thing of the past. Move lt
-!                       and lg for p/delap into existing loops. While elemental
-!                       functions can be even faster than OpenMP loops, they are
-!                       still another loop. Saving the overhead by calling the
-!                       conditionals inside the necessary loops is still faster.
-!                       This is not useful for qdelap as we need to know every
-!                       "real" percentile first. So run those before anything
-!                       else. Other minor tweaks to code for efficiency.
+!                       into a function. Move lt and lg for p/delap into
+!                       existing loops. While elemental functions can be even
+!                       faster than OpenMP loops, they are still another loop.
+!                       Saving the overhead by calling the conditionals inside
+!                       the necessary loops is still faster. This is not useful
+!                       for qdelap as we need to know every "real" percentile
+!                       first. So run those before anything else. Other minor
+!                       tweaks to code for efficiency. SIMD instructions do not
+!                       save that much time and prevent compilation with current
+!                       versions of flang (through 19) as it does not have full
+!                       OpenMP 4.5 implementation yet.
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -107,7 +109,6 @@ contains
 !-------------------------------------------------------------------------------
 
     pure elemental function ddelap_f_s(x, alpha, beta, lambda) result(pmf)
-    !$omp declare simd(ddelap_f_s) linear(ref(x)) notinbranch
 
     real(kind = c_double), intent(in)   :: x, alpha, beta, lambda
     real(kind = c_double)               :: pmf, ii, kk
@@ -155,14 +156,14 @@ contains
     real(kind = c_double), intent(out)           :: pmfv(nx)
     integer                                      :: i
     
-        !$omp parallel do simd num_threads(threads) default(shared) private(i) &
-        !$omp schedule(simd:static)
+        !$omp parallel do num_threads(threads) default(shared) private(i) &
+        !$omp schedule(static)
         do i = 1, nx
             pmfv(i) = ddelap_f_s(x(i), a(imk(i, na)), b(imk(i, nb)), &
             l(imk(i, nl)))
             if (lg == 1) pmfv(i) = log(pmfv(i))
         end do
-        !$omp end parallel do simd
+        !$omp end parallel do
         
         if (any(ieee_is_nan(pmfv))) call rwarn("NaNs produced")
 
@@ -180,7 +181,6 @@ contains
 !-------------------------------------------------------------------------------
 
     pure elemental function pdelap_f_s(q, alpha, beta, lambda) result(cdf)
-    !$omp declare simd(pdelap_f_s) linear(ref(q)) notinbranch
 
     real(kind = c_double), intent(in)   :: q, alpha, beta, lambda
     real(kind = c_double)               :: cdf
@@ -233,15 +233,15 @@ contains
         if (na > 1 .or. nb > 1 .or. nl > 1 .or. minval(q) < ZERO .or. &
             maxval(q) > REAL(MAXVECSIZE, c_double) &
             .or. any(ieee_is_nan(q))) then
-            !$omp parallel do simd num_threads(threads) default(shared) &
-            !$omp private(i) schedule(simd:static)
+            !$omp parallel do num_threads(threads) default(shared) private(i) &
+            !$omp schedule(static)
                 do i = 1, nq
                     pmfv(i) = pdelap_f_s(q(i), a(imk(i, na)), b(imk(i, nb)), &
                     l(imk(i, nl)))
                     if (lt == 0) pmfv(i) = HALF - pmfv(i) + HALF ! See See dpq.h
                     if (lg == 1) pmfv(i) = log(pmfv(i))
                 end do
-            !$omp end parallel do simd
+            !$omp end parallel do
         else if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO .or. &
                  ieee_is_nan(a(1) + b(1) + l(1))) then
             pmfv = ieee_value(q, ieee_quiet_nan)
@@ -274,7 +274,6 @@ contains
 !-------------------------------------------------------------------------------
 
     pure elemental function qdelap_f_s(p, alpha, beta, lambda) result(value)
-    !$omp declare simd(qdelap_f_s) linear(ref(p)) notinbranch
 
     real(kind = c_double), intent(in)   :: p, alpha, beta, lambda
     real(kind = c_double)               :: testcdf, value
@@ -354,13 +353,13 @@ contains
                 deallocate(svec)
             end if
         else
-            !$omp parallel do simd num_threads(threads) default(shared) &
-            !$omp private(i) schedule(simd:static)
+            !$omp parallel do num_threads(threads) default(shared) private(i) &
+            !$omp schedule(static)
             do i = 1, np
                 obsv(i) = qdelap_f_s(p(i), a(imk(i, na)), b(imk(i, nb)), &
                           l(imk(i, nl)))
             end do
-            !$omp end parallel do simd
+            !$omp end parallel do
         end if
         
     end subroutine qdelap_f

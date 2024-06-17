@@ -28,11 +28,10 @@
 !                       approximation.
 !          Version 3.1: 2024-05-21
 !                       Added pure header to log1p.
-!          Version 4.0: 2024-06-02
+!          Version 4.0: 2024-06-17
 !                       Added imk helper function. A smidgen faster—I'm not sure
 !                       why, perhaps due to pre-compilation in module—and easier
-!                       to read. Turn FP error cleaning into a function. Add
-!                       necessary OpenMP SIMD declarations.
+!                       to read. Turn FP error cleaning into a function.
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -85,7 +84,6 @@ contains
 !-------------------------------------------------------------------------------
 
     pure elemental function log1p(x) result(y)
-    !$omp declare simd(log1p) notinbranch
 
         real(kind = c_double), intent(in) :: x
         real(kind = c_double) :: y
@@ -135,8 +133,7 @@ contains
 !-------------------------------------------------------------------------------
 
     pure elemental function imk(i, k) result(j)
-    !$omp declare simd(imk) linear(uval(i)) uniform(k) notinbranch
-    
+
     integer(kind = c_int), intent(in) :: i, k
     integer(kind = c_int)             :: j
     
@@ -151,8 +148,7 @@ contains
 !-------------------------------------------------------------------------------
 
     pure elemental function cFPe(x) result(y)
-    !$omp declare simd(cFPe) notinbranch
-    
+
     real(kind = c_double), intent(in) :: x
     real(kind = c_double)             :: y
     

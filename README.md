@@ -7,7 +7,7 @@ title: Package Delaporte
 [![](http://cranlogs.r-pkg.org/badges/last-month/Delaporte)](https://cran.r-project.org/package=Delaporte)
 [![](https://cranlogs.r-pkg.org/badges/grand-total/Delaporte)](https://cran.r-project.org/package=Delaporte)
 [![R-CMD-check](https://github.com/aadler/Delaporte/workflows/R-CMD-check/badge.svg)](https://github.com/aadler/Delaporte/actions)
-[![Codecov test coverage](https://codecov.io/gh/aadler/Delaporte/branch/master/graph/badge.svg)](https://app.codecov.io/gh/aadler/Delaporte?branch=master)
+[![codecov](https://codecov.io/gh/aadler/Delaporte/branch/master/graph/badge.svg?token=Xjk9GlHTIx)](https://codecov.io/gh/aadler/Delaporte)
 [![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/2011/badge)](https://bestpractices.coreinfrastructure.org/projects/2011)
 <!-- badges: end -->
 

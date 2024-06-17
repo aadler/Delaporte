@@ -19,6 +19,7 @@
       \item Testing for \code{NaN} within Fortran now more efficient.
       \item Other changes to C and Fortran code for efficiency and readability.
       \item Set up new version of \pkg{rhub} checking.
+      \item Use native \acronym{CRAN} \acronym{DOI}.
     }
   }
 }

@@ -9,6 +9,6 @@ bibentry(bibtype     = "Manual",
          title        = "Delaporte: Statistical Functions for the Delaporte Distribution",
          year         = "2013",
          url          = "https://CRAN.R-project.org/package=Delaporte",
-         doi          = "10.5281/zenodo.5880051",
+         doi          = "10.32614/CRAN.package.Delaporte",
          note         = "R package version 8.4.1"
 )

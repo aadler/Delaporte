@@ -2,7 +2,7 @@ Package: Delaporte
 Type: Package
 Title: Statistical Functions for the Delaporte Distribution
 Version: 8.4.1
-Date: 2024-06-06
+Date: 2024-06-17
 Authors@R: c(person(given="Avraham", family="Adler", role=c("aut", "cph", "cre"),
     email="Avraham.Adler@gmail.com", comment = c(ORCID = "0000-0002-3039-0703")))
 Description: Provides probability mass, distribution, quantile, random-variate

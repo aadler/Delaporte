@@ -8,7 +8,7 @@
 \section{Version 8.4.1 (2024-06-06)}{
   \subsection{Added}{
     \itemize{
-      \item Once again, try to allow compiler to use OpenMP \acronym{SIMD}
+      \item Implement OpenMP \acronym{SIMD} constructs.
       constructs.
     }
   }

@@ -9,7 +9,6 @@ title: Package Delaporte
 [![R-CMD-check](https://github.com/aadler/Delaporte/workflows/R-CMD-check/badge.svg)](https://github.com/aadler/Delaporte/actions)
 [![Codecov test coverage](https://codecov.io/gh/aadler/Delaporte/branch/master/graph/badge.svg)](https://app.codecov.io/gh/aadler/Delaporte?branch=master)
 [![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/2011/badge)](https://bestpractices.coreinfrastructure.org/projects/2011)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5880051.svg)](https://doi.org/10.5281/zenodo.5880051)
 <!-- badges: end -->
 
 ## Description

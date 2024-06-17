@@ -22,7 +22,7 @@ and C. In cases where approximations are sufficient, the quantile and random
 variate generator have the option to use a much faster Poisson-negative binomial
 estimate as opposed to the full Delaporte double summations.
 
-## Acknowledgements
+## Acknowledgment
 The author is grateful to [Drew Schmidt](https://github.com/wrathematics) both
 generally for his writings on R, C++, and Fortran and specifically for help with
 this project.

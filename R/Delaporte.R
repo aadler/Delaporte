@@ -15,10 +15,10 @@ ddelap <- function(x, alpha, beta, lambda, log = FALSE) {
 pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE) {
   # These interrupts throw errors even using expect_error. Excluding for now
   # nocov start
-  if (any(q[is.finite(q)] >= 2^63)) {
-    stop("Function cannot handle values >= 2^63")
+  if (any(q[is.finite(q)] >= 2 ^ 63)) {
+    stop("Function cannot handle values >= 2^63.")
   }
-  if (any(q[is.finite(q)] >= 2^15)) {
+  if (any(q[is.finite(q)] >= 2 ^ 15)) {
     cat("There are values >= 32768.",
         "This may take minutes if not hours to compute. Are you sure?\n")
     resp <- readline("Press 'y' to continue.\n")

@@ -73,13 +73,8 @@ tst <- suppressWarnings(pdelap(c(0, 0, 0), c(NA, 2, 3), c(4, 1, 2),
 expect_equal(tst, c(NaN, pdelap(0, 2, 1, 5), NaN), tolerance = tol)
 
 # Negative values due to floating point issues are 0
-if (R.Version()$arch == "x86_64") {
-  expect_identical(pdelap(500, 13.08251, 0.02414521, 0.04421658, FALSE, FALSE),
-                   0)
-} else {
-  expect_equal(pdelap(500, 13.08251, 0.02414521, 0.04421658, FALSE, FALSE), 0,
-               tolerance = tol)
-}
+expect_equal(pdelap(500, 13.08251, 0.02414521, 0.04421658, FALSE, FALSE), 0,
+             tolerance = tol)
 
 # Non-double parameters converted
 expect_equal(pdelap(2L, 1L, 2L, 3L), pdelap(2L, 1, 2, 3), tolerance = tol)

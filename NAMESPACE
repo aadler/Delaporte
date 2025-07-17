@@ -1,5 +1,5 @@
 useDynLib(Delaporte, .registration = TRUE)
 export("ddelap", "pdelap", "qdelap", "rdelap", "MoMdelap", "getDelapThreads",
-       "setDelapThreads")
+       "setDelapThreads", "DelaporteEnv")
 importFrom(stats, rpois, quantile, rgamma, na.omit)
 importFrom(parallel, detectCores)

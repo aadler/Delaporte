@@ -9,6 +9,7 @@
 \alias{qdelap_C}
 \alias{rdelap_C}
 \alias{MoMdelap_C}
+\alias{DelaporteEnv}
 
 \title{Internal Delaporte Functions}
 \description{

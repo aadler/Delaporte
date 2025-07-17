@@ -19,6 +19,12 @@
       \item Switched \dQuote{max cpu} holding variable location from
       \code{options} to an enviornment variable per \R commit 88406 by Brian
       Ripley.
+      \item Converted some architecture-specific tests to use looser tolerances
+      based on Tomas Kalibera's
+      \href{https://blog.r-project.org/2025/04/24/sensitivity-to-c-math-library-and-mingw-w64-v12/}{
+      blog post}.
+      \item Made checks of the \code{lt} and \code{lg} variables passed to
+      Fortran from C to be against \code{c_int} variables, which they should be.
     }
   }
 }

@@ -30,8 +30,8 @@ expect_warning(rdelap(1, 1, -5e5, 2), nanWarn)
 expect_warning(rdelap(1, 1, 4, -1e-5), nanWarn)
 
 # Singleton size
-expect_identical(length(rdelap(8, 4, 1, 2)), 8L)
-expect_identical(length(rdelap(0, 4, 1, 2)), 0L)
+expect_length(rdelap(8, 4, 1, 2), 8L)
+expect_length(rdelap(0, 4, 1, 2), 0L)
 expect_error(rdelap(-4, 4, 1, 2), nlErr)
 
 # Vector exact function accuracy
@@ -53,8 +53,8 @@ expect_equal(sum(is.nan(suppressWarnings(rdelap(3, c(0, 1, 2), c(1, 0, 2),
              tolerance = 1e-12)
 
 # Vector size
-expect_identical(length(rdelap(8, c(4, 2), c(1, 2, 3, 4), 2)), 8L)
-expect_identical(length(rdelap(0, c(4, 2), c(1, 2, 3, 4), 2)), 0L)
+expect_length(rdelap(8, c(4, 2), c(1, 2, 3, 4), 2), 8L)
+expect_length(rdelap(0, c(4, 2), c(1, 2, 3, 4), 2), 0L)
 expect_error(rdelap(-1, c(4, 2), c(1, 2, 3, 4), 2), nlErr)
 
 # Approximate throws warning when nonpositive is passed

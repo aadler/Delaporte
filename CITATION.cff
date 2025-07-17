@@ -8,8 +8,11 @@ message: 'To cite package "Delaporte" in publications use:'
 type: software
 license: BSD-2-Clause
 title: 'Delaporte: Statistical Functions for the Delaporte Distribution'
-version: 8.4.1
+version: 8.4.2
 doi: 10.32614/CRAN.package.Delaporte
+identifiers:
+- type: doi
+  value: 10.32614/CRAN.package.Delaporte
 abstract: Provides probability mass, distribution, quantile, random-variate generation,
   and method-of-moments parameter-estimation functions for the Delaporte distribution
   with parameterization based on Vose (2008) <isbn:9780470512845>. The Delaporte is
@@ -34,11 +37,11 @@ preferred-citation:
   year: '2013'
   url: https://CRAN.R-project.org/package=Delaporte
   doi: 10.32614/CRAN.package.Delaporte
-  notes: R package version 8.4.1
+  notes: R package version 8.4.2
 repository: https://CRAN.R-project.org/package=Delaporte
 repository-code: https://github.com/aadler/Delaporte
 url: https://github.com/aadler/Delaporte
-date-released: '2024-06-17'
+date-released: '2025-07-17'
 contact:
 - family-names: Adler
   given-names: Avraham

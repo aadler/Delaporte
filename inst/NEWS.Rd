@@ -5,6 +5,24 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
+\section{Version 8.4.2 (2025-07-17)}{
+  \subsection{Fixed}{
+    \itemize{
+      \item Corrected package metadata unit tests and switched \code{sapply} to
+      \code{vapply} for type safety.
+      \item Updated Github action YAMLs.
+      \item Updated \file{NEWS} markup.
+    }
+  }
+  \subsection{Changed}{
+    \itemize{
+      \item Switched \dQuote{max cpu} holding variable location from
+      \code{options} to an enviornment variable per \R commit 88406 by Brian
+      Ripley.
+    }
+  }
+}
+
 \section{Version 8.4.1 (2024-06-17)}{
   \subsection{Changed}{
     \itemize{
@@ -98,7 +116,8 @@
       \item Updated help documentation.
       \item Updated Github actions.
       \item Updated internal code to be more compliant with personal style guide.
-      \item Updated CITATION to use \code{bibentry} per \acronym{CRAN} request.
+      \item Updated \file{CITATION} to use \code{bibentry} per \acronym{CRAN}
+      request.
     }
   }
   \subsection{Removed}{
@@ -149,7 +168,7 @@
       \item Pass more \R-consistent error messages.
       \item Made more robust to improper inputs such as negative, \code{NA}, or
       \code{NaN} parameters or passed values.
-      \item R versions of \code{qdelap} and \code{rdelap} behave more like the
+      \item \R versions of \code{qdelap} and \code{rdelap} behave more like the
       Fortran versions.
     }
   }
@@ -158,9 +177,9 @@
 \section{Version 8.0.0 (2021-01-05) [YANKED]}{
   \subsection{Changed}{
     \itemize{
-      \item Exact code more in line with R defaults for d/p/q/r functions in
+      \item Exact code more in line with \R defaults for d/p/q/r functions in
       that \code{NaN} inputs return \code{NaN} outputs.
-      \item Handling of \code{Inf} and \code{-Inf} now more in line with R
+      \item Handling of \code{Inf} and \code{-Inf} now more in line with \R
       defaults for d/p/q/r functions.
       \item Parameter errors now check for \eqn{< 0} instead of \code{< EPS}.
       \item \code{ddelap} and \code{pdelap} now use 8-byte integers
@@ -191,7 +210,7 @@
   \subsection{Fixed}{
     \itemize{
       \item Corrected \acronym{CRAN} requests.
-      \item Cleaned up NEWS.
+      \item Cleaned up \file{NEWS}.
     }
   }
 }
@@ -205,7 +224,7 @@
   }
   \subsection{Added}{
     \itemize{
-      \item Added a citation to DESCRIPTION.
+      \item Added a citation to \file{DESCRIPTION}.
       \item Added a test to increase code coverage.
     }
   }
@@ -214,8 +233,8 @@
 \section{Version 7.0.3 (2020-06-01)}{
   \subsection{Added}{
     \itemize{
-      \item CITATION file.
-      \item Explicit citation information to README.
+      \item \file{CITATION} file.
+      \item Explicit citation information to \file{README}.
       \item Travis, AppVeyor, and CodeCov integration.
       \item Added \code{R_forceSymbols(dll, TRUE)} to source per \acronym{WRE}
       5.4.
@@ -230,7 +249,7 @@
   }
   \subsection{Removed}{
     \itemize{
-      \item Removed depsy badge from README as site is now defunct.
+      \item Removed depsy badge from \file{README} as site is now defunct.
     }
   }
 }
@@ -238,7 +257,7 @@
 \section{Version 7.0.2 (2019-05-17)}{
   \subsection{Changed}{
     \itemize{
-      \item Updated NEWS to reflect recent changes.
+      \item Updated \file{NEWS} to reflect recent changes.
       \item Updated various file versions to reflect recent changes.
     }
   }
@@ -280,10 +299,10 @@
       \item Added \code{cleanzeros} function that zaps to 0 any value less than
       or equal to \acronym{EPS} (thanks Kipper Fletez-Brant).
       \item Test for zeros (thanks Kipper Fletez-Brant).
-      \item Added items to README to comply with
+      \item Added items to \file{README} to comply with
       \href{https://bestpractices.coreinfrastructure.org/en}{\acronym{CII}}
       best practices and added badge.
-      \item Added various badges to README.
+      \item Added various badges to \file{README}.
       \item Added copyright and license information inside \R source code file.
     }
   }
@@ -333,7 +352,7 @@
   }
   \subsection{Added}{
     \itemize{
-      \item Added note to README about Solaris \acronym{SPARC}.
+      \item Added note to \file{README} about Solaris \acronym{SPARC}.
       \item More tests including for singleton approximate \code{qdelap}.
     }
   }  
@@ -374,7 +393,7 @@
       package as \code{R_RegisterCCallable} for potential downstream package
       use.
       \item Corrected some prose in documentation page.
-      \item Older NEWS entries refactored for accuracy.
+      \item Older \file{NEWS} entries refactored for accuracy.
     }
   }
   \subsection{Fixed}{
@@ -496,7 +515,7 @@
     \itemize{
       \item Change non-exact \code{qdelap} mode to \emph{numeric} instead of
       \emph{integer} to handle returned \code{Inf}.
-      \item Refactor NEWS to more closely comply with
+      \item Refactor \file{NEWS} to more closely comply with
       \href{https://keepachangelog.com/}{keep a changelog} suggestions.
     }
   }
@@ -522,7 +541,7 @@
 \section{Version 2.2-2 (2014-12-04)}{
   \subsection{Fixed}{
     \itemize{
-      \item Updated DESCRIPTION file to comply with recent changes.
+      \item Updated \file{DESCRIPTION} file to comply with recent changes.
     }
   }
 }
@@ -559,7 +578,7 @@
 \section{Version 2.1-1 (2014-04-07)}{
   \subsection{Fixed}{
     \itemize{
-      \item Adjusted unit test so it can be run more easily on 32 bit machine
+      \item Adjusted unit test so it can be run more easily on 32 bit machines
       with limited memory.
       \item Fixed spelling and other prose.
     }
@@ -611,7 +630,7 @@
 \section{Version 1.0-1 (2013-09-01)}{
   \subsection{Changed}{
     \itemize{
-      \item Update README now that \acronym{CRAN} uses it as well.
+      \item Update \file{README} now that \acronym{CRAN} uses it as well.
       \item Minor grammar and typography tweaks to documentation.
     }
   }
@@ -630,7 +649,7 @@
 \section{Version 0.1-2 (2013-04-10)}{
   \subsection{Added}{
     \itemize{
-      \item Converted NEWS to NEWS.Rd.
+      \item Converted \file{NEWS} to \file{NEWS.Rd}.
       \item Added repository and bug report \acronym{URL} to DESCRIPTION.
     }
   }  

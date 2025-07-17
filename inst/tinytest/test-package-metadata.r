@@ -3,7 +3,7 @@
 
 # Only test at home. rhub valgrind complains and it should not affect covr.
 
-if (Sys.info()["nodename"] == "HOME") {
+if (Sys.info()["nodename"] == "HOMEDESKTOP") {
 
   # Setup
   myPkgs <- c("Delaporte",
@@ -19,7 +19,9 @@ if (Sys.info()["nodename"] == "HOME") {
   pV <- packageVersion(thisPkg)
   pD <- packageDate(thisPkg)
   cit <- toBibtex(citation(thisPkg))
+  lct <- length(cit)
   nws <- news(package = thisPkg)
+  lnw <- length(nws)
 
   # Test CITATION has most recent package version
   expect_true(any(grepl(pV, cit, fixed = TRUE)))
@@ -31,8 +33,8 @@ if (Sys.info()["nodename"] == "HOME") {
   expect_true(any(grepl(pD, nws, fixed = TRUE)))
 
   # Test that CITATION doesn't contain the name of any other of my packages
-  expect_false(any(sapply(otrPkgs, grepl, x = cit, fixed = TRUE)))
+  expect_false(any(vapply(otrPkgs, grepl, logical(lct), x = cit, fixed = TRUE)))
 
   # Test that NEWS doesn't contain the name of any other of my packages
-  expect_false(any(sapply(otrPkgs, grepl, x = nws, fixed = TRUE)))
+  expect_false(any(vapply(otrPkgs, grepl, logical(lnw), x = nws, fixed = TRUE)))
 }

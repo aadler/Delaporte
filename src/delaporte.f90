@@ -55,6 +55,9 @@
 !                       save that much time and prevent compilation with current
 !                       versions of flang (through 19) as it does not have full
 !                       OpenMP 4.5 implementation yet.
+!          Version 5.1: 2025-07-17
+!                       Made checks of the lt and lg variables passed from C to
+!                       be against _c_int variables, which they should be.
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -161,7 +164,7 @@ contains
         do i = 1, nx
             pmfv(i) = ddelap_f_s(x(i), a(imk(i, na)), b(imk(i, nb)), &
             l(imk(i, nl)))
-            if (lg == 1) pmfv(i) = log(pmfv(i))
+            if (lg == 1_c_int) pmfv(i) = log(pmfv(i))
         end do
         !$omp end parallel do
         
@@ -238,8 +241,8 @@ contains
                 do i = 1, nq
                     pmfv(i) = pdelap_f_s(q(i), a(imk(i, na)), b(imk(i, nb)), &
                     l(imk(i, nl)))
-                    if (lt == 0) pmfv(i) = HALF - pmfv(i) + HALF ! See See dpq.h
-                    if (lg == 1) pmfv(i) = log(pmfv(i))
+                    if (lt == 0_c_int) pmfv(i) = HALF - pmfv(i) + HALF!See dpq.h
+                    if (lg == 1_c_int) pmfv(i) = log(pmfv(i))
                 end do
             !$omp end parallel do
         else if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO .or. &
@@ -255,8 +258,8 @@ contains
             end do
             do i = 1, nq
                 pmfv(i) = svec(floor(q(i)) + 1)
-                if (lt == 0) pmfv(i) = HALF - pmfv(i) + HALF  ! See See dpq.h
-                if (lg == 1) pmfv(i) = log(pmfv(i))
+                if (lt == 0_c_int) pmfv(i) = HALF - pmfv(i) + HALF  ! See dpq.h
+                if (lg == 1_c_int) pmfv(i) = log(pmfv(i))
             end do
             deallocate(svec)
         end if
@@ -320,9 +323,9 @@ contains
     real(kind = c_double)                           :: x
     integer                                         :: i
 
-        if (lg == 1) p = exp(p)
+        if (lg == 1_c_int) p = exp(p)
 
-        if (lt == 0) p = HALF - p + HALF       ! See See dpq.h in R source code
+        if (lt == 0_c_int) p = HALF - p + HALF  ! See See dpq.h in R source code
 
         if(na == 1 .and. nb == na .and. nl == nb) then
             if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO) then
@@ -421,11 +424,11 @@ contains
         nn = real(n, c_double)
         nnm1 = nn - ONE
         select case (tp)
-            case (1)
+            case (1_c_int)
                 P = ONE
-            case (2)
+            case (2_c_int)
                 P = sqrt(nn * nnm1) / (nn - TWO)
-            case (3)
+            case (3_c_int)
                 P = (nnm1 / nn) ** THREEHALFS
             case default
                 P = sqrt(nn * nnm1) / (nn - TWO)

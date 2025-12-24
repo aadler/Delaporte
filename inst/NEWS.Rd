@@ -5,6 +5,20 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
+\section{Version 8.4.2.9999 (2025-12-24)}{
+  \subsection{Fixed}{
+    \itemize{
+      \item Corrected improper link in \file{SECURITY.md}.
+      \item Other spelling errors corrected.
+    }
+  }
+  \subsection{Changed}{
+    \itemize{
+      \item Changes related to Github workflows and requirements.
+    }
+  }
+}
+
 \section{Version 8.4.2 (2025-07-17)}{
   \subsection{Fixed}{
     \itemize{

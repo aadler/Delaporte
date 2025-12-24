@@ -11,7 +11,6 @@ setDelapThreads <- function(n) {
   if (n <= 0L) {
     stop("Number of threads must be > 0.")
   }
-  # ncpus <- getOption("DLPCPU")
   ncpus <- get("DLPCPU", envir = DelaporteEnv)
   if (n > ncpus && !is.na(ncpus)) {
     message("Capping at system maximum of ", ncpus, ".")

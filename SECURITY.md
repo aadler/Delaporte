@@ -19,5 +19,5 @@ All
 
 ## Reporting a Vulnerability
 
-Please use the [issue tracker](https://github.com/aadler/lamW/issues) to report
-any vulnerabilities.
+Please use the [issue tracker](https://github.com/aadler/Delaporte/issues) to
+report any vulnerabilities.

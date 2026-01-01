@@ -58,6 +58,8 @@
 !          Version 5.1: 2025-07-17
 !                       Made checks of the lt and lg variables passed from C to
 !                       be against _c_int variables, which they should be.
+!          Version 5.2: 2025-12-31
+!                       Declared intent of threads variable in rdelap_f.
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -394,7 +396,7 @@ contains
     real(kind = c_double), intent(in)                  :: a(na), b(nb), l(nl)
     real(kind = c_double), intent(out)                 :: vars(n)
     real(kind = c_double)                              :: p(n)
-    integer(kind = c_int)                              :: threads
+    integer(kind = c_int), intent(in)                  :: threads
 
         call unifrnd(n, p)
         call qdelap_f(p, n, a, na, b, nb, l, nl, 1, 0, threads, vars)

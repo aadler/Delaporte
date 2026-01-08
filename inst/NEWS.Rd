@@ -15,7 +15,7 @@
   \subsection{Changed}{
     \itemize{
       \item Changes related to Github workflows and requirements.
-      \item Minor tweaks to Fortran code for safety. No change to calculations.
+      \item Minor tweaks to \R and Fortran code. No change to calculations.
     }
   }
 }

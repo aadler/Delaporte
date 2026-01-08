@@ -5,7 +5,7 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
-\section{Version 8.4.3 (2026-01-07)}{
+\section{Version 8.4.3 (2026-01-08)}{
   \subsection{Fixed}{
     \itemize{
       \item Corrected improper link in \file{SECURITY.md}.

@@ -37,11 +37,11 @@ preferred-citation:
   year: '2013'
   url: https://CRAN.R-project.org/package=Delaporte
   doi: 10.32614/CRAN.package.Delaporte
-  notes: R package version 8.4.2.9999
+  notes: R package version 8.4.3
 repository: https://CRAN.R-project.org/package=Delaporte
 repository-code: https://github.com/aadler/Delaporte
 url: https://github.com/aadler/Delaporte
-date-released: '2026-01-07'
+date-released: '2026-01-08'
 contact:
 - family-names: Adler
   given-names: Avraham

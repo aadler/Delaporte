@@ -3,8 +3,7 @@ useDynLib(Delaporte, .registration = TRUE)
 importFrom(stats,
            rpois,
            quantile,
-           rgamma,
-           na.omit)
+           rgamma)
 importFrom(parallel,
            detectCores)
 

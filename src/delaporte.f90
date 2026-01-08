@@ -395,8 +395,8 @@ contains
     integer(kind = c_int), intent(in), value           :: n, na, nb, nl
     real(kind = c_double), intent(in)                  :: a(na), b(nb), l(nl)
     real(kind = c_double), intent(out)                 :: vars(n)
-    real(kind = c_double)                              :: p(n)
     integer(kind = c_int), intent(in)                  :: threads
+    real(kind = c_double)                              :: p(n)
 
         call unifrnd(n, p)
         call qdelap_f(p, n, a, na, b, nb, l, nl, 1, 0, threads, vars)

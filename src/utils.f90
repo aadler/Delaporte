@@ -156,4 +156,4 @@ contains
     
     end function cFPe
     
-end module utils
+end module utils ! # nocov covr doesn't always pick up the end module

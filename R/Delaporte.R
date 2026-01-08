@@ -71,7 +71,7 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE,
       QDLAP <- as.vector(c(qNeg, q0, qValid, qInf), mode = "double")
   }
   if (any(is.nan(QDLAP))) warning("NaNs produced")
-  return(QDLAP)
+  QDLAP
 }
 
 rdelap <- function(n, alpha, beta, lambda, exact = TRUE) {
@@ -91,7 +91,7 @@ rdelap <- function(n, alpha, beta, lambda, exact = TRUE) {
     RDLAP <- rpois(n, lambda = (shiftedGammas + lambda))
   }
   if (any(is.nan(RDLAP))) warning("NaNs produced")
-  return(RDLAP)
+  RDLAP
 }
 
 MoMdelap <- function(x, type = 2L) { # nolint object_name_linter
@@ -102,5 +102,5 @@ MoMdelap <- function(x, type = 2L) { # nolint object_name_linter
     stop("Method of moments not appropriate for this data; results include ",
          "non-positive parameters.")
   }
-  return(moMDLAP)
+  moMDLAP
 }

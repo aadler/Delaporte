@@ -56,3 +56,7 @@ expect_error(MoMdelap(testData), inapp)
 # Non-double vector converted
 expect_equal(MoMdelap(c(30L, 32L, 39L, 50L), type = 2L),
              MoMdelap(c(30, 32, 39, 50), type = 2L), tolerance = tol)
+
+# Need at least three data points
+expect_error(MoMdelap(testData[6:7]),
+             "MoMdelap requires at least three data points.")

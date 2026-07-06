@@ -75,18 +75,18 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE,
   } else {
       if (log.p) p <- exp(p)
       if (!lower.tail) p <- 1 - p
-      pValid <- p[p > 0 & p < 1]
-      pNeg <- p[p < 0]
-      p0 <- p[p == 0]
-      pInf <- p[p >= 1]
-      n <- min(10 ^ (ceiling(log(alpha * beta + lambda, 10)) + 5), 1e7)
-      shiftedGammas <- rgamma(n, shape = alpha, scale = beta)
-      DP <- rpois(n, lambda = (shiftedGammas + lambda))
-      qValid <- as.vector(quantile(DP, pValid, na.rm = TRUE, type = 8))
-      qNeg <- rep.int(NaN, times = length(pNeg))
-      q0 <- rep.int(0, times = length(p0))
-      qInf <- rep.int(Inf, times = length(pInf))
-      QDLAP <- as.vector(c(qNeg, q0, qValid, qInf), mode = "double")
+      validIdx <- p > 0 & p < 1
+      QDLAP <- double(length(p))
+      QDLAP[p < 0] <- NaN
+      QDLAP[p == 0] <- 0
+      QDLAP[p >= 1] <- Inf
+      if (any(validIdx)) {
+        n <- min(10 ^ (ceiling(log(alpha * beta + lambda, 10)) + 5), 1e7)
+        shiftedGammas <- rgamma(n, shape = alpha, scale = beta)
+        DP <- rpois(n, lambda = (shiftedGammas + lambda))
+        QDLAP[validIdx] <- as.vector(quantile(DP, p[validIdx], na.rm = TRUE,
+                                              type = 8L))
+      }
   }
   if (any(is.nan(QDLAP))) warning("NaNs produced")
   QDLAP

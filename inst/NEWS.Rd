@@ -24,6 +24,12 @@
       segfault in Fortran.
       \item Prevent \code{qdelap} from overwriting passed \code{p} vector within
       the Fortran unit, preserving the \code{.Call} contract.
+      \item \strong{Breaking:} The non-exact version of \code{qdelap} now
+      pre-allocates the result vector at full length first and then assigns the
+      \code{NaN}, \code{Inf}, 0, or proper value for each category. This ensures
+      that element \code{i} of the output always corresponds to element \code{i}
+      of the input. Prior method may have scrambled the "valid" inputs if there
+      were non-valid inputs in the source.
     }
   }
 }

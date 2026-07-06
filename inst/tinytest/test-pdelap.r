@@ -93,5 +93,42 @@ expect_identical(pdelap(0:3, numeric(0), 1, 2), numeric(0))
 expect_identical(pdelap(numeric(0), 1, 2, 3), numeric(0))
 expect_identical(pdelap(0:3, 1, 2, numeric(0), lower.tail = FALSE), numeric(0))
 
+# Deep upper tail is computed by direct summation, not 1 - CDF, so survival
+# probabilities below machine epsilon retain full relative accuracy. The oracle
+# uses the definition of the Delaporte as the convolution of a negative binomial
+# with a Poisson: P(X > k) = sum_j dnbinom(j) * P(Pois > k - j), where ppois
+# computes its own upper tail accurately.
+sdelapOracle <- function(k, a, b, l, J = 5000L) {
+  j <- seq.int(0L, J)
+  sum(dnbinom(j, size = a, prob = 1 / (1 + b)) *
+        ppois(k - j, l, lower.tail = FALSE))
+}
+
+# Singleton (fast path) accuracy across shallow, deep, and very deep tails.
+# Relative tolerance is meaningful here since targets are nonzero.
+qDeep <- c(0, 5, 30, 60, 120)
+expect_equal(pdelap(qDeep, 1, 1, 1, lower.tail = FALSE),
+             vapply(qDeep, sdelapOracle, double(1), a = 1, b = 1, l = 1),
+             tolerance = tol)
+
+# Vector-parameter (slow path) accuracy in the deep tail
+expect_equal(pdelap(c(60, 80), c(1, 2), c(1, 3), c(1, 2), lower.tail = FALSE),
+             c(sdelapOracle(60, 1, 1, 1), sdelapOracle(80, 2, 3, 2)),
+             tolerance = tol)
+
+# log.p on the deep upper tail no longer collapses to log of rounding noise
+expect_equal(pdelap(60, 1, 1, 1, lower.tail = FALSE, log.p = TRUE),
+             log(sdelapOracle(60, 1, 1, 1)), tolerance = tol)
+
+# Survival function is nonincreasing and nonnegative over a long range
+survivalCheck <- pdelap(0:400, 1, 1, 1, lower.tail = FALSE)
+expect_true(all(diff(survivalCheck) <= 0))
+expect_true(all(survivalCheck >= 0))
+
+# Upper-tail edge cases: infinite q survives the direct-summation branch
+expect_identical(pdelap(Inf, 1, 1, 1, lower.tail = FALSE), 0)
+expect_identical(suppressWarnings(pdelap(NaN, 1, 1, 1, lower.tail = FALSE)),
+                 NaN)
+
 # Restore original thread count
 setDelapThreads(oldThreads)

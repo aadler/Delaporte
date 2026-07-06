@@ -12,6 +12,10 @@
       \code{p/d/qdelap} per base \R. Prior behavior was a segfault.
       \item \strong{Breaking:} Zero-length parameters in \code{rdelap} now
       return \code{NA}s per base \R. Prior behavior was a segfault.
+      \item code{MoMdelap} now checks that at least 3 values are passed to it,
+      otherwise it will error. This is only technically breaking, as it used to
+      fail with a different error which propgated from the Fortran (missing
+      value where TRUE/FALSE needed). Now it never triggers a Fortran call.
     }
   }
   \subsection{Fixed}{

@@ -119,6 +119,9 @@ rdelap <- function(n, alpha, beta, lambda, exact = TRUE) {
 MoMdelap <- function(x, type = 2L) { # nolint object_name_linter
   type <- as.integer(type)
   if (!(type %in% c(1L, 2L, 3L))) stop("Skew type must be one of 1, 2, or 3.")
+  if (length(x) < 3L) {
+    stop("MoMdelap requires at least three data points.")
+  }
   moMDLAP <- .Call(MoMdelap_C, as.double(x), type)
   if (any(moMDLAP <= 0)) {
     stop("Method of moments not appropriate for this data; results include ",

@@ -98,8 +98,8 @@ rdelap <- function(n, alpha, beta, lambda, exact = TRUE) {
   }
   # Zero-length parameters produce NAs with a warning, mirroring base R.
   if (length(alpha) == 0L || length(beta) == 0L || length(lambda) == 0L) {
-    warning("NAs produced")
-    return(rep.int(NA_integer_, n))
+    warning("NaNs produced")
+    return(rep.int(NaN, n))
   }
   alpha <- as.double(alpha)
   beta <- as.double(beta)
@@ -107,7 +107,8 @@ rdelap <- function(n, alpha, beta, lambda, exact = TRUE) {
   if (exact) {
     RDLAP <- .Call(rdelap_C, n, alpha, beta, lambda, getDelapThreads())
   } else if (any(alpha <= 0) || any(beta <= 0) || any(lambda <= 0)) {
-      RDLAP <- (rep.int(NaN, n))
+    warning("NaNs produced")
+    RDLAP <- (rep.int(NaN, n))
   } else {
     shiftedGammas <- rgamma(n, shape = alpha, scale = beta)
     RDLAP <- rpois(n, lambda = (shiftedGammas + lambda))

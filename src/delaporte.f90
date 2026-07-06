@@ -60,6 +60,9 @@
 !                       be against _c_int variables, which they should be.
 !          Version 5.2: 2025-12-31
 !                       Declared intent of threads variable in rdelap_f.
+!          Version 6.0  2026-07-06
+!                       Hardening code. 1) Preventing qdelap from overwriting
+!                       passed p vector.
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -311,23 +314,28 @@ contains
 !              remaining values are lookups off of the svec vector.
 !              Otherwise, each entry will need to build its own pmf value by
 !              calling q_delap_f_s on each entry.
+!              Per Claude, it is preferable to place the copy on the heap to
+!              prevent blowing out the stack, so it is allocatable and not a
+!              fixed size.
 !-------------------------------------------------------------------------------
 
-    subroutine qdelap_f(p, np, a, na, b, nb, l, nl, lt, lg, threads, obsv) &
+    subroutine qdelap_f(pp, np, a, na, b, nb, l, nl, lt, lg, threads, obsv) &
                bind(C, name="qdelap_f_")
 
     integer(kind = c_int), intent(in), value        :: np, na, nb, nl
     real(kind = c_double), intent(in)               :: a(na), b(nb), l(nl)
     integer(kind = c_int), intent(in)               :: lg, lt, threads
-    real(kind = c_double), intent(inout)            :: p(np) 
+    real(kind = c_double), intent(in)               :: pp(np)
     real(kind = c_double), intent(out)              :: obsv(np)
-    real(kind = c_double), allocatable              :: svec(:), tvec(:)
+    real(kind = c_double), allocatable              :: p(:), svec(:), tvec(:)
     real(kind = c_double)                           :: x
     integer                                         :: i
 
+        allocate(p, source = pp)
+        
         if (lg == 1_c_int) p = exp(p)
 
-        if (lt == 0_c_int) p = HALF - p + HALF  ! See See dpq.h in R source code
+        if (lt == 0_c_int) p = HALF - p + HALF  ! See dpq.h in R source code
 
         if(na == 1 .and. nb == na .and. nl == nb) then
             if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO) then
@@ -366,6 +374,8 @@ contains
             end do
             !$omp end parallel do
         end if
+        
+        deallocate(p)
         
     end subroutine qdelap_f
 

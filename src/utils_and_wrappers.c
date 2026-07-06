@@ -88,8 +88,12 @@ extern SEXP pdelap_C(SEXP q, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt,
   return(ret);
 }
 
-void F77_NAME(qdelap_f)(double *p, int np, double *a, int na, double *b, int nb,
-              double *l, int nl, int *lt, int *lg, int *threads, double *ret);
+/* CHANGE: first parameter renamed p -> pp to mirror the Fortran dummy, and
+ const-qualified — qdelap_f works on an internal copy and never writes to
+ the input, so passing REAL(p) directly from the SEXP is now safe. */
+void F77_NAME(qdelap_f)(const double *pp, int np, double *a, int na, double *b,
+              int nb, double *l, int nl, int *lt, int *lg, int *threads,
+              double *ret);
 
 extern SEXP qdelap_C(SEXP p, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt,
                      SEXP lg, SEXP threads) {

@@ -69,5 +69,14 @@ set.seed(17L)
 DOUBL <- rdelap(3, 1, 2, 3)
 expect_equal(INTG, DOUBL, tolerance = 1e-12)
 
+# Zero-length parameters yield n NaNs with a warning, matching the package's
+# invalid-parameter convention; n = 0 yields numeric(0) with no warning.
+expect_warning(rdelap(3, numeric(0), 2, 3), nanWarn)
+expect_identical(suppressWarnings(rdelap(3, numeric(0), 2, 3)),
+                 rep.int(NaN, 3L))
+expect_identical(suppressWarnings(rdelap(3, 1, numeric(0), 3, exact = FALSE)),
+                 rep.int(NaN, 3L))
+expect_identical(suppressWarnings(rdelap(0, numeric(0), 2, 3)), numeric(0))
+
 # Restore original thread count
 setDelapThreads(oldThreads)

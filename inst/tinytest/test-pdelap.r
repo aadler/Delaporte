@@ -88,5 +88,10 @@ expect_identical(pdelap(Inf, 1L, 2L, 3L), 1)
 expect_identical(pdelap(c(Inf, Inf), c(1L, 2L), 2L, 3L), c(1, 1))
 expect_warning(pdelap(-Inf, 1L, 2L, 3L), nanWarn)
 
+# Zero-length inputs return numeric(0) (SIGFPE regression guard).
+expect_identical(pdelap(0:3, numeric(0), 1, 2), numeric(0))
+expect_identical(pdelap(numeric(0), 1, 2, 3), numeric(0))
+expect_identical(pdelap(0:3, 1, 2, numeric(0), lower.tail = FALSE), numeric(0))
+
 # Restore original thread count
 setDelapThreads(oldThreads)

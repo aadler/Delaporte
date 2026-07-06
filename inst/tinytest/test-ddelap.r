@@ -77,5 +77,13 @@ expect_warning(ddelap(-Inf, 1L, 2L, 3L), nanWarn)
 # Test log1p using Taylor branch; only used by beta parameter.
 expect_equal(ddelap(1, 1, 1e-10, 2), 0.270670566459692, tolerance = tol)
 
+# Zero-length parameters must return numeric(0), not crash R (Issue: SIGFPE
+# via integer division by zero in imk when a parameter has length 0).
+expect_identical(ddelap(0:3, numeric(0), 1, 2), numeric(0))
+expect_identical(ddelap(0:3, 1, numeric(0), 2), numeric(0))
+expect_identical(ddelap(0:3, 1, 2, numeric(0)), numeric(0))
+expect_identical(ddelap(numeric(0), 1, 2, 3), numeric(0))
+expect_identical(ddelap(integer(0), 1, 2, 3, log = TRUE), numeric(0))
+
 # Restore original thread count
 setDelapThreads(oldThreads)

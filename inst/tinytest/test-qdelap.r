@@ -183,5 +183,11 @@ expect_identical(suppressWarnings(qdelap(c(0.4, 0.07), c(1, 2), c(4, 1),
 # Non-double parameters converted
 expect_equal(qdelap(0.25, 1L, 2L, 3L), qdelap(0.25, 1, 2, 3), tolerance = tol)
 
+# Zero-length inputs return numeric(0) in BOTH exact and approximate branches.
+expect_identical(qdelap(0.5, numeric(0), 2, 3), numeric(0))
+expect_identical(qdelap(numeric(0), 1, 2, 3), numeric(0))
+expect_identical(qdelap(0.5, numeric(0), 2, 3, exact = FALSE), numeric(0))
+expect_identical(qdelap(numeric(0), 1, 2, 3, exact = FALSE), numeric(0))
+
 # Restore original thread count
 setDelapThreads(oldThreads)

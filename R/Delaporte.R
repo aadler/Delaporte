@@ -2,8 +2,11 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 ddelap <- function(x, alpha, beta, lambda, log = FALSE) {
-  # Matches R convention to return 0 length result for 0 length parameter. Also
-  # Prevents segfault in Fortran.
+  # FIX #1: Zero-length parameter vectors previously reached the Fortran
+  # recycling helper imk(), where mod(i - 1, 0) is an integer division by zero
+  # -> SIGFPE -> the entire R process dies. Guard here and return numeric(0),
+  # matching base R semantics (dpois(1, numeric(0)) -> numeric(0)). Zero-length
+  # x is also handled explicitly for symmetry and to skip a pointless .Call.
   if (length(alpha) == 0 || length(beta) == 0 || length(lambda) == 0) {
     return(double())
   }

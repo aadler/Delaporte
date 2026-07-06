@@ -5,6 +5,22 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
+\section{Version 9.0.0 (2026-10-01)}{
+  \subsection{Changed}{
+    \itemize{
+      \item Zero-length parameters now return zero-length results in
+      \code{p/d/qdelap} per base \R. Prior behavior was a segfault.
+      \item \strong{Breaking:} Zero-length parameters in \code{rdelap} now
+      return \code{NA}s per base \R. Prior behavior was a segfault.
+    }
+  }
+  \subsection{Fixed}{
+    \itemize{
+      \item Trapping for 0-length parameters prevents a segfault in Fortran.
+    }
+  }
+}
+
 \section{Version 8.4.3 (2026-01-08)}{
   \subsection{Fixed}{
     \itemize{

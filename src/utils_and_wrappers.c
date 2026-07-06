@@ -52,6 +52,16 @@ extern SEXP ddelap_C(SEXP x, SEXP alpha, SEXP beta, SEXP lambda, SEXP lg,
   const int na = LENGTH(alpha);
   const int nb = LENGTH(beta);
   const int nl = LENGTH(lambda);
+  /* FIX #1: Defense in depth. These entry points are exported via
+   * R_RegisterCCallable, so external callers can bypass the R-level guards.
+   * A zero-length parameter would reach imk() in utils.f90 and trigger an
+   * integer division by zero (SIGFPE), killing the host R process. Return
+   * a zero-length real vector, mirroring the R wrapper and base R. No
+   * PROTECT needed: the fresh SEXP is returned immediately with no
+   * intervening allocation. */
+  if (nx == 0 || na == 0 || nb == 0 || nl == 0) {
+    return(allocVector(REALSXP, 0));
+  }
   SEXP ret = PROTECT(allocVector(REALSXP, nx));
   F77_CALL(ddelap_f)(REAL(x), nx, REAL(alpha), na, REAL(beta), nb, REAL(lambda),
            nl, INTEGER(lg), INTEGER(threads), REAL(ret));
@@ -68,6 +78,9 @@ extern SEXP pdelap_C(SEXP q, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt,
   const int na = LENGTH(alpha);
   const int nb = LENGTH(beta);
   const int nl = LENGTH(lambda);
+  if (nq == 0 || na == 0 || nb == 0 || nl == 0) {
+    return(allocVector(REALSXP, 0));
+  }
   SEXP ret = PROTECT(allocVector(REALSXP, nq));
   F77_CALL(pdelap_f)(REAL(q), nq, REAL(alpha), na, REAL(beta), nb, REAL(lambda),
            nl, INTEGER(lt), INTEGER(lg), INTEGER(threads), REAL(ret));
@@ -84,6 +97,9 @@ extern SEXP qdelap_C(SEXP p, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt,
   const int na = LENGTH(alpha);
   const int nb = LENGTH(beta);
   const int nl = LENGTH(lambda);
+  if (np == 0 || na == 0 || nb == 0 || nl == 0) {
+    return(allocVector(REALSXP, 0));
+  }
   SEXP ret = PROTECT(allocVector(REALSXP, np));
   F77_CALL(qdelap_f)(REAL(p), np, REAL(alpha), na, REAL(beta), nb, REAL(lambda),
            nl, INTEGER(lt), INTEGER(lg), INTEGER(threads), REAL(ret));
@@ -100,6 +116,19 @@ extern SEXP rdelap_C(SEXP n, SEXP alpha, SEXP beta, SEXP lambda, SEXP threads) {
   const int nb = LENGTH(beta);
   const int nl = LENGTH(lambda);
   SEXP ret = PROTECT(allocVector(REALSXP, nn));
+  /* FIX #1: rdelap draws nn variates, so the degenerate-parameter analogue
+   * of base R (rpois(3, numeric(0)) -> 3 missings + warning) is a vector
+   * of nn NaNs -- NaN being this package's invalid-parameter convention.
+   * The R wrapper attaches the "NaNs produced" warning. Guard sits after
+   * the allocation so the return object is already the right length. */
+  if (na == 0 || nb == 0 || nl == 0) {
+    double *pret = REAL(ret);
+    for (int i = 0; i < nn; ++i) {
+      pret[i] = R_NaN;
+    }
+    UNPROTECT(1);
+    return(ret);
+  }
   F77_CALL(rdelap_f)(nn, REAL(alpha), na, REAL(beta), nb, REAL(lambda), nl,
            INTEGER(threads), REAL(ret));
   UNPROTECT(1);

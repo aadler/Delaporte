@@ -22,6 +22,8 @@
     \itemize{
       \item Trapping for 0-length parameters in both C and \R prevents a
       segfault in Fortran.
+      \item Prevent \code{qdelap} from overwriting passed \code{p} vector within
+      the Fortran unit, preserving the \code{.Call} contract.
     }
   }
 }

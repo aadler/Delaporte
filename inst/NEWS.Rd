@@ -30,6 +30,16 @@
       that element \code{i} of the output always corresponds to element \code{i}
       of the input. Prior method may have scrambled the "valid" inputs if there
       were non-valid inputs in the source.
+      \item \strong{Breaking:} \code{pdelap} with \code{lower.tail = FALSE} now
+      computes the upper tail by direct summation of the PMF whenever the upper
+      tail is the smaller one, instead of \eqn{1 - \textrm{CDF}}. Survival
+      probabilities near or below machine epsilon previously returned only
+      floating-point rounding noise (e.g. 
+      \code{pdelap(60, 1, 1, 1, lower.tail = FALSE)} returned roughly 3.3e-16
+      when the true value is roughly 1.18e-18); they are now accurate to near
+      full double precision, as is \code{log.p = TRUE} on the deep upper tail.
+      This is technically breaking, but users should see no change outside of
+      the deep tail which was likely not of interest to most.
     }
   }
 }

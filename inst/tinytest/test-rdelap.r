@@ -57,6 +57,10 @@ expect_length(rdelap(8, c(4, 2), c(1, 2, 3, 4), 2), 8L)
 expect_length(rdelap(0, c(4, 2), c(1, 2, 3, 4), 2), 0L)
 expect_error(rdelap(-1, c(4, 2), c(1, 2, 3, 4), 2), nlErr)
 
+# Take number from length of vector
+expect_length(rdelap(12:20, 4, 1, 2), 9L)
+expect_length(rdelap(60:63, c(4, 2), c(1, 2, 3, 4), 2), 4L)
+
 # Approximate throws warning when nonpositive is passed
 expect_warning(rdelap(8, 0, 2, 3, exact = FALSE), nanWarn)
 expect_warning(rdelap(8, 1, -0.8, 3, exact = FALSE), nanWarn)

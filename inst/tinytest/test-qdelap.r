@@ -189,5 +189,30 @@ expect_identical(qdelap(numeric(0), 1, 2, 3), numeric(0))
 expect_identical(qdelap(0.5, numeric(0), 2, 3, exact = FALSE), numeric(0))
 expect_identical(qdelap(numeric(0), 1, 2, 3, exact = FALSE), numeric(0))
 
+# Approximate branch preserves input order for mixed edge/valid probabilities
+# (Issue #3: previously bucketed as c(qNeg, q0, qValid, qInf), scrambling the
+# result whenever categories were interleaved).
+set.seed(9174L)
+mixedApprox <- qdelap(c(0.9, 0, 0.1), 4, 6, 10, exact = FALSE)
+mixedExact <- qdelap(c(0.9, 0, 0.1), 4, 6, 10, exact = TRUE)
+expect_identical(mixedApprox[2L], 0)
+expect_true(mixedApprox[1L] > mixedApprox[3L])
+expect_equal(mixedApprox, mixedExact, tolerance = 0.02)
+
+# Edge values land in the right positions even with p < 0 and p >= 1 present.
+set.seed(9174L)
+edgeApprox <- suppressWarnings(
+  qdelap(c(1, 0.5, -0.2, 0), 4, 6, 10, exact = FALSE)
+)
+expect_identical(edgeApprox[1L], Inf)
+expect_identical(edgeApprox[3L], NaN)
+expect_identical(edgeApprox[4L], 0)
+expect_true(is.finite(edgeApprox[2L]) && edgeApprox[2L] > 0)
+expect_warning(qdelap(c(1, 0.5, -0.2, 0), 4, 6, 10, exact = FALSE), nanWarn)
+
+# All-edge-case input skips simulation but still returns correct positions.
+expect_identical(suppressWarnings(qdelap(c(0, 1, -1), 4, 6, 10, exact = FALSE)),
+                 c(0, Inf, NaN))
+
 # Restore original thread count
 setDelapThreads(oldThreads)

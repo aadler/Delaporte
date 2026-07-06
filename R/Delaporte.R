@@ -96,6 +96,11 @@ rdelap <- function(n, alpha, beta, lambda, exact = TRUE) {
   if (is.na(n) || n < 0L) {
     stop("invalid arguments")
   }
+  # Zero-length parameters produce NAs with a warning, mirroring base R.
+  if (length(alpha) == 0L || length(beta) == 0L || length(lambda) == 0L) {
+    warning("NAs produced")
+    return(rep.int(NA_integer_, n))
+  }
   alpha <- as.double(alpha)
   beta <- as.double(beta)
   lambda <- as.double(lambda)

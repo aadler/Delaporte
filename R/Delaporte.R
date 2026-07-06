@@ -90,10 +90,12 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE,
 }
 
 rdelap <- function(n, alpha, beta, lambda, exact = TRUE) {
-  if (n < 0) {
+  # Follow base R convention (e.g. rpois): a vector n means length(n)
+  # variates, and NA or negative n is an error.
+  if (length(n) > 1L) n <- length(n) else n <- as.integer(n)
+  if (is.na(n) || n < 0L) {
     stop("invalid arguments")
   }
-  n <- as.integer(n)
   alpha <- as.double(alpha)
   beta <- as.double(beta)
   lambda <- as.double(lambda)

@@ -20,7 +20,8 @@
   }
   \subsection{Fixed}{
     \itemize{
-      \item Trapping for 0-length parameters prevents a segfault in Fortran.
+      \item Trapping for 0-length parameters in both C and \R prevents a
+      segfault in Fortran.
     }
   }
 }

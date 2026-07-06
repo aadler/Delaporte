@@ -2,6 +2,11 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 ddelap <- function(x, alpha, beta, lambda, log = FALSE) {
+  # Matches R convention to return 0 length result for 0 length parameter. Also
+  # Prevents segfault in Fortran.
+  if (length(alpha) == 0 || length(beta) == 0 || length(lambda) == 0) {
+    return(double())
+  }
   x <- as.double(x)
   xvalid <- x[!(is.nan(x) | is.na(x))]
   if (any(xvalid > floor(xvalid))) {
@@ -13,6 +18,11 @@ ddelap <- function(x, alpha, beta, lambda, log = FALSE) {
 }
 
 pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE) {
+  # Matches R convention to return 0 length result for 0 length parameter. Also
+  # Prevents segfault in Fortran.
+  if (length(alpha) == 0 || length(beta) == 0 || length(lambda) == 0) {
+    return(double())
+  }
   # These interrupts throw errors even using expect_error. Excluding for now
   # nocov start
   if (any(q[is.finite(q)] >= 2 ^ 63)) {
@@ -36,6 +46,11 @@ pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE) {
 
 qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE,
                    exact = TRUE) {
+  # Matches R convention to return 0 length result for 0 length parameter. Also
+  # Prevents segfault in Fortran.
+  if (length(alpha) == 0 || length(beta) == 0 || length(lambda) == 0) {
+    return(double())
+  }
   p <- as.double(p)
   alpha <- as.double(alpha)
   beta <- as.double(beta)

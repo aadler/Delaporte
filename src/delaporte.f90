@@ -61,8 +61,16 @@
 !          Version 5.2: 2025-12-31
 !                       Declared intent of threads variable in rdelap_f.
 !          Version 6.0  2026-07-06
-!                       Hardening code. 1) Preventing qdelap from overwriting
-!                       passed p vector.
+!                       Hardening code.
+!                         qdelap:
+!                               1) Prevented from overwriting passed p vector.
+!                         pdelap:
+!                               1) When lower.tail = FALSE, new function exists
+!                                  that will calculate the upper tail from the
+!                                  top to prevent catastrophic cancelation of
+!                                  1 - CDF when CDF is very small (near or below
+!                                  machine precision).
+!
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -211,6 +219,74 @@ contains
     end function pdelap_f_s
 
 !-------------------------------------------------------------------------------
+! FUNCTION: sdelap_f_s
+!
+! DESCRIPTION: Calculate the Delaporte survival function P(X > q) for a single
+!              observation by summing the PMF upwards from floor(q) + 1, instead
+!              of computing 1 - CDF. When the survival probability is below
+!              about 1e-16, computing it as 1 - CDF loses all significant
+!              digits to catastrophic cancellation (the CDF rounds to 1). Direct
+!              summation of the tail keeps full relative precision, mirroring
+!              base R's practice of computing the smaller tail directly.
+!
+!              The summation stops when a provable bound on the remaining tail
+!              is negligible relative to the accumulated sum. The Delaporte
+!              PMF is unimodal (it is the convolution of a negative binomial
+!              with a Poisson, and the Poisson is log-concave), so once terms
+!              decrease they keep decreasing, and successive term ratios
+!              approach beta / (1 + beta) - the geometric decay rate of the
+!              dominant negative binomial tail. Bounding all future ratios by
+!              rb = max(observed ratio, beta / (1 + beta)) < 1 bounds the
+!              uncomputed remainder by term * rb / (1 - rb).
+!
+!              PRECONDITION: callers must invoke this only when the upper tail
+!              is the smaller tail, i.e. when CDF(q) > 0.5, as pdelap_f does.
+!              That guarantees floor(q) is at or past the distribution's mode,
+!              so the first term cannot have underflowed while real mass
+!              remains further out, and the loop is guaranteed to terminate
+!              (terms decay to zero past the mode).
+!-------------------------------------------------------------------------------
+
+    pure elemental function sdelap_f_s(q, alpha, beta, lambda) result(sf)
+    
+    real(kind = c_double), intent(in)   :: q, alpha, beta, lambda
+    real(kind = c_double)               :: sf, term, ptrm, rb
+    integer(INT64)                      :: i
+
+        if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. q < ZERO &
+            .or. ieee_is_nan(alpha + beta + lambda + q)) then
+            sf = ieee_value(q, ieee_quiet_nan)
+        else if (.not. ieee_is_finite(q)) then
+            sf = ZERO
+        else
+            sf = ZERO
+            ptrm = ieee_value(q, ieee_positive_inf)
+            i = floor(q, INT64) + 1_INT64
+            do
+                term = ddelap_f_s(real(i, c_double), alpha, beta, lambda)
+                sf = sf + term
+               
+               ! If tail fully underflowed; per the precondition we are past the
+               ! mode, so every subsequent term is smaller still and contributes
+               ! nothing.
+                if (term <= ZERO) exit
+               
+               ! Only test convergence once terms are strictly decreasing (past
+               ! the mode); rb < 1 is then guaranteed and the geometric
+               ! remainder bound is valid.
+                if (term < ptrm) then
+                    rb = max(term / ptrm, beta / (beta + ONE))
+                    if (term * (rb / (ONE - rb)) <= sf * EPS) exit
+                end if
+                ptrm = term
+                i = i + 1_INT64
+            end do
+            sf = cFPe(sf)                     ! Clear floating point errors
+        end if
+
+    end function sdelap_f_s
+
+!-------------------------------------------------------------------------------
 ! ROUTINE: pdelap_f
 !
 ! DESCRIPTION: Vector-based CDF allowing parameter vector recycling and called
@@ -232,7 +308,7 @@ contains
     real(kind = c_double), intent(in)           :: q(nq), a(na), b(nb), l(nl)
     integer(kind = c_int), intent(in)           :: lg, lt, threads
     real(kind = c_double), intent(out)          :: pmfv(nq)
-    real(kind = c_double), allocatable          :: svec(:)
+    real(kind = c_double), allocatable          :: svec(:), pv(:)
     integer                                     :: i, k
 
 ! If there are any complications at all, don't use the fast version. pdelap_f_s
@@ -246,7 +322,24 @@ contains
                 do i = 1, nq
                     pmfv(i) = pdelap_f_s(q(i), a(imk(i, na)), b(imk(i, nb)), &
                     l(imk(i, nl)))
-                    if (lt == 0_c_int) pmfv(i) = HALF - pmfv(i) + HALF!See dpq.h
+                    
+                    ! For the upper tail, compute whichever tail is smaller
+                    ! directly. When the CDF is <= 0.5, the complement 1 - CDF
+                    ! is at least 0.5, so the subtraction (written as in R's
+                    ! dpq.h) costs at most one ulp of relative accuracy. When
+                    ! the CDF exceeds 0.5, 1 - CDF suffers catastrophic
+                    ! cancellation once the survival probability nears machine
+                    ! epsilon, so sum the tail PMF directly instead. NaN CDFs
+                    ! fail the > HALF test and propagate through the subtraction
+                    ! unchanged.
+                    if (lt == 0_c_int) then
+                        if (pmfv(i) > HALF) then
+                            pmfv(i) = sdelap_f_s(q(i), a(imk(i, na)), &
+                            b(imk(i, nb)), l(imk(i, nl)))
+                        else
+                            pmfv(i) = HALF - pmfv(i) + HALF     ! See dpq.h
+                        end if
+                    end if
                     if (lg == 1_c_int) pmfv(i) = log(pmfv(i))
                 end do
             !$omp end parallel do
@@ -255,18 +348,43 @@ contains
             pmfv = ieee_value(q, ieee_quiet_nan)
         else
             k = floor(maxval(q))
+            
+            ! Retain the individual PMF values while building the CDF; the
+            ! upper-tail branch reuses them to build the survival vector without
+            ! recomputation.
+            allocate (pv(k + 1))
             allocate (svec(k + 1))
-            svec(1) = cFPe(exp(-l(1)) / ((b(1) + ONE) ** a(1)))
+            pv(1) = cFPe(exp(-l(1)) / ((b(1) + ONE) ** a(1)))
+            svec(1) = pv(1)
             do i = 2, k + 1
-                svec(i) = cFPe(svec(i - 1) + &
-                ddelap_f_s(real(i - 1, c_double), a(1), b(1), l(1)))
+                pv(i) = ddelap_f_s(real(i - 1, c_double), a(1), b(1), l(1))
+                svec(i) = cFPe(svec(i - 1) + pv(i))
             end do
+            if (lt == 0_c_int) then
+                ! Overwrite svec with the survival function:
+                ! svec(j) = P(X > j - 1). Anchor the largest support point
+                ! accurately - by direct tail summation when the upper tail is
+                ! the smaller one, by complement otherwise - then accumulate
+                ! backwards, adding the saved PMF values. Backward accumulation
+                ! sums positive, increasing terms, so every entry keeps full
+                ! relative precision instead of inheriting the cancellation
+                ! error of 1 - CDF.
+                if (svec(k + 1) > HALF) then
+                    svec(k + 1) = sdelap_f_s(real(k, c_double), a(1), b(1), &
+                                             l(1))
+                else
+                    svec(k + 1) = HALF - svec(k + 1) + HALF     ! See dpq.h
+                end if
+                do i = k, 1, -1
+                    svec(i) = cFPe(svec(i + 1) + pv(i + 1))
+                end do
+            end if
             do i = 1, nq
                 pmfv(i) = svec(floor(q(i)) + 1)
-                if (lt == 0_c_int) pmfv(i) = HALF - pmfv(i) + HALF  ! See dpq.h
                 if (lg == 1_c_int) pmfv(i) = log(pmfv(i))
             end do
             deallocate(svec)
+            deallocate(pv)
         end if
         
         if (any(ieee_is_nan(pmfv))) call rwarn("NaNs produced")

@@ -42,6 +42,15 @@
       full double precision, as is \code{log.p = TRUE} on the deep upper tail.
       This is technically breaking, but users should see no change outside of
       the deep tail which was likely not of interest to most.
+      \item \strong{Breaking:} \code{ddelap} with \code{log = TRUE} now
+      accumulates the PMF in log space using a streaming log-sum-exp instead of
+      taking the log of the linear-space result. This is technically breaking
+      because deep-tail log-probabilities that previously returned \code{-Inf}
+      because the linear PMF underflowed below the smallest representable double
+      are now accurate to near full precision (e.g. 
+      \code{ddelap(2000, 1, 1, 1, log = TRUE)} returns approximately -1385.99
+      instead of \code{-Inf}). Hoisting the variables for both log and normal
+      space routines makes them slightly faster than before.
     }
   }
 }

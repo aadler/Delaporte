@@ -85,5 +85,38 @@ expect_identical(ddelap(0:3, 1, 2, numeric(0)), numeric(0))
 expect_identical(ddelap(numeric(0), 1, 2, 3), numeric(0))
 expect_identical(ddelap(integer(0), 1, 2, 3, log = TRUE), numeric(0))
 
+# log = TRUE is computed in log space via log-sum-exp, so deep-tail
+# log-probabilities remain finite even where the linear-space PMF underflows
+# below the smallest representable double (~1e-308). The oracle assembles the
+# log-PMF from the definition of the Delaporte as a negative binomial
+# convolved with a Poisson, keeping every term in log space.
+lddelapOracle <- function(k, a, b, l) {
+  j <- seq.int(0L, k)
+  lt <- dnbinom(j, size = a, prob = 1 / (1 + b), log = TRUE) +
+    dpois(k - j, l, log = TRUE)
+  m <- max(lt)
+  m + log(sum(exp(lt - m)))
+}
+
+# Singleton deep tail: linear space underflows here, log space must not
+expect_equal(ddelap(2000, 1, 1, 1, log = TRUE), lddelapOracle(2000, 1, 1, 1),
+             tolerance = tol)
+expect_equal(ddelap(500, 0.5, 4, 0.2, log = TRUE),
+             lddelapOracle(500, 0.5, 4, 0.2), tolerance = tol)
+
+# Vector-parameter deep tail
+expect_equal(ddelap(c(2000, 1500), c(1, 2), c(1, 3), c(1, 2), log = TRUE),
+             c(lddelapOracle(2000, 1, 1, 1), lddelapOracle(1500, 2, 3, 2)),
+             tolerance = tol)
+
+# Closed form at x = 0: log P(0) = -lambda - alpha * log1p(beta)
+expect_equal(ddelap(0, 4, 5, 6, log = TRUE), -6 - 4 * log1p(5),
+             tolerance = tol)
+
+# Structure zero cases keep their log-space image of -Inf
+expect_warning(lgNonInt <- ddelap(1.5, 1, 1, 1, log = TRUE), nonIntErr)
+expect_identical(lgNonInt, -Inf)
+expect_identical(ddelap(Inf, 1, 2, 3, log = TRUE), -Inf)
+
 # Restore original thread count
 setDelapThreads(oldThreads)

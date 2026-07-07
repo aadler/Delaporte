@@ -66,6 +66,10 @@
       confirmation prompt now guards only the genuinely slow routes:
       vector-valued parameters with \code{q} at or above \eqn{2^{15}}, or any
       \code{q} at or above \eqn{2^{24}}.
+      \item Size gate in \code{qdelap} now only asks for continuation when
+      sessions are interactive. Otherwise it checks new \code{Delaporte.maxq}
+      option in the local enviornment and stops if the largest value exceeds
+      the option or warns if it does not. The default value is \eqn{2^{15}}.
     }
   }
   \subsection{Fixed}{

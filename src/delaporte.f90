@@ -229,8 +229,10 @@ contains
                          - (alpha + ii) * l1pb - log_gamma(kk - ii + ONE)
                     if (lt > mx) then
                         ! New running maximum: rescale the accumulated sum to
-                        ! the new base. On the first term mx is -Inf, so
-                        ! exp(mx - lt) is 0 and s correctly restarts at 1.
+                        ! the new base (equivalent of multiplying by
+                        ! mx(old) / lt(new) and add ONE representing the new
+                        ! "largest value" that enters the sum. On the very first
+                        ! term mx is -Inf, so exp(mx - lt) is 0 and thus s is 1.
                         s = s * exp(mx - lt) + ONE
                         mx = lt
                     else

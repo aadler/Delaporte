@@ -74,9 +74,9 @@
   }
   \subsection{Removed}{
     \itemize{
-      \item \strong{Breaking:} The \code{sOMPT_C} entry point was removed,
-      including its \code{R_RegisterCCallable} registration, as were the
-      \code{.onDetach} thread reset and its Fortran backend \code{sOMPT_f}.
+      \item \strong{Breaking:} The \code{sOMPT_C} function and entry point was
+      removed, including its \code{R_RegisterCCallable} registration, as were
+      the \code{.onDetach} thread reset and its Fortran backend \code{sOMPT_f}.
       \item \strong{Breaking:} \env{DelaporteEnv} is no longer exported.
     }
   }

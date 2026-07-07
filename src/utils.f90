@@ -37,6 +37,10 @@
 !                       interfere with other OMP packages. Threads are now
 !                       handled in a package-specific environment. See zzz.R and
 !                       omp.R for more.
+!                       Changed binding names for header/source refactor.
+!                       Use specific "only" lists to prevent scope infractions.
+!                       Added interface to C unifrnd and drop need for
+!                       external and F77_SUB calls.
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -64,8 +68,8 @@
 !-------------------------------------------------------------------------------
 
 module utils
-    use, intrinsic :: iso_c_binding
-    use, intrinsic :: iso_fortran_env
+    use, intrinsic :: iso_c_binding,   only: c_int, c_double
+    use, intrinsic :: iso_fortran_env, only: INT64 
     !$ use omp_lib
     implicit none
 
@@ -78,6 +82,26 @@ module utils
     real(kind = c_double), parameter :: EPS = 2.2204460492503131e-16_c_double
     real(kind = c_double), parameter :: MAXD = REAL(HUGE(1_INT64), c_double)
     integer, parameter               :: MAXVECSIZE = 16384
+    
+! ------------------------------------------------------------------------------
+! Interface to C-side RNG bridge (defined in utils_and_wrappers.c). Declared
+! here at module scope so any procedure that uses this module gets a
+! compiler-checked, explicit interface -- replaces the implicit "external
+! unifrnd" declaration formerly local to rdelap_f. bind(C) pins the linker
+! symbol to literally "unifrnd", so the C definition needs no F77_SUB/mangling
+! macro.
+! NOTE: interface bodies are their own scoping unit and do NOT inherit the
+! module's use statements, so iso_c_binding must be re-imported inside the body
+! (or brought in via an IMPORT statement).
+! ---------------------------------------------------------------------
+    interface
+        subroutine unifrnd(n, x) bind(C, name = "unifrnd")
+            use, intrinsic :: iso_c_binding, only: c_int, c_double
+            
+            integer(kind = c_int), intent(in), value :: n
+            real(kind = c_double), intent(out)       :: x(n)
+        end subroutine unifrnd
+    end interface
 
 contains
 

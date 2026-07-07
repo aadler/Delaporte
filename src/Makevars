@@ -2,7 +2,7 @@ PKG_FFLAGS = $(SHLIB_OPENMP_FFLAGS) $(LTO_FC_OPT)
 PKG_CFLAGS = $(LTO_OPT)
 PKG_LIBS = $(FLIBS) $(SHLIB_OPENMP_CFLAGS) $(LTO_OPT)
 
-C_OBJS = utils_and_wrappers.o
+C_OBJS = init.o delaporteC.o
 FT_OBJS = utils.o delaporte.o
 
 all:

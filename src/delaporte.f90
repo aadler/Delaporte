@@ -34,7 +34,7 @@
 !                       wider domain for d/pdelap.
 !          Version 3.0: 2023-01-29
 !                       Updated to rely on Fortran 2008 intrinsics and use
-!                       ieee_artithmetic.
+!                       ieee_arithmetic.
 !          Version 4.0: 2023-08-08
 !                       Added OpenMP thread control functionality.
 !          Version 4.1: 2024-04-04
@@ -60,8 +60,11 @@
 !                       be against _c_int variables, which they should be.
 !          Version 5.2: 2025-12-31
 !                       Declared intent of threads variable in rdelap_f.
-!          Version 6.0  2026-07-06
-!                       Hardening code.
+!          Version 6.0  2026-07-07
+!                       Changed binding names for header/source refactor.
+!                       Use specific "only" lists to prevent scope infractions.
+!                       Change unifrnd to interface and drop "external".
+!                       Function Specific:
 !                         qdelap:
 !                               1) Prevented from overwriting passed p vector.
 !                         pdelap:
@@ -104,11 +107,14 @@
 !-------------------------------------------------------------------------------
 
 module delaporte
-    use, intrinsic :: iso_c_binding
-    use, intrinsic :: iso_fortran_env
-    use, intrinsic :: ieee_arithmetic
+    use, intrinsic :: iso_c_binding,   only: c_int, c_double
+    use, intrinsic :: iso_fortran_env, only: INT64
+    use, intrinsic :: ieee_arithmetic, only: ieee_positive_inf, ieee_value, &
+                                             ieee_quiet_nan, ieee_is_nan, &
+                                             ieee_is_finite, ieee_negative_inf
     !$ use omp_lib
-    use utils
+    use utils, only: imk, cFPe, log1p, unifrnd, ZERO, HALF, ONE, THREEHALFS, &
+                     TWO, THREE, EPS, MAXD, MAXVECSIZE
 
     implicit none
     private
@@ -261,7 +267,7 @@ contains
 !-------------------------------------------------------------------------------
 
     subroutine ddelap_f(x, nx, a, na, b, nb, l, nl, lg, threads, pmfv) &
-               bind(C, name="ddelap_f_")
+               bind(C, name="ddelap_f")
                         
     integer(kind = c_int), intent(in), value     :: nx, na, nb, nl
     real(kind = c_double), intent(in)            :: x(nx), a(na), b(nb), l(nl)
@@ -415,7 +421,7 @@ contains
 !-------------------------------------------------------------------------------
 
     subroutine pdelap_f(q, nq, a, na, b, nb, l, nl, lt, lg, threads, pmfv) &
-               bind(C, name="pdelap_f_")
+               bind(C, name="pdelap_f")
                         
     integer(kind = c_int), intent(in), value    :: nq, na, nb, nl
     real(kind = c_double), intent(in)           :: q(nq), a(na), b(nb), l(nl)
@@ -551,7 +557,7 @@ contains
 !-------------------------------------------------------------------------------
 
     subroutine qdelap_f(pp, np, a, na, b, nb, l, nl, lt, lg, threads, obsv) &
-               bind(C, name="qdelap_f_")
+               bind(C, name="qdelap_f")
 
     integer(kind = c_int), intent(in), value        :: np, na, nb, nl
     real(kind = c_double), intent(in)               :: a(na), b(nb), l(nl)
@@ -629,9 +635,7 @@ contains
 !-------------------------------------------------------------------------------
 
     subroutine rdelap_f(n, a, na, b, nb, l, nl, threads, vars) &
-               bind(C, name="rdelap_f_")
-
-    external unifrnd
+               bind(C, name="rdelap_f")
 
     integer(kind = c_int), intent(in), value           :: n, na, nb, nl
     real(kind = c_double), intent(in)                  :: a(na), b(nb), l(nl)
@@ -653,7 +657,7 @@ contains
 !              https://www.johndcook.com/blog/skewness_kurtosis/
 !-------------------------------------------------------------------------------
 
-    pure subroutine momdelap_f(obs, n, tp, params) bind(C, name="momdelap_f_")
+    pure subroutine momdelap_f(obs, n, tp, params) bind(C, name="momdelap_f")
 
     integer(kind = c_int), intent(in), value :: n
     integer(kind = c_int), intent(in)        :: tp

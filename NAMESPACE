@@ -13,5 +13,4 @@ export(ddelap,
        rdelap,
        MoMdelap,
        getDelapThreads,
-       setDelapThreads,
-       DelaporteEnv)
+       setDelapThreads)

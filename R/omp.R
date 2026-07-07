@@ -1,20 +1,23 @@
 # Copyright (c) 2023, Avraham Adler All rights reserved
 # SPDX-License-Identifier: BSD-2-Clause
 
-# Function to get current active number of threads
+# Get the number of threads Delaporte will request in its parallel regions.
+# This is package-local state (see zzz.R); it does not query---and is not
+# affected by---the process-global OpenMP settings of other packages.
 getDelapThreads <- function() {
-  .Call(gOMPT_C)
+  get("DelapThreads", envir = DelaporteEnv)
 }
 
 setDelapThreads <- function(n) {
-  n <- as.integer(floor(n))
-  if (n <= 0L) {
+  n <- as.integer(floor(n[[1L]]))
+  if (is.na(n) || n <= 0L) {
     stop("Number of threads must be > 0.")
   }
   ncpus <- get("DLPCPU", envir = DelaporteEnv)
-  if (n > ncpus && !is.na(ncpus)) {
+  if (!is.na(ncpus) && n > ncpus) {
     message("Capping at system maximum of ", ncpus, ".")
     n <- ncpus
   }
-  invisible(.Call(sOMPT_C, n))
+  assign("DelapThreads", n, envir = DelaporteEnv)
+  invisible(n)
 }

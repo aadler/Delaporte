@@ -32,6 +32,11 @@
 !                       Added imk helper function. A smidgen faster—I'm not sure
 !                       why, perhaps due to pre-compilation in module—and easier
 !                       to read. Turn FP error cleaning into a function.
+!          Version 5.0: 2026-07-07
+!                       Removed sOMPT_f as that was a global setting and could
+!                       interfere with other OMP packages. Threads are now
+!                       handled in a package-specific environment. See zzz.R and
+!                       omp.R for more.
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -99,7 +104,12 @@ contains
 !-------------------------------------------------------------------------------
 ! FUNCTION: gOMPT
 !
-! DESCRIPTION: Gets current OMP Threads
+! DESCRIPTION: Gets the OpenMP runtime's maximum thread count. Called once at
+!              package load to seed the package-local thread setting; the
+!              per-call thread count is passed explicitly to each parallel
+!              region via its num_threads clause. The former companion
+!              sOMPT_f (omp_set_num_threads) was removed in 9.0.0 because it
+!              mutated process-global OpenMP state shared with other packages.
 !-------------------------------------------------------------------------------
 
     subroutine gOMPT_f(n) bind(C, name="gOMPT_f_")
@@ -111,21 +121,6 @@ contains
     
     end subroutine gOMPT_f
     
-    
-!-------------------------------------------------------------------------------
-! FUNCTION: sOMPT
-!
-! DESCRIPTION: Sets current OMP Threads
-!-------------------------------------------------------------------------------
-
-    subroutine sOMPT_f(n) bind(C, name="sOMPT_f_")
-    
-    integer(kind = c_int), intent(in) :: n
-    
-        !$ call omp_set_num_threads(n)
-    
-    end subroutine sOMPT_f    
-
 !-------------------------------------------------------------------------------
 ! FUNCTION: imk (i mod k)
 !

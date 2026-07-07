@@ -27,6 +27,11 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 
+/* Reads the OpenMP runtime's max thread count. Used once by .onLoad to seed
+ * the package-local thread setting (see R/zzz.R). Its former companion
+ * sOMPT_C was removed in 9.0.0: it called omp_set_num_threads(), mutating
+ * process-global OpenMP state shared with every other OpenMP-using package.
+ * Delaporte now scopes threading per parallel region via num_threads(). */
 void F77_NAME(gOMPT_f)(int *ret);
 
 extern SEXP gOMPT_C(void) {
@@ -34,13 +39,6 @@ extern SEXP gOMPT_C(void) {
   F77_CALL(gOMPT_f)(INTEGER(ret));
   UNPROTECT(1);
   return(ret);
-}
-
-void F77_NAME(sOMPT_f)(int *n);
-
-extern SEXP sOMPT_C(SEXP n) {
-  F77_CALL(sOMPT_f)(INTEGER(n));
-  return(n);
 }
 
 void F77_NAME(ddelap_f)(double *x, int nx, double *a, int na, double *b, 
@@ -164,7 +162,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"rdelap_C",    (DL_FUNC) &rdelap_C,   5},
     {"MoMdelap_C",  (DL_FUNC) &MoMdelap_C, 2},
     {"gOMPT_C",     (DL_FUNC) &gOMPT_C,    0},
-    {"sOMPT_C",     (DL_FUNC) &sOMPT_C,    1},
     {NULL,                    NULL,        0}
 };
 
@@ -178,5 +175,4 @@ void R_init_Delaporte(DllInfo *dll) {
   R_RegisterCCallable("Delaporte", "rdelap_C",  (DL_FUNC) &rdelap_C);
   R_RegisterCCallable("Delaporte", "MoMdelap_C",(DL_FUNC) &MoMdelap_C);
   R_RegisterCCallable("Delaporte", "gOMPT_C",   (DL_FUNC) &gOMPT_C);
-  R_RegisterCCallable("Delaporte", "sOMPT_C",   (DL_FUNC) &sOMPT_C);
 }

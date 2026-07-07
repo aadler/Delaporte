@@ -215,5 +215,51 @@ expect_warning(qdelap(c(1, 0.5, -0.2, 0), 4, 6, 10, exact = FALSE), nanWarn)
 expect_identical(suppressWarnings(qdelap(c(0, 1, -1), 4, 6, 10, exact = FALSE)),
                  c(0, Inf, NaN))
 
+# qdelap builds its CDF lookup with the same recurrence and accumulation
+# order as pdelap, so the round trip must hold exactly, including in the
+# underflow-scaled regime and for deep percentiles.
+# (Round trips are only possible while the CDF is strictly below 1 in double
+# precision and still strictly increasing; past saturation every k maps to
+# the same stored CDF, in any implementation.)
+testV <- c(0, 1, 13, 14, 25, 60, 90)
+expect_equal(qdelap(pdelap(testV, 5, 2, 3), 5, 2, 3), testV, tolerance = tol)
+testV <- c(700, 800, 900)
+expect_equal(qdelap(pdelap(testV, 5, 3, 800), 5, 3, 800), testV,
+             tolerance = tol)
+
+# A quantile at survival 1e-12 with K ~ 11700 support points is
+# ill-conditioned for any linear-space CDF accumulation (total rounding
+# ~ K * eps ~ 2.6e-12 exceeds the target), so cross-path equality cannot be
+# asserted there. Assert accuracy instead, using the directly-summed upper
+# tail as the oracle: the returned quantile must land where the true
+# survival crosses 1e-12.
+qDeep <- qdelap(1 - 1e-12, 50, 100, 100)
+expect_true(pdelap(qDeep, 50, 100, 100, lower.tail = FALSE) <= 2e-12)
+expect_true(pdelap(qDeep - 100, 50, 100, 100, lower.tail = FALSE) > 1e-12)
+
+# The geometrically-doubled lookup table must return the identical quantiles
+# as the elemental search path (forced by a vector-valued parameter).
+set.seed(495L)
+ptst <- c(runif(200), 1e-14, 1 - 1e-13)
+expect_identical(qdelap(ptst, 4, 6, 10), qdelap(ptst, c(4, 4), 6, 10))
+
+# NaN singleton parameters previously slipped past the <= 0 screens and hung
+# the build loop while eating memory; they must now return NaN immediately.
+expect_warning(vapply(list(c(NaN, 2, 3), c(2, NaN, 3), c(2, 3, NaN)),
+                      function(g) qdelap(0.5, g[1], g[2], g[3]), double(1)),
+               nanWarn)
+expect_identical(suppressWarnings(qdelap(c(0.1, 0.5), NaN, 2, 3)),
+                 rep(NaN, 2))
+
+# Parameters beyond TBLMAXCOEF route to the legacy incremental build and must
+# agree with the elemental search path.
+expect_equal(qdelap(c(0.05, 0.5, 0.95), 1e-28, 1e31, 2),
+             qdelap(c(0.05, 0.5, 0.95), c(1e-28, 1e-28), 1e31, 2),
+             tolerance = tol)
+
+# Specialty test to bring coverage to 100%
+# expect_identical(qdelap(0.1, 1e10, 1e10, 1e10), Inf)
+# qdelap(0.01, 1e-20, 1e6, 1e24) HANGS
+
 # Restore original thread count
 setDelapThreads(oldThreads)

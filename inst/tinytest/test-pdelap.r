@@ -142,5 +142,52 @@ expect_equal(pdelap(qLow, 2, 1, 5, lower.tail = FALSE),
 expect_equal(pdelap(qLow, 2, 1, 5, lower.tail = FALSE),
              1 - pdelap(qLow, 2, 1, 5), tolerance = tol)
 
+# O(K) recurrence table build (ddelap_table): agreement with an independent
+# base R oracle built from the defining NB (*) Poisson convolution, across
+# ordinary, skewed, and underflow-scaled (lambda + alpha * log1p(beta) > 745)
+# parameter regimes. The last two regimes exercise the log-space scaling
+# branch, whose bookkeeping error grows like lambda * .Machine$double.eps,
+# hence the looser (but still tight) tolerance.
+pOracle <- function(q, a, b, l) {
+  vapply(q, function(k) {
+    i <- 0:k
+    sum(dnbinom(i, size = a, prob = 1 / (1 + b)) * ppois(k - i, l))
+  }, double(1))
+}
+qtst <- c(0:20, 50, 100, 400)
+for (prm in list(c(4, 6, 10), c(0.001, 1000, 5), c(50, 0.02, 3),
+                 c(0.5, 0.5, 0.5))) {
+  expect_equal(pdelap(qtst, prm[1], prm[2], prm[3]),
+               pOracle(qtst, prm[1], prm[2], prm[3]), tolerance = 1e-14)
+}
+for (prm in list(c(5, 3, 800), c(2, 7, 1500))) {
+  ora <- pOracle(qtst, prm[1], prm[2], prm[3])
+  got <- pdelap(qtst, prm[1], prm[2], prm[3])
+  keep <- ora > 1e-290                # below this both should agree on ~0
+  expect_equal(got[keep], ora[keep], tolerance = 1e-9)
+  expect_true(all(got[!keep] < 1e-280))
+}
+
+# The recurrence fast path and the per-element summation path (forced by a
+# vector-valued parameter) must agree to rounding.
+qtst <- 0:400
+expect_equal(pdelap(qtst, 4, 6, 10), pdelap(qtst, c(4, 4), 6, 10),
+             tolerance = tol)
+expect_equal(pdelap(qtst, 4, 6, 10, lower.tail = FALSE),
+             pdelap(qtst, c(4, 4), 6, 10, lower.tail = FALSE), tolerance = tol)
+
+# Parameters beyond TBLMAXCOEF route around the recurrence to the legacy
+# summation build and must agree with the per-element path.
+expect_equal(pdelap(0:6, 1e-28, 1e31, 2), pdelap(0:6, c(1e-28, 1e-28), 1e31, 2),
+             tolerance = tol)
+
+# Values far past the old 2^15 gate now compute on the fast path; spot-check
+# monotonicity, the CDF limit, and a tail point against the direct survival
+# summation.
+bigP <- pdelap(c(1e5, 2e5, 5e5), 4, 6, 10)
+expect_true(all(diff(bigP) >= 0) && bigP[3] == 1)
+expect_equal(pdelap(500, 4, 6, 10, lower.tail = FALSE),
+             pdelap(500, c(4, 4), 6, 10, lower.tail = FALSE), tolerance = tol)
+
 # Restore original thread count
 setDelapThreads(oldThreads)

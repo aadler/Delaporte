@@ -104,6 +104,9 @@ expect_equal(ddelap(2000, 1, 1, 1, log = TRUE), lddelapOracle(2000, 1, 1, 1),
 expect_equal(ddelap(500, 0.5, 4, 0.2, log = TRUE),
              lddelapOracle(500, 0.5, 4, 0.2), tolerance = tol)
 
+# Trigger lpmf = ieee_value(x, ieee_quiet_nan) in ddelap_f_s_log
+expect_warning(ddelap(2e30, 1, 1, NaN, log = TRUE), nanWarn)
+
 # Vector-parameter deep tail
 expect_equal(ddelap(c(2000, 1500), c(1, 2), c(1, 3), c(1, 2), log = TRUE),
              c(lddelapOracle(2000, 1, 1, 1), lddelapOracle(1500, 2, 3, 2)),
@@ -121,6 +124,49 @@ expect_identical(ddelap(Inf, 1, 2, 3, log = TRUE), -Inf)
 # Test NaN Return
 expect_identical(suppressWarnings(ddelap(3, -1, 2, 3, log = TRUE)), NaN)
 expect_warning(ddelap(3, -1, 2, 3, log = TRUE), nanWarn)
+
+# Scalar-parameter fast path (O(K) recurrence table + lookup) must agree with
+# the per-element summation path (forced by a vector-valued parameter) in
+# both linear and log space, including non-integer observations and the
+# deep-tail log values whose linear-space masses underflow to 0.
+xtst <- c(0:400, 1000, 2000, 3.5, 7.2)
+expect_equal(suppressWarnings(ddelap(xtst, 4, 6, 10)),
+             suppressWarnings(ddelap(xtst, c(4, 4), 6, 10)), tolerance = 1e-12)
+lFast <- suppressWarnings(ddelap(xtst, 4, 6, 10, log = TRUE))
+lElem <- suppressWarnings(ddelap(xtst, c(4, 4), 6, 10, log = TRUE))
+expect_equal(lFast[is.finite(lElem)], lElem[is.finite(lElem)],
+             tolerance = 1e-10)
+expect_identical(is.finite(lFast), is.finite(lElem))
+
+# Log fast path must preserve the log-space guarantee: finite log-PMF where
+# the linear PMF underflows (regression for the downward-rescaling branch of
+# ddelap_table; without it these return -Inf).
+expect_equal(ddelap(2000, 1, 1, 1, log = TRUE),
+             ddelap(2000, c(1, 1), 1, 1, log = TRUE), tolerance = 1e-10)
+expect_true(is.finite(ddelap(5000, 1, 1, 1, log = TRUE)))
+
+# Underflow-scaled regime through the fast path: normalization and one point
+# against the defining NB (*) Poisson convolution.
+expect_equal(sum(ddelap(0:4000, 5, 3, 800)), 1, tolerance = 1e-9)
+expect_equal(ddelap(850, 5, 3, 800),
+             sum(dnbinom(0:850, size = 5, prob = 0.25) *
+                   dpois(850 - (0:850), 800)), tolerance = 1e-9)
+
+# Parameters beyond TBLMAXCOEF route around the table to the per-element
+# summation and must agree with the vector-parameter path.
+expect_equal(suppressWarnings(ddelap(0:5, 1e-28, 1e31, 2)),
+             suppressWarnings(ddelap(0:5, c(1e-28, 1e-28), 1e31, 2)),
+             tolerance = tol)
+
+# Specialty tests to bring coverage to 100%
+# Triggers pmfv(i) = ddelap_f_s_log(x(i), a(1), b(1), l(1)) in ddelap_f
+# Triggers pmfv(i) = ddelap_f_s_log(x(i), a(1), b(1), l(1)) in pdelap_f
+expect_identical(ddelap(1, 1e3000, 1e3000, 1e3000, log = TRUE), 0)
+
+# Trigger pv(n + 2) = ieee_value(ps, ieee_negative_inf) in ddelap_table
+expect_identical(ddelap(1e4, 1e-50, 1e-100, 1e-50, log = TRUE), -Inf)
+
+# ddelap(1e10, 1e-30, 1e-30, 1e-30, log = TRUE) is hanging
 
 # Restore original thread count
 setDelapThreads(oldThreads)

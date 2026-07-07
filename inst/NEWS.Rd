@@ -106,6 +106,12 @@
       \item \code{qdelap} and \code{rdelap} with a \code{NaN} scalar parameter
       previously looped indefinitely while consuming memory. Now they return
       \code{NaN} with a warning, matching \code{pdelap}.
+      \item Non-finite parameters, including infinities, now return \code{NaN}
+      with a warning across \code{d/p/q/rdelap} instead of clamp-laundered 0s
+      and 1s.
+      \item For \eqn{x \geq 2^{63}}, including +\code{Inf}, the functions no
+      longer convert \code{x} to an integer kind it which it then overflows.
+      Instead, they return 0 or −Inf directly.
     }
   }
   \subsection{Removed}{

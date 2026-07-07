@@ -190,5 +190,10 @@ expect_true(bigP[3] == 1)
 expect_equal(pdelap(500, 4, 6, 10, lower.tail = FALSE),
              pdelap(500, c(4, 4), 6, 10, lower.tail = FALSE), tolerance = tol)
 
+expect_warning(pdelap(1, Inf, 2, 3), nanWarn)
+expect_true(is.nan(suppressWarnings(pdelap(1, Inf, 2, 3))))
+expect_true(is.nan(suppressWarnings(pdelap(1, 2, Inf, 3, lower.tail = FALSE))))
+expect_true(is.nan(suppressWarnings(pdelap(1, 2, 3, c(Inf, Inf)))))
+
 # Restore original thread count
 setDelapThreads(oldThreads)

@@ -155,18 +155,47 @@ expect_equal(suppressWarnings(ddelap(0:5, 1e-28, 1e31, 2)),
              suppressWarnings(ddelap(0:5, c(1e-28, 1e-28), 1e31, 2)),
              tolerance = tol)
 
+# Degenerate parameters whose PMF can fall by more than the table's rescue
+# band in one recurrence step (here the guaranteed step ratio is
+# lambda / (k + 1) ~ 1e-54) must route the log-space request to the elemental
+# path. The log-PMF is finite - alpha ~ 0 collapses the NB factor to a point
+# mass at zero, leaving essentially a Poisson(lambda) - not -Inf.
+expect_equal(ddelap(1e4, 1e-50, 1e-100, 1e-50, log = TRUE),
+             ddelap(1e4, c(1e-50, 1e-50), 1e-100, 1e-50, log = TRUE),
+             tolerance = tol)
+expect_equal(ddelap(1e4, 1e-50, 1e-100, 1e-50, log = TRUE),
+             dpois(1e4, 1e-50, log = TRUE), tolerance = 1e-9)
+
+# Parameters beyond TBLMAXCOEF route the log-space request around the table
+# as well and must agree with the per-element path.
+expect_equal(suppressWarnings(ddelap(0:5, 1e-28, 1e31, 2, log = TRUE)),
+             suppressWarnings(ddelap(0:5, c(1e-28, 1e-28), 1e31, 2,
+                                     log = TRUE)), tolerance = tol)
+
+# Invalid parameters through the per-element log path return NaN.
+expect_true(all(is.nan(suppressWarnings(
+  ddelap(0:2, c(-1, -1), 2, 3, log = TRUE)))))
+
 # Specialty tests to bring coverage to 100%
 # Trigger lpmf = ieee_value(x, ieee_quiet_nan) in ddelap_f_s_log
 expect_warning(ddelap(2e30, 1, 1, NaN, log = TRUE), nanWarn)
 
-# Triggers pmfv(i) = ddelap_f_s_log(x(i), a(1), b(1), l(1)) in ddelap_f
-# Triggers pmfv(i) = ddelap_f_s_log(x(i), a(1), b(1), l(1)) in pdelap_f
-expect_identical(ddelap(1, 1e3000, 1e3000, 1e3000, log = TRUE), 0)
+# Non-finite parameters are invalid: any infinite parameter implies an
+# infinite-mean distribution with no mass at any finite point, so the result
+# is NaN with a warning - previously Inf-driven NaNs were laundered into
+# exactly 0 and 1 by the floating-point clamps. Note that 1e3000 overflows
+# double precision and IS Inf.
+expect_warning(ddelap(1, Inf, Inf, Inf, log = TRUE), nanWarn)
+expect_true(is.nan(suppressWarnings(ddelap(1, Inf, Inf, Inf, log = TRUE))))
+expect_true(is.nan(suppressWarnings(ddelap(1, Inf, Inf, Inf))))
+expect_true(is.nan(suppressWarnings(ddelap(1, 4, Inf, 0.1))))
+expect_true(is.nan(suppressWarnings(ddelap(1, c(Inf, Inf), 2, 3))))
 
-# Trigger pv(n + 2) = ieee_value(ps, ieee_negative_inf) in ddelap_table
-expect_identical(ddelap(1e4, 1e-50, 1e-100, 1e-50, log = TRUE), -Inf)
-
-# ddelap(1e10, 1e-30, 1e-30, 1e-30, log = TRUE) is hanging
+# x at or beyond MAXD (huge 64-bit integer), including x = +Inf, carries no
+# reportable mass by the package's summation cap: 0 in linear space, -Inf in
+# log space, computed without converting x to an integer kind it overflows.
+expect_identical(ddelap(Inf, 1, 2, 3), 0)
+expect_identical(ddelap(2e30, 1, 1, 1, log = TRUE), -Inf)
 
 # Restore original thread count
 setDelapThreads(oldThreads)

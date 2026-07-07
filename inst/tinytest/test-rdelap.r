@@ -82,5 +82,8 @@ expect_identical(suppressWarnings(rdelap(3, 1, numeric(0), 3, exact = FALSE)),
 expect_identical(suppressWarnings(rdelap(0, numeric(0), 2, 3)), numeric(0))
 expect_identical(.Call(Delaporte:::rdelap_C, 3L, 2, double(0), 2, 1L), nan3)
 
+expect_warning(rdelap(2, 1, 2, Inf), nanWarn)
+expect_true(all(is.nan(suppressWarnings(rdelap(2, 1, 2, Inf)))))
+
 # Restore original thread count
 setDelapThreads(oldThreads)

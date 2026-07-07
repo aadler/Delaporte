@@ -257,9 +257,11 @@ expect_equal(qdelap(c(0.05, 0.5, 0.95), 1e-28, 1e31, 2),
              qdelap(c(0.05, 0.5, 0.95), c(1e-28, 1e-28), 1e31, 2),
              tolerance = tol)
 
-# Specialty test to bring coverage to 100%
-# expect_identical(qdelap(0.1, 1e10, 1e10, 1e10), Inf)
-# qdelap(0.01, 1e-20, 1e6, 1e24) HANGS
+expect_warning(qdelap(0.5, Inf, 2, 3), nanWarn)
+expect_true(is.nan(suppressWarnings(qdelap(0.5, Inf, 2, 3))))
+# Recycled parameters screen per element: only the Inf-parameter slot NaNs.
+expect_identical(is.nan(suppressWarnings(qdelap(c(0.4, 0.5), 2, c(Inf, 3),
+                                                1))), c(TRUE, FALSE))
 
 # Restore original thread count
 setDelapThreads(oldThreads)

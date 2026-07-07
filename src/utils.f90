@@ -44,6 +44,7 @@
 !                       Added "lower_bound" which replaces minloc in qdelap.
 !                       This is a binary search, O(log n), and not a linear
 !                       scan, O(n).
+!                       Changed MAXVECSIZE to 2^24 given ddelap enhancements.
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -84,7 +85,17 @@ module utils
     real(kind = c_double), parameter :: THREE = 3._c_double
     real(kind = c_double), parameter :: EPS = 2.2204460492503131e-16_c_double
     real(kind = c_double), parameter :: MAXD = REAL(HUGE(1_INT64), c_double)
-    integer, parameter               :: MAXVECSIZE = 16384
+    
+    ! alpha*beta above which pdelap_f routes around ddelap_table to the legacy
+    ! per-element summation build. See routing comment in pdelap_f.
+    real(kind = c_double), parameter :: TBLMAXCOEF = 1.e30_c_double
+    
+    ! Maximum allowable q for pdelap's singleton fast path. Raised from 2**14
+    ! = 16384 to 2**24 now that the CDF table is built by an O(K) three-term
+    ! recurrence; the binding constraint is now the two K+1-length work
+    ! vectors (16 bytes per support point, ~270 MB at 2**24), not compute
+    ! time. (AA & Claude: 2026-07-07)
+    integer, parameter               :: MAXVECSIZE = 16777216
     
 ! ------------------------------------------------------------------------------
 ! Interface to C-side RNG bridge (defined in utils_and_wrappers.c). Declared

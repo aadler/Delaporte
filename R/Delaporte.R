@@ -26,13 +26,25 @@ pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE) {
   if (length(alpha) == 0 || length(beta) == 0 || length(lambda) == 0) {
     return(double())
   }
+  
   # These interrupts throw errors even using expect_error. Excluding for now
   # nocov start
+  
+  # The interactive gate now only guards the genuinely slow routes. With
+  # scalar parameters the CDF table is built by an O(K) recurrence
+  # (ddelap_table in delaporte.f90), so values up to MAXVECSIZE = 2^24
+  # compute in milliseconds and need no gate. What remains quadratic - and
+  # therefore still gated at the old 2^15 threshold - is the per-element
+  # summation path, taken when any parameter is vector-valued or when q
+  # exceeds 2^24. (AA & Claude: 2026-07-07)
   if (any(q[is.finite(q)] >= 2 ^ 63)) {
     stop("Function cannot handle values >= 2^63.")
   }
-  if (any(q[is.finite(q)] >= 2 ^ 15)) {
-    cat("There are values >= 32768.",
+  
+  slowpath <- length(alpha) > 1L || length(beta) > 1L || length(lambda) > 1L
+  qmax <- suppressWarnings(max(q[is.finite(q)], -Inf))
+  if ((slowpath && qmax >= 2 ^ 15) || qmax >= 2 ^ 24) {
+    cat("There are very large values in the supplied data.",
         "This may take minutes if not hours to compute. Are you sure?\n")
     resp <- readline("Press 'y' to continue.\n")
     if (tolower(resp) != "y") {

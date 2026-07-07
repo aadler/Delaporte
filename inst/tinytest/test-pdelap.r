@@ -185,7 +185,8 @@ expect_equal(pdelap(0:6, 1e-28, 1e31, 2), pdelap(0:6, c(1e-28, 1e-28), 1e31, 2),
 # monotonicity, the CDF limit, and a tail point against the direct survival
 # summation.
 bigP <- pdelap(c(1e5, 2e5, 5e5), 4, 6, 10)
-expect_true(all(diff(bigP) >= 0) && bigP[3] == 1)
+expect_true(all(diff(bigP) >= 0))
+expect_true(bigP[3] == 1)
 expect_equal(pdelap(500, 4, 6, 10, lower.tail = FALSE),
              pdelap(500, c(4, 4), 6, 10, lower.tail = FALSE), tolerance = tol)
 

@@ -44,19 +44,7 @@ pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE) {
   slowpath <- length(alpha) > 1L || length(beta) > 1L || length(lambda) > 1L
   qmax <- suppressWarnings(max(q[is.finite(q)], -Inf))
   if ((slowpath && qmax >= 2 ^ 15) || qmax >= 2 ^ 24) {
-    if(!interactive()) {
-      maxq <-  get("Delaporte.maxq", envir = DelaporteEnv)
-      if (qmax >= maxq) {
-        stop("There are values of at least ", qmax, " in the supplied data. ",
-             "To run anyway, call `assign('Delaporte.maxq', n, ",
-             "envir = DelaporteEnv)` where n is greater than ", qmax, ". This ",
-             "may take minutes if not hours to compute.")
-      } else {
-        warning("There are values of at least ", qmax, " in the supplied data ",
-                "and Delaporte.maxq is set to ", maxq, ". This may take ",
-                "minutes if not hours to compute.")
-      }
-    } else {
+    if(interactive()) {
       cat("There are very large values in the supplied data.",
           "This may take minutes if not hours to compute. Are you sure?\n")
       resp <- readline("Press 'y' to continue.\n")
@@ -65,6 +53,17 @@ pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE) {
         return(invisible(NULL))
       }
       cat("OK, continuing.\n")
+    } else {
+      maxq <-  get("Delaporte.maxq", envir = DelaporteEnv)
+      if (qmax >= maxq) {
+        stop("There are values of at least ", qmax, " in the supplied data. ",
+             "To run anyway, call `assign('Delaporte.maxq', n, ",
+             "envir = DelaporteEnv)` where n is greater than ", qmax, ". This ",
+             "may take minutes if not hours to compute.")
+      }
+      warning("There are values of at least ", qmax, " in the supplied data ",
+              "and Delaporte.maxq is set to ", maxq, ". This may take minutes ",
+              "if not hours to compute.")
     }
   }
   # nocov end

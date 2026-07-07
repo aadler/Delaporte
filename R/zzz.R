@@ -20,6 +20,9 @@ DelaporteEnv <- new.env(parent = emptyenv())
   # value is stored package-locally and passed to the Fortran routines on
   # each call; the global OpenMP state is never modified.
   assign("DelapThreads", .Call(gOMPT_C), envir = DelaporteEnv)
+  
+  # For non-interactive sessions.
+  assign("Delaporte.maxq", 2 ^ 15, envir = DelaporteEnv)
 }
 
 .onUnload <- function(libpath) {

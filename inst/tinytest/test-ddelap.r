@@ -114,8 +114,8 @@ expect_equal(ddelap(0, 4, 5, 6, log = TRUE), -6 - 4 * log1p(5),
              tolerance = tol)
 
 # Structure zero cases keep their log-space image of -Inf
-expect_warning(lgNonInt <- ddelap(1.5, 1, 1, 1, log = TRUE), nonIntErr)
-expect_identical(lgNonInt, -Inf)
+expect_warning(ddelap(1.5, 1, 1, 1, log = TRUE), nonIntErr)
+expect_identical(suppressWarnings(ddelap(1.5, 1, 1, 1, log = TRUE)), -Inf)
 expect_identical(ddelap(Inf, 1, 2, 3, log = TRUE), -Inf)
 
 # Test NaN Return

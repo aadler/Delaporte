@@ -18,6 +18,6 @@ setDelapThreads <- function(n) {
     message("Capping at system maximum of ", ncpus, ".")
     n <- ncpus
   }
-  assign("DelapThreads", n, envir = DelaporteEnv)
+  assign("DelapThreads", n, envir = DelaporteEnv) # nolint object_name_linter
   invisible(n)
 }

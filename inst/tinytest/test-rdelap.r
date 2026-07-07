@@ -74,13 +74,13 @@ expect_equal(INTG, DOUBL, tolerance = 1e-12)
 
 # Zero-length parameters yield n NaNs with a warning, matching the package's
 # invalid-parameter convention; n = 0 yields numeric(0) with no warning.
-NaN3 <- rep.int(NaN, 3L)
+nan3 <- rep.int(NaN, 3L)
 expect_warning(rdelap(3, numeric(0), 2, 3), nanWarn)
-expect_identical(suppressWarnings(rdelap(3, numeric(0), 2, 3)), NaN3)
+expect_identical(suppressWarnings(rdelap(3, numeric(0), 2, 3)), nan3)
 expect_identical(suppressWarnings(rdelap(3, 1, numeric(0), 3, exact = FALSE)),
-                 NaN3)
+                 nan3)
 expect_identical(suppressWarnings(rdelap(0, numeric(0), 2, 3)), numeric(0))
-expect_identical(.Call(Delaporte:::rdelap_C, 3L, 2, double(0), 2, 1L), NaN3)
+expect_identical(.Call(Delaporte:::rdelap_C, 3L, 2, double(0), 2, 1L), nan3)
 
 # Restore original thread count
 setDelapThreads(oldThreads)

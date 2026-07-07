@@ -207,7 +207,8 @@ edgeApprox <- suppressWarnings(
 expect_identical(edgeApprox[1L], Inf)
 expect_identical(edgeApprox[3L], NaN)
 expect_identical(edgeApprox[4L], 0)
-expect_true(is.finite(edgeApprox[2L]) && edgeApprox[2L] > 0)
+expect_true(is.finite(edgeApprox[2L]))
+expect_true(edgeApprox[2L] > 0)
 expect_warning(qdelap(c(1, 0.5, -0.2, 0), 4, 6, 10, exact = FALSE), nanWarn)
 
 # All-edge-case input skips simulation but still returns correct positions.

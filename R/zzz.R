@@ -5,7 +5,10 @@
 # values belong in an environment inside the package namespace---not in the
 # global options registry and never in the user's workspace. Defined at
 # top level so it is created in the namespace when the package is loaded.
-DelaporteEnv <- new.env(parent = emptyenv()) # nolint object_name_linter
+
+# nolint start: object_name_linter
+
+DelaporteEnv <- new.env(parent = emptyenv())
 
 # nocov start
 .onLoad <- function(libname, pkgname) {
@@ -25,3 +28,4 @@ DelaporteEnv <- new.env(parent = emptyenv()) # nolint object_name_linter
   library.dynam.unload("Delaporte", libpath)
 }
 # nocov end
+# nolint end

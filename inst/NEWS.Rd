@@ -14,7 +14,7 @@
       return \code{NaN}s per base \R. Prior behavior was a segfault.
       \item \code{MoMdelap} now checks that at least 3 values are passed to it,
       otherwise it will error. This is only technically breaking, as it used to
-      fail with a different error which propgated from the Fortran (missing
+      fail with a different error which propagated from the Fortran (missing
       value where TRUE/FALSE needed). Now it never triggers a Fortran call.
       \item Cleaned \file{Makevars} from unneeded calls to \acronym{BLAS} and
       \acronym{LAPACK} libraries.
@@ -68,7 +68,7 @@
       \code{q} at or above \eqn{2^{24}}.
       \item Size gate in \code{qdelap} now only asks for continuation when
       sessions are interactive. Otherwise it checks new \code{Delaporte.maxq}
-      option in the local enviornment and stops if the largest value exceeds
+      option in the local environment and stops if the largest value exceeds
       the option or warns if it does not. The default value is \eqn{2^{15}}.
     }
   }
@@ -145,7 +145,7 @@
   \subsection{Changed}{
     \itemize{
       \item Switched \dQuote{max cpu} holding variable location from
-      \code{options} to an enviornment variable per \R commit 88406 by Brian
+      \code{options} to an environment variable per \R commit 88406 by Brian
       Ripley.
       \item Converted some architecture-specific tests to use looser tolerances
       based on Tomas Kalibera's
@@ -192,13 +192,13 @@
       result should be at machine precision or lower, this is considered a
       minor update.
       \item Removed \code{back} keyword from \code{minloc} call in the Fortran
-      implementation of \code{qdelap}. Technically uneeded since its value is
+      implementation of \code{qdelap}. Technically unneeded since its value is
       the default \code{FALSE}. This allows for systems with an only partial
       implementation of Fortran 2008 to compile (see
       \href{https://github.com/aadler/Delaporte/issues/3}{Issue 3} and thanks to
       \href{https://github.com/dpascall}{David Pascall}).
       \item Correct error message of \code{setDelapThreads} to reflect that
-      setting threadcount to 0 is also an error. Functionality has not changed.
+      setting thread count to 0 is also an error. Functionality has not changed.
       \item Removed unnecessary explicit check for \code{NaN} in \code{qdelap}
       as it will be covered by check using \code{anyNA}.
       \item Tweaked documentation for clarity.
@@ -268,7 +268,7 @@
 \section{Version 8.0.3 (2022-09-05)}{
   \subsection{Changed}{
     \itemize{
-      \item Updated package with information necessary to acheive
+      \item Updated package with information necessary to achieve
       \acronym{OpenSSF} silver status.
     }
   }
@@ -333,7 +333,7 @@
       \item Updated help and tests.
       \item Allow compiler to use OpenMP \acronym{SIMD} constructs.
       \item Allow using \acronym{LTO}.
-      \item Switched continuous integration from Travis/Appveyor to Github
+      \item Switched continuous integration from Travis/AppVeyor to Github
       actions (thanks to Jim Hester for his help in fixing the coverage check
       issue).
     }
@@ -409,7 +409,7 @@
 \section{Version 7.0.0 (2019-02-12)}{
   \subsection{Changed}{
     \itemize{
-      \item Changed Makevars flags and targets and forced dependance on \R 3.6+
+      \item Changed Makevars flags and targets and forced dependence on \R 3.6+
       to comply with new \acronym{CRAN} policies on Fortran and OpenMP.
       \item Preventing spurious floating point errors by implementing hard floor
       of 0 and hard ceiling of 1.

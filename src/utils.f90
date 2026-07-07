@@ -41,6 +41,9 @@
 !                       Use specific "only" lists to prevent scope infractions.
 !                       Added interface to C unifrnd and drop need for
 !                       external and F77_SUB calls.
+!                       Added "lower_bound" which replaces minloc in qdelap.
+!                       This is a binary search, O(log n), and not a linear
+!                       scan, O(n).
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -154,6 +157,54 @@ contains
         y = max(min(x, ONE), ZERO)
     
     end function cFPe
+
+!-------------------------------------------------------------------------------
+! FUNCTION: lower_bound
+!
+! DESCRIPTION: Index of the first element of the non-decreasing vector v that
+!              is >= p, or 0 if no element is. Drop-in replacement for
+!              minloc(v, dim = 1, mask = v >= p) on sorted data - it returns
+!              the identical index - but in O(log n) instead of a full O(n)
+!              masked scan. With the O(K) table build in place, the masked
+!              minloc scan had become the dominant cost of quantile lookups:
+!              qdelap/rdelap on np variates cost O(np * K) there, e.g. ~11s
+!              for rdelap(1e6, 50, 100, 100) versus ~0.06s with the binary
+!              search. Requires v non-decreasing, which the cFPe-clamped
+!              cumulative sums built in qdelap_f always are.
+!              (AA & Claude: 2026-07-07)
+!-------------------------------------------------------------------------------
+
+    pure function lower_bound(v, p) result(lo)
+
+    real(kind = c_double), intent(in)   :: v(:), p
+    integer                             :: lo, hi, mid
+
+        if (v(size(v)) < p) then
+            ! Unreachable from qdelap_f in ordinary operation: every p sent
+            ! here satisfies p <= x, and both table builds only exit once
+            ! svec(size) >= x, so v(size(v)) >= p by transitivity on the
+            ! identical stored doubles. The sole breach is the MAXTBL cap
+            ! exit (an ~8GB table), the same contingency as the j == 0
+            ! defence at the call site, which carries the same marker. The
+            ! guard stays because without it this input violates the loop
+            ! invariant below and the search would silently return
+            ! size(v)---a plausible wrong answer---rather than a value the
+            ! caller detects and clamps.
+            lo = 0                          ! No element reaches p.  ! # nocov
+        else
+            lo = 1
+            hi = size(v)
+            do while (lo < hi)              ! Invariant: v(hi) >= p, and
+                mid = (lo + hi) / 2         ! every index below lo is < p.
+                if (v(mid) >= p) then
+                    hi = mid
+                else
+                    lo = mid + 1
+                end if
+            end do
+        end if
+
+    end function lower_bound
     
 !-------------------------------------------------------------------------------
 ! FUNCTION: gOMPT

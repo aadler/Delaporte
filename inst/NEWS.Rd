@@ -8,8 +8,8 @@
 \section{Version 9.0.0 (2026-10-01)}{
   \subsection{Changed}{
     \itemize{
-      \item Zero-length parameters now return zero-length results in
-      \code{p/d/qdelap} per base \R. Prior behavior was a segfault.
+      \item \strong{Breaking:} Zero-length parameters now return zero-length
+      results in \code{p/d/qdelap} per base \R. Prior behavior was a segfault.
       \item \strong{Breaking:} Zero-length parameters in \code{rdelap} now
       return \code{NaN}s per base \R. Prior behavior was a segfault.
       \item code{MoMdelap} now checks that at least 3 values are passed to it,
@@ -18,14 +18,28 @@
       value where TRUE/FALSE needed). Now it never triggers a Fortran call.
       \item Cleaned \file{Makevars} from unneeded calls to \acronym{BLAS} and
       \acronym{LAPACK} libraries.
+      \item The guidance added to Writing \R Extensions in r88406 is better
+      adhered to by storing the package-specific state (the thread count and
+      detected \acronym{CPU} count) in an environment inside the \emph{package}
+      namespace. The environment is no longer created in the user's workspace,
+      and is no longer exported.
+      \item \strong{Breaking:} \code{setDelapThreads} no longer calls
+      \code{omp_set_num_threads}, and \code{getDelapThreads} no longer calls
+      \code{omp_get_max_threads}. The thread count is package-local and is
+      passed to each parallelized routine, whose \code{num_threads} clauses
+      already scope it per region. Process-global OpenMP state is never
+      modified, so \pkg{Delaporte} neither affects nor is affected by the
+      threading of other OpenMP-using packages. On load, the count is seeded
+      from the OpenMP runtime default, which respects \env{OMP_NUM_THREADS} and
+      \env{OMP_THREAD_LIMIT}.
     }
   }
   \subsection{Fixed}{
     \itemize{
       \item Trapping for 0-length parameters in both C and \R prevents a
       segfault in Fortran.
-      \item Prevent \code{qdelap} from overwriting passed \code{p} vector within
-      the Fortran unit, preserving the \code{.Call} contract.
+      \item Prevented \code{qdelap} from overwriting passed \code{p} vector
+      within Fortran, preserving the \code{.Call} contract.
       \item \strong{Breaking:} The non-exact version of \code{qdelap} now
       pre-allocates the result vector at full length first and then assigns the
       \code{NaN}, \code{Inf}, 0, or proper value for each category. This ensures
@@ -45,12 +59,20 @@
       \item \strong{Breaking:} \code{ddelap} with \code{log = TRUE} now
       accumulates the PMF in log space using a streaming log-sum-exp instead of
       taking the log of the linear-space result. This is technically breaking
-      because deep-tail log-probabilities that previously returned \code{-Inf}
+      as deep-tail log-probabilities which previously returned \code{-Inf}
       because the linear PMF underflowed below the smallest representable double
       are now accurate to near full precision (e.g. 
       \code{ddelap(2000, 1, 1, 1, log = TRUE)} returns approximately -1385.99
       instead of \code{-Inf}). Hoisting the variables for both log and normal
       space routines makes them slightly faster than before.
+    }
+  }
+  \subsection{Removed}{
+    \itemize{
+      \item \strong{Breaking:} The \code{sOMPT_C} entry point was removed,
+      including its \code{R_RegisterCCallable} registration, as were the
+      \code{.onDetach} thread reset and its Fortran backend \code{sOMPT_f}.
+      \item \strong{Breaking:} \env{DelaporteEnv} is no longer exported.
     }
   }
 }

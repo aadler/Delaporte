@@ -23,14 +23,26 @@ getDelapThreads()
 }
 
 \details{
-For systems which return valid values for \code{\link[parallel]{detectCores}},
-the maximum number of threads will be capped at that value.
+The requested thread count is stored in an environment local to the package
+namespace, following the guidance in Writing R Extensions, and is passed to the
+compiled routines on each call, where it scopes only \pkg{Delaporte}'s own
+parallel regions. Neither the global options registry nor the process-wide
+OpenMP settings are touched, so other OpenMP-using packages are unaffected.
+
+On load, the thread count is initialized to the OpenMP runtime's maximum at that
+moment, which respects environment variables such as \env{OMP_NUM_THREADS} and
+\env{OMP_THREAD_LIMIT}.
+
+For systems which return valid values for
+\code{\link[parallel]{detectCores}}, the maximum number of threads will be
+capped at that value.
 }
 \value{
 \code{getDelapThreads} returns an integer representing the maximum number of
 allowed threads.
 
-\code{setDelapThreads} invisibly returns the integer passed to it.
+\code{setDelapThreads} invisibly returns the integer value actually set after
+flooring and capping.
 }
 \author{Avraham Adler \email{Avraham.Adler@gmail.com}}
 \seealso{

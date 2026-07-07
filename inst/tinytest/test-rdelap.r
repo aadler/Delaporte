@@ -48,9 +48,8 @@ expect_warning(rdelap(2, 4, -5e7, 2), nanWarn)
 expect_warning(rdelap(2, 4, 2, 0), nanWarn)
 expect_warning(rdelap(2, 4, 2, -1e-6), nanWarn)
 expect_warning(rdelap(3, c(0, 1, 2), c(1, 0, 2), c(1, 2, 0)), nanWarn)
-expect_equal(sum(is.nan(suppressWarnings(rdelap(3, c(0, 1, 2), c(1, 0, 2),
-                                                c(1, 2, 1))))), 2,
-             tolerance = 1e-12)
+expect_identical(suppressWarnings(rdelap(3, c(0, 1, 2), c(1, 0, 2),
+                                         c(1, 2, 1)))[1:2], rep(NaN, 2L))
 
 # Vector size
 expect_length(rdelap(8, c(4, 2), c(1, 2, 3, 4), 2), 8L)

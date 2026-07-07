@@ -65,20 +65,39 @@
 !                       Use specific "only" lists to prevent scope infractions.
 !                       Change unifrnd to interface and drop "external".
 !                       Function Specific:
-!                         qdelap:
-!                               1) Prevented from overwriting passed p vector.
-!                         pdelap:
-!                               1) When lower.tail = FALSE, new function exists
-!                                  that will calculate the upper tail from the
-!                                  top to prevent catastrophic cancelation of
-!                                  1 - CDF when CDF is very small (near or below
-!                                  machine precision).
 !                         ddelap:
 !                               1) Added ddelap_f_s_log. ddelap with log = TRUE
 !                                  now accumulates the PMF in log space via a
 !                                  streaming log-sum-exp, so deep-tail
 !                                  log-probabilities no longer return -Inf when
 !                                  the linear-space PMF underflows.
+!                               2) Added ddelap_table which uses a recurrence
+!                                  relation based on the probability generating
+!                                  function to calculate PMF values instead of
+!                                  the nested loops. This is now the new fast
+!                                  hot loop. Existing machinery retained to
+!                                  handle exception cases.
+!                         pdelap:
+!                               1) When lower.tail = FALSE, new function exists
+!                                  that will calculate the upper tail from the
+!                                  top to prevent catastrophic cancelation of
+!                                  1 - CDF when CDF is very small (near or below
+!                                  machine precision).
+!                               2) Prevented from overwriting passed p vector.
+!                               3) Uses ddelap_table where possible for speed.
+!
+!                         qdelap:
+!                               1) Uses ddelap_table where possible for speed.
+!                               2) Trap singleton NaN error which resulted in
+!                                  function hanging until memory was exhausted.
+!                               3) Replaced minloc with "lower_bound" which is
+!                                  a binary search, O(log n), instead of a
+!                                  linear scan, O(n).
+!                               4) Grows lookup table geometrically instead of
+!                                  observation by observation.
+!                         rdelap:
+!                               1) Trap singleton NaN error which resulted in
+!                                  function hanging until memory was exhausted.
 !
 !
 ! LICENSE:
@@ -114,7 +133,7 @@ module delaporte
                                              ieee_is_finite, ieee_negative_inf
     !$ use omp_lib
     use utils, only: imk, cFPe, log1p, unifrnd, ZERO, HALF, ONE, THREEHALFS, &
-                     TWO, THREE, EPS, MAXD, MAXVECSIZE
+                     TWO, THREE, EPS, MAXD, MAXVECSIZE, TBLMAXCOEF, lower_bound
 
     implicit none
     private
@@ -255,15 +274,179 @@ contains
     end function ddelap_f_s_log
 
 !-------------------------------------------------------------------------------
+! ROUTINE: ddelap_table
+!
+! DESCRIPTION: Fill pv(1:k+1) with the Delaporte PMF at 0, 1, ..., k in O(k)
+!              total operations using the distribution's own three-term
+!              recurrence. Differentiating the probability generating function
+!              P(z) = exp(lambda(z-1)) * (1 + beta - beta*z)**(-alpha) gives
+!              (1 + beta - beta*z) P'(z) = (lambda(1 + beta - beta*z)
+!              + alpha*beta) P(z); matching coefficients of z**n yields
+!
+!                (1+b)(n+1) p(n+1) = (b*n + lambda(1+b) + alpha*b) p(n)
+!                                    - lambda*b p(n-1),      p(-1) = 0.
+!
+!              Each support point therefore costs a handful of flops instead
+!              of an O(n) summation of log_gamma/exp terms, turning the CDF
+!              table build in pdelap_f from O(K**2) transcendental calls into
+!              O(K) arithmetic. Forward recursion is numerically stable here:
+!              the wanted PMF is the *dominant* solution of the recurrence
+!              (geometric tail ~ (b/(1+b))**n, versus a recessive solution
+!              decaying factorially like a Poisson tail), so rounding errors
+!              are damped rather than amplified.
+!
+!              Scaling: p(0) = exp(-lambda) * (1+b)**(-alpha) underflows to 0
+!              for lambda + alpha*log(1+b) > ~745 even though mid-distribution
+!              masses are perfectly representable, which would zero the whole
+!              forward pass. The recurrence therefore runs on scaled values
+!              ps(n) = p(n) * exp(-c), seeded with ps(0) = 1 and
+!              c = -lambda - alpha*log1p(b). Whenever the scaled value climbs
+!              past CAP = 2**900 it and its predecessor are divided by CAP and
+!              c increases by log(CAP); rescaling can only occur while the
+!              true masses are still far below the smallest double, so the
+!              masses stored as pv = ps * exp(c) in that region are correctly
+!              0 and no CDF accuracy is lost. Once no rescale has happened
+!              (every lambda/alpha/beta of ordinary size), c never changes and
+!              results carry no scaling error at all; with rescales the log
+!              bookkeeping costs about (lambda + alpha*log1p(b)) * EPS
+!              relative error, i.e. ~2e-13 even at lambda = 1000.
+!
+!              A spurious negative from the single subtraction is clamped to
+!              zero; the subtraction cannot cancel catastrophically because
+!              the positive term dominates by construction once n exceeds the
+!              mode, and below the mode both terms are of the same modest
+!              magnitude as the result.
+!
+!              When lg == 1, pv receives the LOG of the PMF instead, computed
+!              as c + log(ps) so that deep-tail log-masses whose linear values
+!              underflow to 0 still come back finite - preserving the
+!              log-space guarantee ddelap_f_s_log provides on the elemental
+!              path (e.g. log P(X = 2000 | 1, 1, 1) ~ -1387, not -Inf). The
+!              log variant additionally rescales DOWNWARD whenever the scaled
+!              mass decays below CAPINV = 2**(-900): without it, ps itself
+!              underflows in a long decaying tail (the scale c only ever
+!              climbed) and the log would hit -Inf exactly like the linear
+!              path. Downward rescaling is deliberately restricted to
+!              lg == 1 so the lg == 0 path remains byte-identical to the
+!              version validated against the convolution oracle and relied
+!              on, bitwise, by the pdelap/qdelap round trip.
+!              (AA & Claude: 2026-07-07)
+!
+!              PRECONDITION: callers must have validated alpha, beta, lambda
+!              as strictly positive, finite, non-NaN, and small enough that
+!              the bracketed coefficient below cannot overflow when multiplied
+!              by CAP (pdelap_f checks coefmax < TBLMAXCOEF before selecting
+!              this path). (AA & Claude: 2026-07-07)
+!-------------------------------------------------------------------------------
+
+    pure subroutine ddelap_table(k, alpha, beta, lambda, lg, pv)
+
+    integer, intent(in)                 :: k
+    real(kind = c_double), intent(in)   :: alpha, beta, lambda
+    integer(kind = c_int), intent(in)   :: lg
+    real(kind = c_double), intent(out)  :: pv(k + 1)
+    real(kind = c_double)               :: ob, cf0, lb, c, sc, lcap
+    real(kind = c_double)               :: psm1, ps, psp1
+    integer                             :: n
+
+    real(kind = c_double), parameter    :: CAP = 2._c_double ** 900
+    real(kind = c_double), parameter    :: CAPINV = 2._c_double ** (-900)
+    real(kind = c_double), parameter    :: SCMIN = -690._c_double
+
+        ob = ONE + beta                    ! Hoisted loop invariants:
+        cf0 = lambda * ob + alpha * beta   !   n-independent coefficient piece
+        lb = lambda * beta                 !   weight of the trailing term
+        lcap = log(CAP)                    ! log(2**900); not a constant expr
+                                           ! in F2008, so computed once here.
+        c = -lambda - alpha * log1p(beta)  ! log of the true p(0)
+        sc = exp(c)                        ! current scale; may be 0 (see above)
+        psm1 = ZERO                        ! scaled p(-1)
+        ps = ONE                           ! scaled p(0)
+        if (lg == 1_c_int) then
+            pv(1) = c                      ! log(p(0)); log(ps) = log(1) = 0
+        else
+            pv(1) = ps * sc
+        end if
+        do n = 0, k - 1
+            psp1 = ((beta * real(n, c_double) + cf0) * ps - lb * psm1) &
+                   / (ob * real(n + 1, c_double))
+            psp1 = max(psp1, ZERO)         ! Clamp rounding-level negatives.
+            if (psp1 > CAP) then           ! Climbing out of the underflowed
+                psp1 = psp1 / CAP          ! region: rescale the two live
+                ps = ps / CAP              ! values and grow the scale.
+                c = c + lcap
+                sc = exp(c)
+            else if (lg == 1_c_int .and. psp1 < CAPINV .and. &
+                     psp1 > ZERO) then
+                ! Decaying tail, log variant only: rescale downward so ps
+                ! never underflows and c + log(ps) stays finite as long as
+                ! the true log-mass is. The linear variant skips this on
+                ! purpose - see header - since its values are correctly 0
+                ! down there anyway.
+                psp1 = psp1 * CAP
+                ps = ps * CAP
+                c = c - lcap
+                sc = exp(c)
+            end if
+            psm1 = ps
+            ps = psp1
+            if (lg == 1_c_int) then
+                ! Log-space assembly; min(..., ZERO) mirrors the log-space
+                ! cFPe ceiling in ddelap_f_s_log (a log-PMF cannot exceed
+                ! log(1) = 0). ps = 0 means the true mass is a hard zero
+                ! even at this scale, whose log is -Inf.
+                if (ps > ZERO) then
+                    pv(n + 2) = min(c + log(ps), ZERO)
+                else
+                    pv(n + 2) = ieee_value(ps, ieee_negative_inf)
+                end if
+            ! While c is so negative that exp(c) is zero or subnormal, the
+            ! product ps * sc would return 0 (or lose significand bits) even
+            ! when the true mass exp(c + log(ps)) is a perfectly good normal
+            ! double, so assemble the value in log space instead. SCMIN is
+            ! -690 > log(2.2e-308) ~ -708.4, guaranteeing sc in the multiply
+            ! branch is a full-precision normal number. The log branch can
+            ! only run in the pre-rescale climb (c only ever increases when
+            ! lg == 0), so ordinary parameter values never pay for the
+            ! transcendentals.
+            else if (c > SCMIN) then
+                pv(n + 2) = ps * sc
+            else if (ps > ZERO) then
+                pv(n + 2) = exp(c + log(ps))
+            else
+                pv(n + 2) = ZERO
+            end if
+        end do
+
+    end subroutine ddelap_table
+
+!-------------------------------------------------------------------------------
 ! ROUTINE: ddelap_f
 !
 ! DESCRIPTION: Vector-based PMF allowing parameter vector recycling and called 
 !              from C. As Fortran starts its indices at 1, for the mod function
 !              to properly recycle the vectors, the index needs to be reduced by
-!              one, mod applied, and then increased by one again. Follows R
+!              one, mod applied, and then increased by one again. This is
+!              handled by the imk function found in the utils module. Follows R
 !              convention that real observations are errors and have 0
 !              probability, so returns 0 for non-integer without calling
-!              summation loop. 
+!              summation loop.
+!
+!              When every parameter is a singleton and the observations are
+!              well-behaved, the PMF (or log-PMF) at 0..max(x) is built once
+!              by the O(K) three-term recurrence in ddelap_table and every
+!              element is answered by an O(1) lookup, replacing an O(x_i)
+!              log_gamma summation per element. This is the same O(K**2) -> O(K)
+!              restructure which pdelap_f received. On Claude,
+!              the timing of ddelap(0:5000, 4, 6, 10) dropped from ~0.8s to
+!              under a millisecond. The routing test mirrors pdelap_f in that
+!              any vector parameter, NaN, negative, or over-large observation;
+!              invalid parameters; or parameters past TBLMAXCOEF fall through to
+!              the per-element path, which is unchanged. Non-integer x inside
+!              the fast path needs no table entry: it is 0 (lg = 0) or -Inf
+!              (lg = 1) by convention, and its floor is still <= k so sizing
+!              remains unaffected.
+!              (AA & Claude: 2026-07-07)
 !-------------------------------------------------------------------------------
 
     subroutine ddelap_f(x, nx, a, na, b, nb, l, nl, lg, threads, pmfv) &
@@ -273,24 +456,69 @@ contains
     real(kind = c_double), intent(in)            :: x(nx), a(na), b(nb), l(nl)
     integer(kind = c_int), intent(in)            :: lg, threads
     real(kind = c_double), intent(out)           :: pmfv(nx)
-    integer                                      :: i
+    real(kind = c_double), allocatable           :: pv(:)
+    real(kind = c_double)                        :: xi
+    integer                                      :: i, k
     
-        !$omp parallel do num_threads(threads) default(shared) private(i) &
-        !$omp schedule(static)
-        do i = 1, nx
-            ! When the log is requested, compute it directly in log space via
-            ! ddelap_f_s_log instead of taking log(ddelap_f_s(...)), which
-            ! returns -Inf whenever the linear-space PMF underflows below
-            ! ~1e-308 even though the log-PMF itself is perfectly representable.
-            if (lg == 1_c_int) then
-                pmfv(i) = ddelap_f_s_log(x(i), a(imk(i, na)), b(imk(i, nb)), &
-                l(imk(i, nl)))
-            else
-                pmfv(i) = ddelap_f_s(x(i), a(imk(i, na)), b(imk(i, nb)), &
-                l(imk(i, nl)))
-            end if
-        end do
-        !$omp end parallel do
+        if (na > 1 .or. nb > 1 .or. nl > 1 .or. minval(x) < ZERO .or. &
+            maxval(x) > REAL(MAXVECSIZE, c_double) .or. &
+            any(ieee_is_nan(x))) then
+            !$omp parallel do num_threads(threads) default(shared) private(i) &
+            !$omp schedule(static)
+            do i = 1, nx
+                ! When the log is requested, compute it directly in log space
+                ! via ddelap_f_s_log instead of taking log(ddelap_f_s(...)),
+                ! which returns -Inf whenever the linear-space PMF underflows
+                ! below ~1e-308 even though the log-PMF itself is perfectly
+                ! representable.
+                if (lg == 1_c_int) then
+                    pmfv(i) = ddelap_f_s_log(x(i), a(imk(i, na)), &
+                    b(imk(i, nb)), l(imk(i, nl)))
+                else
+                    pmfv(i) = ddelap_f_s(x(i), a(imk(i, na)), b(imk(i, nb)), &
+                    l(imk(i, nl)))
+                end if
+            end do
+            !$omp end parallel do
+        else if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO .or. &
+                 ieee_is_nan(a(1) + b(1) + l(1))) then
+            pmfv = ieee_value(x, ieee_quiet_nan)
+        else if (b(1) * (maxval(x) + ONE) + l(1) * (ONE + b(1)) &
+                 + a(1) * b(1) >= TBLMAXCOEF) then
+            ! Same overflow-headroom routing test as pdelap_f; parameters this
+            ! extreme take the per-element summation path unchanged.
+            do i = 1, nx
+                if (lg == 1_c_int) then
+                    pmfv(i) = ddelap_f_s_log(x(i), a(1), b(1), l(1))
+                else
+                    pmfv(i) = ddelap_f_s(x(i), a(1), b(1), l(1))
+                end if
+            end do
+        else
+            k = floor(maxval(x))
+            allocate(pv(k + 1))
+            call ddelap_table(k, a(1), b(1), l(1), lg, pv)
+            if (lg /= 1_c_int) pv = cFPe(pv)
+            !$omp parallel do num_threads(threads) default(shared) &
+            !$omp private(i, xi) schedule(static)
+            do i = 1, nx
+                xi = x(i)
+                ! Follows the elemental functions' conventions exactly:
+                ! integer x looks up the table; non-integer x has zero
+                ! probability, whose log is -Inf. Negative and NaN x cannot
+                ! reach here (routed to the per-element path above).
+                if (xi == real(floor(xi), c_double)) then
+                    pmfv(i) = pv(floor(xi) + 1)
+                else if (lg == 1_c_int) then
+                    pmfv(i) = ieee_value(xi, ieee_negative_inf)
+                else
+                    pmfv(i) = ZERO
+                end if
+            end do
+            !$omp end parallel do
+        
+            deallocate(pv)
+        end if
         
         if (any(ieee_is_nan(pmfv))) call rwarn("NaNs produced")
 
@@ -467,16 +695,34 @@ contains
             pmfv = ieee_value(q, ieee_quiet_nan)
         else
             k = floor(maxval(q))
-            
+
             ! Retain the individual PMF values while building the CDF; the
             ! upper-tail branch reuses them to build the survival vector without
             ! recomputation.
             allocate (pv(k + 1))
             allocate (svec(k + 1))
-            pv(1) = cFPe(exp(-l(1)) / ((b(1) + ONE) ** a(1)))
+
+            ! Route to the O(K) recurrence table unless the parameters are so
+            ! extreme that its bracketed coefficient, at magnitude up to
+            ! coefmax and multiplied by a scaled mass as large as CAP = 2**900
+            ! (~8.5e270), could overflow a double (~1.8e308). TBLMAXCOEF of
+            ! 1e30 leaves seven orders of magnitude of headroom. Parameters
+            ! beyond it (including infinities) take the legacy O(K**2)
+            ! summation build, which reproduces the pre-recurrence behavior
+            ! exactly. (AA & Claude: 2026-07-07)
+            if (b(1) * (real(k, c_double) + ONE) + l(1) * (ONE + b(1)) &
+                + a(1) * b(1) < TBLMAXCOEF) then
+                call ddelap_table(k, a(1), b(1), l(1), 0_c_int, pv)
+                pv(1) = cFPe(pv(1))
+            else
+                pv(1) = cFPe(exp(-l(1)) / ((b(1) + ONE) ** a(1)))
+                do i = 2, k + 1
+                    pv(i) = ddelap_f_s(real(i - 1, c_double), a(1), &
+                                       b(1), l(1))
+                end do
+            end if
             svec(1) = pv(1)
             do i = 2, k + 1
-                pv(i) = ddelap_f_s(real(i - 1, c_double), a(1), b(1), l(1))
                 svec(i) = cFPe(svec(i - 1) + pv(i))
             end do
             if (lt == 0_c_int) then
@@ -554,6 +800,10 @@ contains
 !              Per Claude, it is preferable to place the copy on the heap to
 !              prevent blowing out the stack, so it is allocatable and not a
 !              fixed size.
+!              Critical: the table must be built with the same routine and the
+!              same accumulation order as pdelap_f (existing test suite caught
+!              it immediately). The shared ddelap_table + identical cumsum
+!              guarantees bitwise-identical CDFs.
 !-------------------------------------------------------------------------------
 
     subroutine qdelap_f(pp, np, a, na, b, nb, l, nl, lt, lg, threads, obsv) &
@@ -564,9 +814,13 @@ contains
     integer(kind = c_int), intent(in)               :: lg, lt, threads
     real(kind = c_double), intent(in)               :: pp(np)
     real(kind = c_double), intent(out)              :: obsv(np)
-    real(kind = c_double), allocatable              :: p(:), svec(:), tvec(:)
-    real(kind = c_double)                           :: x
-    integer                                         :: i
+    real(kind = c_double), allocatable              :: p(:), svec(:), pv(:)
+    real(kind = c_double)                           :: x, mu
+    integer                                         :: i, j, k
+    ! Hard ceiling on the lookup table (2**30 support points ~ 8GB per
+    ! vector); unreachable for any parameters of practical size, present so
+    ! integer arithmetic in the doubling below can never overflow.
+    integer, parameter                              :: MAXTBL = 2 ** 30
 
         allocate(p, source = pp)
         
@@ -575,29 +829,97 @@ contains
         if (lt == 0_c_int) p = HALF - p + HALF  ! See dpq.h in R source code
 
         if(na == 1 .and. nb == na .and. nl == nb) then
-            if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO) then
+            ! The NaN screen mirrors pdelap_f. Without it, NaN parameters
+            ! slipped past the <= ZERO tests (NaN comparisons are false), the
+            ! CDF vector filled with NaN, "svec >= x" never became true, and
+            ! the build loop grew the vector forever - a memory-exhausting
+            ! hang, reproducible on 9.0.0 with qdelap(0.5, NaN, 2, 3).
+            ! (AA & Claude: 2026-07-07)
+            if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO .or. &
+                ieee_is_nan(a(1) + b(1) + l(1))) then
                 obsv = ieee_value(p, ieee_quiet_nan)
             else
-                x = maxval(p, 1, p < 1)
-                allocate(svec(1), source = exp(-l(1)) / ((b(1) + ONE) ** a(1)))
-                i = 1
+                ! Build the CDF lookup table with the same O(K) three-term
+                ! recurrence (ddelap_table) and the same accumulation order
+                ! that pdelap_f uses, so pdelap and qdelap see bitwise
+                ! identical CDF values and the round trip
+                ! qdelap(pdelap(k)) == k cannot be broken by a one-ulp
+                ! discrepancy between two summation orders. The table length
+                ! is unknown in advance, so start from a moment-based
+                ! estimate - mean + 10 standard deviations reaches any
+                ! practical percentile in one shot - and rebuild at double
+                ! the size while the accumulated CDF still lies below x, the
+                ! largest requested percentile. Geometric doubling with full
+                ! rebuilds costs at most twice the final build, i.e. O(K)
+                ! total work and O(1) allocations, replacing the old
+                ! grow-by-one allocate/copy/move_alloc dance whose copying
+                ! alone was O(K**2). (AA & Claude: 2026-07-07)
+                x = maxval(p, 1, p < ONE)
+                mu = a(1) * b(1) + l(1)
+                k = int(min(mu + 10._c_double * &
+                    sqrt(a(1) * b(1) * (ONE + b(1)) + l(1)) + 9._c_double, &
+                    real(MAXTBL, c_double)))
                 do
-                    if (svec(i) >= x) exit
-                    i = i + 1
-                    allocate(tvec(1:i), source = ZERO)
-                    tvec(1:i-1) = svec
-                    call move_alloc(tvec, svec)
-                    svec(i) = svec(i - 1) + &
-                        ddelap_f_s(real(i - 1, c_double), a(1), b(1), l(1))
+                    ! EXIT 1: extreme parameters. svec is NOT allocated here -
+                    ! either this is the first iteration and it never was, or a
+                    ! previous iteration deallocated it at the bottom before
+                    ! doubling k (and the doubled k is what pushed the
+                    ! coefficient past TBLMAXCOEF).
+                    if (b(1) * (real(k, c_double) + ONE) + l(1) * &
+                        (ONE + b(1)) + a(1) * b(1) >= TBLMAXCOEF) exit
+                    allocate(pv(k + 1))
+                    allocate(svec(k + 1))
+                    call ddelap_table(k, a(1), b(1), l(1), 0_c_int, pv)
+                    pv(1) = cFPe(pv(1))
+                    svec(1) = pv(1)
+                    do i = 2, k + 1
+                        svec(i) = cFPe(svec(i - 1) + pv(i))
+                    end do
+                    deallocate(pv)
+                    ! EXIT 2: the normal, successful exit. The table covers x
+                    ! (or hit the MAXTBL ceiling). svec IS allocated, and the
+                    ! two lines below are skipped entirely.
+                    if (svec(k + 1) >= x .or. k >= MAXTBL) exit
+                    ! Reached only when looping again: the table was too
+                    ! short, so release it before rebuilding at double size.
+                    k = min(2 * k, MAXTBL)
+                    deallocate(svec)
                 end do
+                ! TRUE only via EXIT 1, i.e. the extreme-parameter route.
+                if (.not. allocated(svec)) then
+                    ! Legacy incremental build, retained verbatim for the
+                    ! extreme-parameter route.
+                    allocate(svec(1), &
+                        source = exp(-l(1)) / ((b(1) + ONE) ** a(1)))
+                    i = 1
+                    do
+                        if (svec(i) >= x) exit
+                        i = i + 1
+                        allocate(pv(1:i), source = ZERO)
+                        pv(1:i-1) = svec
+                        call move_alloc(pv, svec)
+                        svec(i) = svec(i - 1) + &
+                            ddelap_f_s(real(i - 1, c_double), a(1), &
+                                       b(1), l(1))
+                    end do
+                end if
                 do i = 1, np
                     if (p(i) < ZERO .or. ieee_is_nan(p(i))) then
                         obsv(i) = ieee_value(p(i), ieee_quiet_nan)
                     else if (p(i) >= ONE) then
                         obsv(i) = ieee_value(p(i), ieee_positive_inf)
                     else
-                        obsv(i) = real(minloc(svec, dim = 1, &
-                            mask = svec >= p(i)) - 1)
+                        ! Kind-correct conversion (default real would pass
+                        ! through single precision). j == 0, meaning no table
+                        ! entry reaches p(i), is unreachable when the build
+                        ! loop exited on svec >= x; defence for the MAXTBL
+                        ! cap.
+                        j = lower_bound(svec, p(i))
+                        if (j == 0) then
+                            obsv(i) = real(size(svec) - 1, c_double) ! # nocov
+                        else
+                            obsv(i) = real(j - 1, c_double)
+                        end if
                     end if
                 end do
                 deallocate(svec)

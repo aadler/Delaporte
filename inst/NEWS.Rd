@@ -12,7 +12,7 @@
       results in \code{p/d/qdelap} per base \R. Prior behavior was a segfault.
       \item \strong{Breaking:} Zero-length parameters in \code{rdelap} now
       return \code{NaN}s per base \R. Prior behavior was a segfault.
-      \item code{MoMdelap} now checks that at least 3 values are passed to it,
+      \item \code{MoMdelap} now checks that at least 3 values are passed to it,
       otherwise it will error. This is only technically breaking, as it used to
       fail with a different error which propgated from the Fortran (missing
       value where TRUE/FALSE needed). Now it never triggers a Fortran call.
@@ -32,6 +32,11 @@
       threading of other OpenMP-using packages. On load, the count is seeded
       from the OpenMP runtime default, which respects \env{OMP_NUM_THREADS} and
       \env{OMP_THREAD_LIMIT}.
+      \item Refactored C and Fortran sources to be more manageable using header
+      files, splitting initialization from active function calls, hardening with
+      explicit "only" lists on the Fortran side, removing unnecessary includes,
+      and using the modern bind(C) interface to call back-and-forth between C
+      and Fortran instead of the older F77 idiom.
     }
   }
   \subsection{Fixed}{

@@ -130,5 +130,17 @@ expect_identical(pdelap(Inf, 1, 1, 1, lower.tail = FALSE), 0)
 expect_identical(suppressWarnings(pdelap(NaN, 1, 1, 1, lower.tail = FALSE)),
                  NaN)
 
+# Fast-path upper tail where even the largest q is below the median
+# (CDF(max(q)) <= 0.5, here about 0.33): the survival anchor at floor(max(q))
+# is computed as the complement 1 - CDF, which is safe from cancellation
+# because the result is at least one half, and the backward accumulation
+# builds the remaining survival values on top of that anchor.
+qLow <- 0:5
+expect_equal(pdelap(qLow, 2, 1, 5, lower.tail = FALSE),
+             vapply(qLow, sdelapOracle, double(1), a = 2, b = 1, l = 5),
+             tolerance = tol)
+expect_equal(pdelap(qLow, 2, 1, 5, lower.tail = FALSE),
+             1 - pdelap(qLow, 2, 1, 5), tolerance = tol)
+
 # Restore original thread count
 setDelapThreads(oldThreads)

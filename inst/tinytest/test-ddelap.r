@@ -118,5 +118,9 @@ expect_warning(lgNonInt <- ddelap(1.5, 1, 1, 1, log = TRUE), nonIntErr)
 expect_identical(lgNonInt, -Inf)
 expect_identical(ddelap(Inf, 1, 2, 3, log = TRUE), -Inf)
 
+# Test NaN Return
+expect_identical(suppressWarnings(ddelap(3, -1, 2, 3, log = TRUE)), NaN)
+expect_warning(ddelap(3, -1, 2, 3, log = TRUE), nanWarn)
+
 # Restore original thread count
 setDelapThreads(oldThreads)

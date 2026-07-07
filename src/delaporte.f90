@@ -358,7 +358,15 @@ contains
 
         if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. q < ZERO &
             .or. ieee_is_nan(alpha + beta + lambda + q)) then
-            sf = ieee_value(q, ieee_quiet_nan)
+            ! Defence in depth, unreachable through R: pdelap_f only calls this
+            ! function when the CDF it just computed for the very same arguments
+            ! exceeds one half, which invalid parameters and NaNs can never
+            ! satisfy. For in that case, the CDF is NaN, and NaN comparisons are
+            ! always false. Retained nevertheless, because without it a future
+            ! caller passing invalid parameters would hang rather return NaN as
+            ! every term from ddelap_f_s would be NaN, and NaN fails both exit
+            ! comparisons in the summation loop below, so it would never end!
+            sf = ieee_value(q, ieee_quiet_nan)                       ! # nocov
         else if (.not. ieee_is_finite(q)) then
             sf = ZERO
         else

@@ -102,26 +102,6 @@ contains
     end function log1p
     
 !-------------------------------------------------------------------------------
-! FUNCTION: gOMPT
-!
-! DESCRIPTION: Gets the OpenMP runtime's maximum thread count. Called once at
-!              package load to seed the package-local thread setting; the
-!              per-call thread count is passed explicitly to each parallel
-!              region via its num_threads clause. The former companion
-!              sOMPT_f (omp_set_num_threads) was removed in 9.0.0 because it
-!              mutated process-global OpenMP state shared with other packages.
-!-------------------------------------------------------------------------------
-
-    subroutine gOMPT_f(n) bind(C, name="gOMPT_f_")
-    
-    integer(kind = c_int), intent(out) :: n
-    
-        n = 1_c_int
-        !$ n = omp_get_max_threads()
-    
-    end subroutine gOMPT_f
-    
-!-------------------------------------------------------------------------------
 ! FUNCTION: imk (i mod k)
 !
 ! DESCRIPTION: Calculates mod(i - 1, k) + 1 for vector recyling.
@@ -150,5 +130,25 @@ contains
         y = max(min(x, ONE), ZERO)
     
     end function cFPe
+    
+!-------------------------------------------------------------------------------
+! FUNCTION: gOMPT
+!
+! DESCRIPTION: Gets the OpenMP runtime's maximum thread count. Called once at
+!              package load to seed the package-local thread setting; the
+!              per-call thread count is passed explicitly to each parallel
+!              region via its num_threads clause. The former companion
+!              sOMPT_f (omp_set_num_threads) was removed in 9.0.0 because it
+!              mutated process-global OpenMP state shared with other packages.
+!-------------------------------------------------------------------------------
+
+    subroutine gOMPT_f(n) bind(C, name="gOMPT_f")
+    
+    integer(kind = c_int), intent(out) :: n
+    
+        n = 1_c_int
+        !$ n = omp_get_max_threads()
+    
+    end subroutine gOMPT_f    
     
 end module utils ! # nocov covr doesn't always pick up the end module

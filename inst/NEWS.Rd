@@ -16,6 +16,8 @@
       otherwise it will error. This is only technically breaking, as it used to
       fail with a different error which propgated from the Fortran (missing
       value where TRUE/FALSE needed). Now it never triggers a Fortran call.
+      \item Cleaned \file{Makevars} from unneeded calls to \acronym{BLAS} and
+      \acronym{LAPACK} libraries.
     }
   }
   \subsection{Fixed}{

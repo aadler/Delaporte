@@ -29,7 +29,7 @@ compiled routines on each call, where it scopes only \pkg{Delaporte}'s own
 parallel regions. Neither the global options registry nor the process-wide
 OpenMP settings are touched, so other OpenMP-using packages are unaffected.
 
-On load, the thread count is initialized to the OpenMP runtime's maximum at that
+On load, the thread count is initialized to the OpenMP runtime maximum at that
 moment, which respects environment variables such as \env{OMP_NUM_THREADS} and
 \env{OMP_THREAD_LIMIT}.
 

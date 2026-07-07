@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 # Get the number of threads Delaporte will request in its parallel regions.
-# This is package-local state (see zzz.R); it does not query---and is not
-# affected by---the process-global OpenMP settings of other packages.
+# This is package-local state (see zzz.R); it neither queries nor is affected by
+# the process-global OpenMP settings of other packages.
 getDelapThreads <- function() {
   get("DelapThreads", envir = DelaporteEnv)
 }

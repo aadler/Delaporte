@@ -37,6 +37,35 @@
       explicit "only" lists on the Fortran side, removing unnecessary includes,
       and using the modern bind(C) interface to call back-and-forth between C
       and Fortran instead of the older F77 idiom.
+      \item \code{ddelap}, \code{pdelap}, \code{qdelap}, and \code{rdelap}
+      with singleton parameters now build their \acronym{PMF} and \acronym{CDF}
+      tables using the distribution's three-term recurrence, derived from the
+      probability generating function. This takes \eqn{O(K)} arithmetic
+      operations instead of \eqn{O(K^2)} \code{log_gamma}/\code{exp}
+      evaluations. Masses whose leading term underflows---roughly \eqn{\lambda +
+      \alpha\log(1+\beta) > 745}---are handled by internal rescaling, allowing
+      accuracy to be retained for very large \eqn{\lambda}. Parameters extreme
+      enough to risk overflow in the recurrence fall back to the summation
+      algorithm, and vector-valued parameters continue to use the
+      per-element path.
+      \item \code{qdelap} and \code{rdelap} with singleton parameters now
+      size their quantile lookup table from a moment-based estimate and grow
+      it geometrically, replacing element-by-element growth whose copying
+      was \eqn{O(K^2)}. They now locate quantiles in the sorted CDF table by a
+      binary search instead of a linear scan. The table is built with the
+      identical routine and accumulation order as \code{pdelap}, so the
+      \code{qdelap(pdelap(k)) == k} round trip is preserved bitwise. Deep
+      quantiles are also more accurate: the returned quantile now lands where
+      the directly-summed survival function crosses the requested probability.
+      \item \code{ddelap} with \code{log = TRUE} and singleton parameters
+      builds its table directly in log space, preserving finite deep-tail
+      log-probabilities where the linear-space mass underflows to zero.
+      \item As the singleton-parameter \acronym{CDF} build is no longer
+      quadratic, the maximum \code{q} for \code{pdelap}'s fast path was
+      raised from \eqn{2^{14}} to \eqn{2^{24}}, and the interactive
+      confirmation prompt now guards only the genuinely slow routes:
+      vector-valued parameters with \code{q} at or above \eqn{2^{15}}, or any
+      \code{q} at or above \eqn{2^{24}}.
     }
   }
   \subsection{Fixed}{
@@ -70,6 +99,9 @@
       \code{ddelap(2000, 1, 1, 1, log = TRUE)} returns approximately -1385.99
       instead of \code{-Inf}). Hoisting the variables for both log and normal
       space routines makes them slightly faster than before.
+      \item \code{qdelap} and \code{rdelap} with a \code{NaN} scalar parameter
+      previously looped indefinitely while consuming memory. Now they return
+      \code{NaN} with a warning, matching \code{pdelap}.
     }
   }
   \subsection{Removed}{

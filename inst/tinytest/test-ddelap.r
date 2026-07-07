@@ -104,9 +104,6 @@ expect_equal(ddelap(2000, 1, 1, 1, log = TRUE), lddelapOracle(2000, 1, 1, 1),
 expect_equal(ddelap(500, 0.5, 4, 0.2, log = TRUE),
              lddelapOracle(500, 0.5, 4, 0.2), tolerance = tol)
 
-# Trigger lpmf = ieee_value(x, ieee_quiet_nan) in ddelap_f_s_log
-expect_warning(ddelap(2e30, 1, 1, NaN, log = TRUE), nanWarn)
-
 # Vector-parameter deep tail
 expect_equal(ddelap(c(2000, 1500), c(1, 2), c(1, 3), c(1, 2), log = TRUE),
              c(lddelapOracle(2000, 1, 1, 1), lddelapOracle(1500, 2, 3, 2)),
@@ -159,6 +156,9 @@ expect_equal(suppressWarnings(ddelap(0:5, 1e-28, 1e31, 2)),
              tolerance = tol)
 
 # Specialty tests to bring coverage to 100%
+# Trigger lpmf = ieee_value(x, ieee_quiet_nan) in ddelap_f_s_log
+expect_warning(ddelap(2e30, 1, 1, NaN, log = TRUE), nanWarn)
+
 # Triggers pmfv(i) = ddelap_f_s_log(x(i), a(1), b(1), l(1)) in ddelap_f
 # Triggers pmfv(i) = ddelap_f_s_log(x(i), a(1), b(1), l(1)) in pdelap_f
 expect_identical(ddelap(1, 1e3000, 1e3000, 1e3000, log = TRUE), 0)

@@ -90,6 +90,27 @@ module utils
     ! per-element summation build. See routing comment in pdelap_f.
     real(kind = c_double), parameter :: TBLMAXCOEF = 1.e30_c_double
     
+    ! Floor on the guaranteed per-step PMF ratio below which ddelap_f routes
+    ! log-space requests around ddelap_table to the elemental path. The
+    ! table's downward rescale can rescue a decaying scaled mass only within
+    ! the band between the rescale floor 2**(-900) and hard underflow at
+    ! 2**(-1074); a single step whose ratio is below that 2**(-174)-wide band
+    ! jumps over it, lands on exact zero, and the log-PMF would wrongly
+    ! return -Inf (e.g. ddelap(1e4, 1e-50, 1e-100, 1e-50, log = TRUE), whose
+    ! true value is about -1.23e6). Because the Delaporte is a convolution of
+    ! two log-concave PMFs:
+    ! (f⊛g)(n+1) = Σ f(i)·g(n+1−i) ≥ min_ratio(g) · Σ f(i)·g(n−i)
+    ! its ratio p(n+1)/p(n) is bounded below by the larger of the components'
+    ! minimum ratios: λ/(k+1) for the Poisson factor and
+    ! (α+n)/(n+1) · β/(1+β) ≥ min(α,1)·β/(1+β) or min(alpha, 1)*beta/(1+beta)
+    ! for the NB factor. Requiring that bound >= 2**(-120) keeps every 
+    ! intermediate at or above 2**(-1020)---nonzero AND full-precision
+    ! normal---with a 2**54 safety margin over the band. Any statistically
+    ! meaningful distribution passes by hundreds of orders of magnitude; only
+    ! point-mass-plus-dust degeneracies route.
+    ! (AA & Claude: 2026-07-07)
+    real(kind = c_double), parameter :: TBLMINRATIO = 2._c_double ** (-120)
+    
     ! Maximum allowable q for pdelap's singleton fast path. Raised from 2**14
     ! = 16384 to 2**24 now that the CDF table is built by an O(K) three-term
     ! recurrence; the binding constraint is now the two K+1-length work

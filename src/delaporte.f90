@@ -64,6 +64,7 @@
 !                       Changed binding names for header/source refactor.
 !                       Use specific "only" lists to prevent scope infractions.
 !                       Change unifrnd to interface and drop "external".
+!                       Squashed a whole bunch of bugs/errors.
 !                       Function Specific:
 !                         ddelap:
 !                               1) Added ddelap_f_s_log. ddelap with log = TRUE
@@ -132,8 +133,9 @@ module delaporte
                                              ieee_quiet_nan, ieee_is_nan, &
                                              ieee_is_finite, ieee_negative_inf
     !$ use omp_lib
-    use utils, only: imk, cFPe, log1p, unifrnd, ZERO, HALF, ONE, THREEHALFS, &
-                     TWO, THREE, EPS, MAXD, MAXVECSIZE, TBLMAXCOEF, lower_bound
+    use utils, only: imk, cFPe, log1p, unifrnd, lower_bound, ZERO, HALF, ONE, &
+                     THREEHALFS, TWO, THREE, EPS, MAXD, MAXVECSIZE, &
+                     TBLMAXCOEF, TBLMINRATIO
 
     implicit none
     private
@@ -178,26 +180,44 @@ contains
     real(kind = c_double)               :: lb, ll, lga, l1pb
     integer(INT64)                      :: i, k                   
 
+        ! Parameters must be strictly positive AND finite: is_finite fails on
+        ! both NaN and Inf, and a Delaporte with any infinite parameter has
+        ! infinite mean, so no finite point carries positive mass and there is
+        ! no PMF to report. Without the screen, Inf-driven NaNs from the
+        ! log-space summands are laundered into hard 0s and 1s by the cFPe
+        ! clamps below (ddelap(1, Inf, Inf, Inf) returned exactly 1).
+        ! (AA & Claude: 2026-07-07)
         if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. x < ZERO &
-            .or. ieee_is_nan(alpha + beta + lambda + x)) then
+            .or. ieee_is_nan(x) &
+            .or. .not. ieee_is_finite(alpha + beta + lambda)) then
             pmf = ieee_value(x, ieee_quiet_nan)
         else
             pmf = ZERO
-            k = floor(x, INT64)
-            kk = real(k, c_double)
-            if (x < MAXD .and. x == kk) then
-                ! Hoist the terms that do not depend on the summation index.
-                lb = log(beta)
-                ll = log(lambda)
-                lga = log_gamma(alpha)
-                l1pb = log1p(beta)
-                do i = 0_INT64, k
-                    ii = real(i, c_double)
-                    pmf = pmf + exp(log_gamma(alpha + ii) + ii * lb &
-                    + (kk - ii) * ll - lambda - lga - log_gamma(ii + ONE) &
-                    - (alpha + ii) * l1pb - log_gamma(kk - ii + ONE))
-                end do
-            pmf = cFPe(pmf)                       ! Clear floating point errors
+            
+            ! Convert x only after confirming it fits: floor(x, INT64) with
+            ! x >= MAXD (= huge(INT64)) overflows the integer kind, which is
+            ! undefined behavior; it previously escaped only because the
+            ! wrapped garbage failed the x == kk test by accident. x >= MAXD,
+            ! including x = +Inf, keeps the zero PMF, matching
+            ! dpois(Inf, 1) = 0.
+            ! (AA & Claude: 2026-07-07)
+            if (x < MAXD) then
+                k = floor(x, INT64)
+                kk = real(k, c_double)
+                if (x == kk) then
+                    ! Hoist terms that do not depend on the summation index.
+                    lb = log(beta)
+                    ll = log(lambda)
+                    lga = log_gamma(alpha)
+                    l1pb = log1p(beta)
+                    do i = 0_INT64, k
+                        ii = real(i, c_double)
+                        pmf = pmf + exp(log_gamma(alpha + ii) + ii * lb &
+                        + (kk - ii) * ll - lambda - lga - log_gamma(ii + ONE) &
+                        - (alpha + ii) * l1pb - log_gamma(kk - ii + ONE))
+                    end do
+                    pmf = cFPe(pmf)           ! Clear floating point errors
+                end if
             end if
         end if
 
@@ -232,42 +252,50 @@ contains
     real(kind = c_double)               :: lb, ll, lga, l1pb
     integer(INT64)                      :: i, k
 
+        ! Same finiteness screen and same deferred floor(x, INT64) as in
+        ! ddelap_f_s; see the comments there. x >= MAXD, including x = +Inf,
+        ! keeps the -Inf initialization, the log-space image of PMF = 0.
+        ! (AA & Claude: 2026-07-07)
         if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. x < ZERO &
-            .or. ieee_is_nan(alpha + beta + lambda + x)) then
+            .or. ieee_is_nan(x) &
+            .or. .not. ieee_is_finite(alpha + beta + lambda)) then
             lpmf = ieee_value(x, ieee_quiet_nan)
         else
             lpmf = ieee_value(x, ieee_negative_inf)   ! log(0) for non-integers
-            k = floor(x, INT64)
-            kk = real(k, c_double)
-            if (x < MAXD .and. x == kk) then
-                ! Hoist the terms that do not depend on the summation index.
-                lb = log(beta)
-                ll = log(lambda)
-                lga = log_gamma(alpha)
-                l1pb = log1p(beta)
-                mx = ieee_value(x, ieee_negative_inf)
-                s = ZERO
-                do i = 0_INT64, k
-                    ii = real(i, c_double)
-                    lt = log_gamma(alpha + ii) + ii * lb + (kk - ii) * ll &
-                         - lambda - lga - log_gamma(ii + ONE) &
-                         - (alpha + ii) * l1pb - log_gamma(kk - ii + ONE)
-                    if (lt > mx) then
-                        ! New running maximum: rescale the accumulated sum to
-                        ! the new base (equivalent of multiplying by
-                        ! mx(old) / lt(new) and add ONE representing the new
-                        ! "largest value" that enters the sum. On the very first
-                        ! term mx is -Inf, so exp(mx - lt) is 0 and thus s is 1.
-                        s = s * exp(mx - lt) + ONE
-                        mx = lt
-                    else
-                        s = s + exp(lt - mx)
-                    end if
-                end do
-                ! Log-space analogue of cFPe's ceiling of 1: a log-PMF cannot
-                ! exceed log(1). The floor of 0 needs no analogue as its
-                ! log-space image is -Inf itself.
-                lpmf = min(mx + log(s), ZERO)
+            if (x < MAXD) then
+                k = floor(x, INT64)
+                kk = real(k, c_double)
+                if (x == kk) then
+                    ! Hoist terms that do not depend on the summation index.
+                    lb = log(beta)
+                    ll = log(lambda)
+                    lga = log_gamma(alpha)
+                    l1pb = log1p(beta)
+                    mx = ieee_value(x, ieee_negative_inf)
+                    s = ZERO
+                    do i = 0_INT64, k
+                        ii = real(i, c_double)
+                        lt = log_gamma(alpha + ii) + ii * lb + (kk - ii) * ll &
+                             - lambda - lga - log_gamma(ii + ONE) &
+                             - (alpha + ii) * l1pb - log_gamma(kk - ii + ONE)
+                        if (lt > mx) then
+                            ! New running maximum: rescale the accumulated sum
+                            ! to the new base (equivalent of multiplying by
+                            ! mx(old) / lt(new)) and add ONE representing the
+                            ! new "largest value" that enters the sum. On the
+                            ! very first term mx is -Inf, so exp(mx - lt) is 0
+                            ! and thus s is 1.
+                            s = s * exp(mx - lt) + ONE
+                            mx = lt
+                        else
+                            s = s + exp(lt - mx)
+                        end if
+                    end do
+                    ! Log-space analogue of cFPe's ceiling of 1: a log-PMF
+                    ! cannot exceed log(1). The floor of 0 needs no analogue
+                    ! as its log-space image is -Inf itself.
+                    lpmf = min(mx + log(s), ZERO)
+                end if
             end if
         end if
 
@@ -393,12 +421,19 @@ contains
             if (lg == 1_c_int) then
                 ! Log-space assembly; min(..., ZERO) mirrors the log-space
                 ! cFPe ceiling in ddelap_f_s_log (a log-PMF cannot exceed
-                ! log(1) = 0). ps = 0 means the true mass is a hard zero
-                ! even at this scale, whose log is -Inf.
+                ! log(1) = 0).
                 if (ps > ZERO) then
                     pv(n + 2) = min(c + log(ps), ZERO)
                 else
-                    pv(n + 2) = ieee_value(ps, ieee_negative_inf)
+                    ! Defence only: callers admit the log variant solely when
+                    ! the guaranteed step ratio is >= TBLMINRATIO, which keeps
+                    ! every ps at or above 2**(-1020) (see the constant's
+                    ! comment), and the clamp above cannot produce exact zero
+                    ! because forward recursion tracks the dominant solution,
+                    ! keeping the subtrahend a bounded fraction of the
+                    ! minuend. Retained because it is the only correct value
+                    ! should a future caller relax that admission rule.
+                    pv(n + 2) = ieee_value(ps, ieee_negative_inf)   ! # nocov
                 end if
             ! While c is so negative that exp(c) is zero or subnormal, the
             ! product ps * sc would return 0 (or lose significand bits) even
@@ -408,13 +443,20 @@ contains
             ! branch is a full-precision normal number. The log branch can
             ! only run in the pre-rescale climb (c only ever increases when
             ! lg == 0), so ordinary parameter values never pay for the
-            ! transcendentals.
-            else if (c > SCMIN) then
+            ! transcendentals. ps == 0 (hard underflow deep in a decaying
+            ! tail, where the true mass is below the smallest double and 0 is
+            ! the correct stored value) is folded into the multiply branch:
+            ! 0 * sc is exactly 0, since sc = exp(c) is finite and in [0, 1)
+            ! - c < 0 is an invariant, as c starts negative and every upward
+            ! rescale leaves exp(c) <= p/ps < 1 with ps > 1 - so no 0 * Inf
+            ! is possible. Folding keeps the assignment total (no branch of
+            ! this chain can fall through leaving pv(n + 2) undefined) and
+            ! keeps log(ps) unevaluated at zero, without a dead-code arm
+            ! whose reachability would need a proof.
+            else if (c > SCMIN .or. ps == ZERO) then
                 pv(n + 2) = ps * sc
-            else if (ps > ZERO) then
-                pv(n + 2) = exp(c + log(ps))
             else
-                pv(n + 2) = ZERO
+                pv(n + 2) = exp(c + log(ps))
             end if
         end do
 
@@ -481,7 +523,12 @@ contains
             end do
             !$omp end parallel do
         else if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO .or. &
-                 ieee_is_nan(a(1) + b(1) + l(1))) then
+                 .not. ieee_is_finite(a(1) + b(1) + l(1))) then
+            
+            ! is_finite fails on NaN and Inf alike; infinite parameters mean
+            ! an infinite-mean distribution with no mass at any finite point,
+            ! and previously slipped past the NaN-only screen into the
+            ! summation, whose NaNs the clamps laundered into 0s and 1s.
             pmfv = ieee_value(x, ieee_quiet_nan)
         else if (b(1) * (maxval(x) + ONE) + l(1) * (ONE + b(1)) &
                  + a(1) * b(1) >= TBLMAXCOEF) then
@@ -493,6 +540,19 @@ contains
                 else
                     pmfv(i) = ddelap_f_s(x(i), a(1), b(1), l(1))
                 end if
+            end do
+        else if (lg == 1_c_int .and. &
+                 max(l(1) / (real(floor(maxval(x)), c_double) + ONE), &
+                     min(a(1), ONE) * b(1) / (ONE + b(1))) < TBLMINRATIO) then
+            ! Degenerate point-mass-plus-dust parameters whose PMF can fall
+            ! by more than the rescue band in a single recurrence step (see
+            ! TBLMINRATIO); the log-space table could wrongly return -Inf
+            ! where the true log-mass is finite, so compute elementally. Only
+            ! lg == 1 routes: in linear space (lg == 0) a hard-zero deep in the
+            ! tail is the correct stored double, so pdelap_f/qdelap_f/rdelap_f
+            ! tables need no change. 
+            do i = 1, nx
+                pmfv(i) = ddelap_f_s_log(x(i), a(1), b(1), l(1))
             end do
         else
             k = floor(maxval(x))
@@ -541,8 +601,14 @@ contains
     real(kind = c_double)               :: cdf
     integer(INT64)                      :: i, k
 
+        ! Parameters must be strictly positive AND finite (is_finite fails on
+        ! NaN and Inf alike); q = +Inf stays valid and takes the CDF = 1
+        ! branch below, while NaN q is caught here since the screen no longer
+        ! folds q into the parameter sum.
+        ! (AA & Claude: 2026-07-07)
         if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. q < ZERO &
-            .or. ieee_is_nan(alpha + beta + lambda + q)) then
+            .or. ieee_is_nan(q) &
+            .or. .not. ieee_is_finite(alpha + beta + lambda)) then
             cdf = ieee_value(q, ieee_quiet_nan)
         else if (.not. ieee_is_finite(q)) then
             cdf = ONE
@@ -593,7 +659,8 @@ contains
     integer(INT64)                      :: i
 
         if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. q < ZERO &
-            .or. ieee_is_nan(alpha + beta + lambda + q)) then
+            .or. ieee_is_nan(q) &
+            .or. .not. ieee_is_finite(alpha + beta + lambda)) then
             ! Defence in depth, unreachable through R: pdelap_f only calls this
             ! function when the CDF it just computed for the very same arguments
             ! exceeds one half, which invalid parameters and NaNs can never
@@ -691,7 +758,8 @@ contains
                 end do
             !$omp end parallel do
         else if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO .or. &
-                 ieee_is_nan(a(1) + b(1) + l(1))) then
+                 .not. ieee_is_finite(a(1) + b(1) + l(1))) then
+            ! See the matching screen in ddelap_f: NaN and Inf both fail.
             pmfv = ieee_value(q, ieee_quiet_nan)
         else
             k = floor(maxval(q))
@@ -769,8 +837,13 @@ contains
     real(kind = c_double), intent(in)   :: p, alpha, beta, lambda
     real(kind = c_double)               :: testcdf, value
 
+        ! Parameters must be strictly positive AND finite, mirroring the
+        ! screens in the d/p elementals; NaN p is caught here since the
+        ! screen no longer folds p into the parameter sum.
+        ! (AA & Claude: 2026-07-07)
         if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. p < ZERO &
-          .or. ieee_is_nan(alpha + beta + lambda + p)) then
+          .or. ieee_is_nan(p) &
+          .or. .not. ieee_is_finite(alpha + beta + lambda)) then
             value = ieee_value(p, ieee_quiet_nan)
         else if (p >= ONE) then
             value = ieee_value(p, ieee_positive_inf)
@@ -836,7 +909,9 @@ contains
             ! hang, reproducible on 9.0.0 with qdelap(0.5, NaN, 2, 3).
             ! (AA & Claude: 2026-07-07)
             if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO .or. &
-                ieee_is_nan(a(1) + b(1) + l(1))) then
+                .not. ieee_is_finite(a(1) + b(1) + l(1))) then
+                ! See the matching screen in ddelap_f: NaN and Inf both fail;
+                ! rdelap_f routes through here and inherits the screen.
                 obsv = ieee_value(p, ieee_quiet_nan)
             else
                 ! Build the CDF lookup table with the same O(K) three-term
@@ -887,10 +962,14 @@ contains
                 end do
                 ! TRUE only via EXIT 1, i.e. the extreme-parameter route.
                 if (.not. allocated(svec)) then
-                    ! Legacy incremental build, retained verbatim for the
-                    ! extreme-parameter route.
-                    allocate(svec(1), &
-                        source = exp(-l(1)) / ((b(1) + ONE) ** a(1)))
+                    ! Legacy incremental build, retained for the
+                    ! extreme-parameter route. The seed is assigned in a
+                    ! separate statement rather than through source= on a
+                    ! continued line: gcov attributes a continued statement's
+                    ! execution to its final physical line and reports the
+                    ! opening line as an uncovered phantom.
+                    allocate(svec(1))
+                    svec(1) = exp(-l(1)) / ((b(1) + ONE) ** a(1))
                     i = 1
                     do
                         if (svec(i) >= x) exit

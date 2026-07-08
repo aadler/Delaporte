@@ -60,7 +60,7 @@
 !                       be against _c_int variables, which they should be.
 !          Version 5.2: 2025-12-31
 !                       Declared intent of threads variable in rdelap_f.
-!          Version 6.0  2026-07-07
+!          Version 6.0  2026-07-08
 !                       Changed binding names for header/source refactor.
 !                       Use specific "only" lists to prevent scope infractions.
 !                       Change unifrnd to interface and drop "external".
@@ -78,6 +78,8 @@
 !                                  the nested loops. This is now the new fast
 !                                  hot loop. Existing machinery retained to
 !                                  handle exception cases.
+!                               3) Bring into compliance with base R in that
+!                                  negative values have 0 probability.
 !                         pdelap:
 !                               1) When lower.tail = FALSE, new function exists
 !                                  that will calculate the upper tail from the
@@ -86,7 +88,9 @@
 !                                  machine precision).
 !                               2) Prevented from overwriting passed p vector.
 !                               3) Uses ddelap_table where possible for speed.
-!
+!                               4) Bring into compliance with base R in that
+!                                  negative values have 0 probability so have
+!                                  0 CDF as well.
 !                         qdelap:
 !                               1) Uses ddelap_table where possible for speed.
 !                               2) Trap singleton NaN error which resulted in
@@ -177,7 +181,7 @@ contains
     real(kind = c_double), intent(in)   :: x, alpha, beta, lambda
     real(kind = c_double)               :: pmf, ii, kk
     real(kind = c_double)               :: lb, ll, lga, l1pb
-    integer(INT64)                      :: i, k                   
+    integer(INT64)                      :: i, k
 
         ! Parameters must be strictly positive AND finite: is_finite fails on
         ! both NaN and Inf, and a Delaporte with any infinite parameter has
@@ -186,19 +190,26 @@ contains
         ! log-space summands are laundered into hard 0s and 1s by the cFPe
         ! clamps below (ddelap(1, Inf, Inf, Inf) returned exactly 1).
         ! (AA & Claude: 2026-07-07)
-        if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. x < ZERO &
+        if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO &
             .or. ieee_is_nan(x) &
             .or. .not. ieee_is_finite(alpha + beta + lambda)) then
             pmf = ieee_value(x, ieee_quiet_nan)
+        else if (x < ZERO) then
+  
+            ! Base R convention: any x below the support, including x = -Inf,
+            ! carries zero probability (dpois(-1, l) = dpois(-Inf, l) = 0).
+            ! Handled before the else branch's floor(x, INT64), which would
+            ! overflow the integer kind on -Inf.
+            ! (AA & Claude: 2026-07-08)
+            pmf = ZERO
         else
             pmf = ZERO
-            
+
             ! Convert x only after confirming it fits: floor(x, INT64) with
             ! x >= MAXD (= huge(INT64)) overflows the integer kind, which is
             ! undefined behavior; it previously escaped only because the
             ! wrapped garbage failed the x == kk test by accident. x >= MAXD,
-            ! including x = +Inf, keeps the zero PMF, matching
-            ! dpois(Inf, 1) = 0.
+            ! including x = +Inf, keeps the 0 PMF, matching dpois(Inf, 1) = 0.
             ! (AA & Claude: 2026-07-07)
             if (x < MAXD) then
                 k = floor(x, INT64)
@@ -256,12 +267,19 @@ contains
         ! ddelap_f_s; see the comments there. x >= MAXD, including x = +Inf,
         ! keeps the -Inf initialization, the log-space image of PMF = 0.
         ! (AA & Claude: 2026-07-07)
-        if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. x < ZERO &
+        if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO &
             .or. ieee_is_nan(x) &
             .or. .not. ieee_is_finite(alpha + beta + lambda)) then
             lpmf = ieee_value(x, ieee_quiet_nan)
+        else if (x < ZERO) then
+            ! Base R convention: x below the support, including x = -Inf, has
+            ! log-probability -Inf: log of dpois(-1, l) = dpois(-Inf, l) = 0.
+            ! Handled before the else branch's floor(x, INT64), which would
+            ! overflow the integer kind on -Inf.
+            ! (AA & Claude: 2026-07-08)
+            lpmf = ieee_value(x, ieee_negative_inf) ! log(0) for non-integers
         else
-            lpmf = ieee_value(x, ieee_negative_inf)   ! log(0) for non-integers
+            lpmf = ieee_value(x, ieee_negative_inf)   
             if (x < MAXD) then
                 k = floor(x, INT64)
                 kk = real(k, c_double)
@@ -610,12 +628,21 @@ contains
         ! branch below, while NaN q is caught here since the screen no longer
         ! folds q into the parameter sum.
         ! (AA & Claude: 2026-07-07)
-        if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. q < ZERO &
+        if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO &
             .or. ieee_is_nan(q) &
             .or. .not. ieee_is_finite(alpha + beta + lambda)) then
             cdf = ieee_value(q, ieee_quiet_nan)
+        else if (q < ZERO) then
+            ! Base R convention is that the CDF is 0 below the support. Gate 
+            ! placed before the floor(q, INT64), as that would overflow on -Inf,
+            ! and before the +Inf test. Thus, -Inf maps to 0 and +Inf still maps
+            ! to 1. The upper tail P(X > q) = 1 for negative q is produced by
+            ! the caller's complement (HALF - cdf + HALF), so sdelap_f_s is
+            ! never reached here.
+            ! (AA & Claude: 2026-07-08)
+            cdf = ZERO
         else if (.not. ieee_is_finite(q)) then
-            cdf = ONE
+            cdf = ONE                    ! q = +Inf: all mass at or below q
         else
             k = floor(q, INT64)
             cdf = exp(-lambda) / ((beta + ONE) ** alpha)

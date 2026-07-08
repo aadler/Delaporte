@@ -149,6 +149,17 @@ expect_equal(ddelap(850, 5, 3, 800),
              sum(dnbinom(0:850, size = 5, prob = 0.25) *
                    dpois(850 - (0:850), 800)), tolerance = 1e-9)
 
+# A degree-3 Taylor term in log1p keeps the recurrence-table seed
+# c = -lambda - alpha * log1p(beta) accurate for small beta. The prior
+# degree-2 form left a truncation error ~beta^3 / 3, which for large alpha and
+# beta ~ 1e-4 became a uniform ~alpha * 3.3e-13 relative error on every mass -
+# here corrupting an ordinary, non-underflowed ~0.023 probability at k = 300 in
+# its sixth digit. Check one point against the defining NB (*) Poisson
+# convolution (which shares no code with the internal log1p).
+expect_equal(ddelap(300, 3e6, 1e-4, 1),
+             sum(dnbinom(0:300, size = 3e6, prob = 1 / (1 + 1e-4)) *
+                   dpois(300 - (0:300), 1)), tolerance = 1e-9)
+
 # Parameters beyond TBLMAXCOEF route around the table to the per-element
 # summation and must agree with the vector-parameter path.
 expect_equal(suppressWarnings(ddelap(0:5, 1e-28, 1e31, 2)),

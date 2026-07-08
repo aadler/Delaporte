@@ -6,90 +6,30 @@
 \title{NEWS file for the Delaporte package}
 
 \section{Version 9.0.0 (2026-10-01)}{
-  \subsection{Changed}{
-    \itemize{
-      \item \strong{Breaking:} Zero-length parameters now return zero-length
-      results in \code{p/d/qdelap} per base \R. Prior behavior was a segfault.
-      \item \strong{Breaking:} Zero-length parameters in \code{rdelap} now
-      return \code{NaN}s per base \R. Prior behavior was a segfault.
-      \item \code{MoMdelap} now checks that at least 3 values are passed to it,
-      otherwise it will error. This is only technically breaking, as it used to
-      fail with a different error which propagated from the Fortran (missing
-      value where TRUE/FALSE needed). Now it never triggers a Fortran call.
-      \item Cleaned \file{Makevars} from unneeded calls to \acronym{BLAS} and
-      \acronym{LAPACK} libraries.
-      \item The guidance added to Writing \R Extensions in r88406 is better
-      adhered to by storing the package-specific state (the thread count and
-      detected \acronym{CPU} count) in an environment inside the \emph{package}
-      namespace. The environment is no longer created in the user's workspace,
-      and is no longer exported.
-      \item \strong{Breaking:} \code{setDelapThreads} no longer calls
-      \code{omp_set_num_threads}, and \code{getDelapThreads} no longer calls
-      \code{omp_get_max_threads}. The thread count is package-local and is
-      passed to each parallelized routine, whose \code{num_threads} clauses
-      already scope it per region. Process-global OpenMP state is never
-      modified, so \pkg{Delaporte} neither affects nor is affected by the
-      threading of other OpenMP-using packages. On load, the count is seeded
-      from the OpenMP runtime default, which respects \env{OMP_NUM_THREADS} and
-      \env{OMP_THREAD_LIMIT}.
-      \item Refactored C and Fortran sources to be more manageable using header
-      files, splitting initialization from active function calls, hardening with
-      explicit "only" lists on the Fortran side, removing unnecessary includes,
-      and using the modern bind(C) interface to call back-and-forth between C
-      and Fortran instead of the older F77 idiom.
-      \item \code{ddelap}, \code{pdelap}, \code{qdelap}, and \code{rdelap}
-      with singleton parameters now build their \acronym{PMF} and \acronym{CDF}
-      tables using the distribution's three-term recurrence, derived from the
-      probability generating function. This takes \eqn{O(K)} arithmetic
-      operations instead of \eqn{O(K^2)} \code{log_gamma}/\code{exp}
-      evaluations. Masses whose leading term underflows---roughly \eqn{\lambda +
-      \alpha\log(1+\beta) > 745}---are handled by internal rescaling, allowing
-      accuracy to be retained for very large \eqn{\lambda}. Parameters extreme
-      enough to risk overflow in the recurrence fall back to the summation
-      algorithm, and vector-valued parameters continue to use the
-      per-element path.
-      \item \code{qdelap} and \code{rdelap} with singleton parameters now
-      size their quantile lookup table from a moment-based estimate and grow
-      it geometrically, replacing element-by-element growth whose copying
-      was \eqn{O(K^2)}. They now locate quantiles in the sorted CDF table by a
-      binary search instead of a linear scan. The table is built with the
-      identical routine and accumulation order as \code{pdelap}, so the
-      \code{qdelap(pdelap(k)) == k} round trip is preserved bitwise. Deep
-      quantiles are also more accurate: the returned quantile now lands where
-      the directly-summed survival function crosses the requested probability.
-      \item \code{ddelap} with \code{log = TRUE} and singleton parameters
-      builds its table directly in log space, preserving finite deep-tail
-      log-probabilities where the linear-space mass underflows to zero.
-      \item As the singleton-parameter \acronym{CDF} build is no longer
-      quadratic, the maximum \code{q} for \code{pdelap}'s fast path was
-      raised from \eqn{2^{14}} to \eqn{2^{24}}, and the interactive
-      confirmation prompt now guards only the genuinely slow routes:
-      vector-valued parameters with \code{q} at or above \eqn{2^{15}}, or any
-      \code{q} at or above \eqn{2^{24}}.
-      \item Size gate in \code{qdelap} now only asks for continuation when
-      sessions are interactive. Otherwise it checks new \code{Delaporte.maxq}
-      option in the local environment and stops if the largest value exceeds
-      the option or warns if it does not. The default value is \eqn{2^{15}}.
-       \item \strong{Breaking:} Both the exact and approximate versions of
-       \code{qdelap} now return \code{NaN} with a warning for probabilities
-       strictly greater than one, following \code{qpois}, \code{qnbinom}, etc.
-       in base \R. The function returns \code{Inf} only for probabilities
-       exactly equal to one. Prior behavior was that all probabilities
-       \eqn{\ge 1} returned \code{Inf}.
-    }
-  }
   \subsection{Fixed}{
     \itemize{
-      \item Trapping for 0-length parameters in both C and \R prevents a
-      segfault in Fortran.
-      \item Prevented \code{qdelap} from overwriting passed \code{p} vector
-      within Fortran, preserving the \code{.Call} contract.
-      \item \strong{Breaking:} The non-exact version of \code{qdelap} now
-      pre-allocates the result vector at full length first and then assigns the
-      \code{NaN}, \code{Inf}, 0, or proper value for each category. This ensures
-      that element \code{i} of the output always corresponds to element \code{i}
-      of the input. Prior method may have scrambled the "valid" inputs if there
-      were non-valid inputs in the source.
+      \item \strong{Breaking:} \code{log1p} (used internally for
+      \code{log(1 + beta)}) now carries a cubic Taylor term when
+      \eqn{|\beta| \leq 10^{-4}}{abs(beta) <= 1e-4}. The prior quadratic form
+      left a truncation error of order \eqn{\frac{\beta^3}{3}}{beta^3 / 3}.
+      This affected the seed of the \code{ddelap} recurrence table through
+      \eqn{-\lambda - \alpha * \log\left(1 + \beta\right)}{-lambda - alpha *
+      log1p(beta)}. Therefore, a uniform relative error of roughly
+      \code{alpha * 3.3e-13} propagated to every \code{ddelap}, \code{pdelap},
+      and \code{qdelap} value. For large \code{alpha} with small \code{beta}
+      this reached the sixth significant figure of ordinary probabilities.
+      Results for \eqn{\beta > 10^{-4}}{beta > 1e-4} are bitwise-unchanged.
+      
+      \item \strong{Breaking:} \code{ddelap} with \code{log = TRUE} now
+      accumulates the PMF in log space using a streaming log-sum-exp instead of
+      taking the log of the linear-space result. This is technically breaking
+      as deep-tail log-probabilities which previously returned \code{-Inf}
+      because the linear PMF underflowed below the smallest representable double
+      are now accurate to near full precision (e.g. 
+      \code{ddelap(2000, 1, 1, 1, log = TRUE)} returns approximately -1385.99
+      instead of \code{-Inf}). Hoisting the variables for both log and normal
+      space routines makes them slightly faster than before.
+      
       \item \strong{Breaking:} \code{pdelap} with \code{lower.tail = FALSE} now
       computes the upper tail by direct summation of the PMF whenever the upper
       tail is the smaller one, instead of \eqn{1 - \textrm{CDF}}. Survival
@@ -100,24 +40,118 @@
       full double precision, as is \code{log.p = TRUE} on the deep upper tail.
       This is technically breaking, but users should see no change outside of
       the deep tail which was likely not of interest to most.
-      \item \strong{Breaking:} \code{ddelap} with \code{log = TRUE} now
-      accumulates the PMF in log space using a streaming log-sum-exp instead of
-      taking the log of the linear-space result. This is technically breaking
-      as deep-tail log-probabilities which previously returned \code{-Inf}
-      because the linear PMF underflowed below the smallest representable double
-      are now accurate to near full precision (e.g. 
-      \code{ddelap(2000, 1, 1, 1, log = TRUE)} returns approximately -1385.99
-      instead of \code{-Inf}). Hoisting the variables for both log and normal
-      space routines makes them slightly faster than before.
-      \item \code{qdelap} and \code{rdelap} with a \code{NaN} scalar parameter
-      previously looped indefinitely while consuming memory. Now they return
-      \code{NaN} with a warning, matching \code{pdelap}.
+      
+      \item \strong{Breaking:} The non-exact version of \code{qdelap} now
+      pre-allocates the result vector at full length first and then assigns the
+      \code{NaN}, \code{Inf}, 0, or proper value for each category. This ensures
+      that element \code{i} of the output always corresponds to element \code{i}
+      of the input. Prior method may have scrambled the "valid" inputs if there
+      were non-valid inputs in the source.
+
       \item Non-finite parameters, including infinities, now return \code{NaN}
       with a warning across \code{d/p/q/rdelap} instead of clamp-laundered 0s
       and 1s.
+
       \item For \eqn{x \geq 2^{63}}, including +\code{Inf}, the functions no
       longer convert \code{x} to an integer kind it which it then overflows.
       Instead, they return 0 or −Inf directly.
+
+      \item Trapping for 0-length parameters in both C and \R prevents a
+      segfault in Fortran.
+
+      \item \code{qdelap} and \code{rdelap} with a \code{NaN} scalar parameter
+      previously looped indefinitely while consuming memory. Now they return
+      \code{NaN} with a warning, matching \code{pdelap}.
+      
+      \item Prevented \code{qdelap} from overwriting passed \code{p} vector
+      within Fortran, preserving the \code{.Call} contract.
+    }
+  }
+  \subsection{Changed}{
+    \itemize{
+      \item \strong{Breaking:} \code{ddelap}, \code{pdelap}, \code{qdelap}, and 
+      \code{rdelap} with singleton parameters now build their \acronym{PMF} and
+      \acronym{CDF} tables using a three-term recurrence relationship derived
+      from the Delaporte distribution's probability generating function.
+      This takes \eqn{O(K)} arithmetic operations instead of \eqn{O(K^2)}
+      \code{log_gamma}/\code{exp} evaluations. Masses whose leading term
+      underflows---roughly \eqn{\lambda + \alpha\log(1+\beta) > 745}---are
+      handled by internal rescaling, allowing accuracy to be retained for very
+      large \eqn{\lambda}. This is why the change is considered \emph{breaking}.
+      Some results that formerly errored out may not do so now. Parameters
+      extreme enough to risk overflow in the recurrence fall back to the
+      summation algorithm, and vector-valued parameters continue to use the
+      per-element path.
+      
+      \item \strong{Breaking:} \code{ddelap} with \code{log = TRUE} and
+      singleton parameters builds its table directly in log space, preserving
+      finite deep-tail log-probabilities where the linear-space mass underflows
+      to zero. This is considered \emph{breaking} as some results that formerly
+      errored out may not do so now.
+      
+      \item \strong{Breaking:} Both the exact and approximate versions of
+      \code{qdelap} now return \code{NaN} with a warning for probabilities
+      strictly greater than one, following \code{qpois}, \code{qnbinom}, etc. in
+      base \R. The function returns \code{Inf} only for probabilities exactly
+      equal to one. Prior behavior was that all probabilities \eqn{\ge 1}
+      returned \code{Inf}.
+      
+      \item \strong{Breaking:} Zero-length parameters now return zero-length
+      results in \code{p/d/qdelap} per base \R. Prior behavior was a segfault.
+      
+      \item \strong{Breaking:} Zero-length parameters in \code{rdelap} now
+      return \code{NaN}s per base \R. Prior behavior was a segfault.
+      
+      \item \strong{Breaking:} \code{setDelapThreads} no longer calls
+      \code{omp_set_num_threads}, and \code{getDelapThreads} no longer calls
+      \code{omp_get_max_threads}. The thread count is package-local and is
+      passed to each parallelized routine, whose \code{num_threads} clauses
+      already scope it per region. Process-global OpenMP state is never
+      modified, so \pkg{Delaporte} neither affects nor is affected by the
+      threading of other OpenMP-using packages. On load, the count is seeded
+      from the OpenMP runtime default, which respects \env{OMP_NUM_THREADS} and
+      \env{OMP_THREAD_LIMIT}.
+      
+      \item \code{qdelap} and \code{rdelap} with singleton parameters now size
+      their quantile lookup table from a moment-based  estimate and grow it
+      geometrically, replacing element-by-element growth whose copying was
+      \eqn{O(K^2)}. The table is built with the identical routine and
+      accumulation order as \code{pdelap}, so the \code{qdelap(pdelap(k)) == k}
+      round trip is preserved bitwise. They now also locate quantiles in the
+      sorted CDF vector by a binary search instead of a linear scan.
+      
+      \item \code{MoMdelap} now checks that at least 3 values are passed to it,
+      otherwise it will error. This is not considered breaking as it used to
+      fail with a different error which propagated from the Fortran (missing
+      value where TRUE/FALSE needed). Now it never triggers a Fortran call.
+      
+      \item Cleaned \file{Makevars} from unneeded calls to \acronym{BLAS} and
+      \acronym{LAPACK} libraries.
+      
+      \item The guidance added to Writing \R Extensions in r88406 is better
+      adhered to by storing the package-specific state (the thread count and
+      detected \acronym{CPU} count) in an environment inside the \emph{package}
+      namespace. The environment is no longer created in the user's workspace,
+      and is no longer exported.
+      
+      \item Refactored C and Fortran sources to be more manageable using header
+      files, splitting initialization from active function calls, hardening with
+      explicit "only" lists on the Fortran side, removing unnecessary includes,
+      and using the modern bind(C) interface to call back-and-forth between C
+      and Fortran instead of the older F77 idiom.
+      
+      \item As the singleton-parameter \acronym{CDF} build is no longer
+      quadratic, the maximum \code{q} for \code{pdelap}'s fast path was
+      raised from \eqn{2^{14}} to \eqn{2^{24}}, and the interactive
+      confirmation prompt now guards only the genuinely slow routes:
+      vector-valued parameters with \code{q} at or above \eqn{2^{15}}, or any
+      \code{q} at or above \eqn{2^{24}}.
+      
+      \item Size gate in \code{qdelap} now only asks for continuation when
+      sessions are interactive. Otherwise it checks the new (and undocumented)
+      \code{Delaporte.maxq} option in the local environment and stops if the
+      largest value exceeds the option or warns if it does not. The default
+      value is \eqn{2^{15}}.
     }
   }
   \subsection{Removed}{
@@ -125,6 +159,7 @@
       \item \strong{Breaking:} The \code{sOMPT_C} function and entry point was
       removed, including its \code{R_RegisterCCallable} registration, as were
       the \code{.onDetach} thread reset and its Fortran backend \code{sOMPT_f}.
+      
       \item \strong{Breaking:} \env{DelaporteEnv} is no longer exported.
     }
   }

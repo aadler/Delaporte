@@ -143,7 +143,7 @@ module utils
 contains
 
 !-------------------------------------------------------------------------------
-! FUNCTION: log1p
+! FUNCTION:    log1p
 !
 ! DESCRIPTION: Fortran 2008 does not have log1p as an intrinsic. This uses a
 !              three-term Taylor expansion for small x to reduce relative error.
@@ -152,16 +152,17 @@ contains
 !               x - x^2/2 + x^3/3. The old degree-2 form, x - x^2/2, truncated
 !               at O(x^3), so its absolute error was ~x^3/3 ~ 3.3e-13 at the
 !               switch x = 1e-4 -- ~3e4x worse there than plain log(1+x)
-!              (~1e-16). log1p enters only as log1p(beta) in
-!              c = -lambda - alpha*log1p(beta), the seed of ddelap_table, so
-!              the error became a uniform ~alpha*3.3e-13 relative error on every
-!              d/p/q value (e.g. ddelap(300, 3e6, 1e-4, 1) was off by 1e-6 vs
-!              the NB (x) Poisson oracle). The cubic term cuts truncation to
-!              ~x^4/4 ~ 2.5e-17 < EPS at the switch (verified: abs err 2.5e-17
-!              at 1e-4, 0 for x <= 1e-6), so the polynomial is now at least as
-!              accurate as log(1+x) across all of [0, 1e-4] while keeping its
-!              small-x edge. ONE/THREE folds to a compile-time constant (both
-!              are parameters), so no runtime division is added.
+!               (~1e-16). log1p enters only as log1p(beta) in
+!               c = -lambda - alpha*log1p(beta), the seed of ddelap_table, so
+!               the error became a uniform ~alpha*3.3e-13 relative error on
+!               every d/p/q value (e.g. ddelap(300, 3e6, 1e-4, 1) was off by
+!               1e-6 vs the NB (x) Poisson oracle). The cubic term cuts
+!               truncation to ~x^4/4 ~ 2.5e-17 < EPS at the switch (verified:
+!               abs err 2.5e-17 at 1e-4, 0 for x <= 1e-6), so the polynomial is
+!               now at least as accurate as log(1+x) across all of [0, 1e-4]
+!               while keeping its small-x edge. ONE/THREE folds to a
+!               compile-time constant (both are parameters), so no runtime
+!               division is added.
 !-------------------------------------------------------------------------------
 
     pure elemental function log1p(x) result(y)
@@ -180,9 +181,9 @@ contains
     end function log1p
     
 !-------------------------------------------------------------------------------
-! FUNCTION: imk (i mod k)
+! FUNCTION:     imk (i mod k)
 !
-! DESCRIPTION: Calculates mod(i - 1, k) + 1 for vector recyling.
+! DESCRIPTION:  Calculates mod(i - 1, k) + 1 for vector recyling.
 ! 
 ! GENERAL NOTE: mod(i - 1, k) has NO internal k == 0 guard: k == 0 is integer
 !               division by zero -> SIGFPE -> the R process dies (the original
@@ -203,9 +204,9 @@ contains
     end function imk
     
 !-------------------------------------------------------------------------------
-! FUNCTION: cFPe (clearFPerrors)
+! FUNCTION:     cFPe (clearFPerrors)
 !
-! DESCRIPTION: Restricts solutions to [0, 1] and eliminates spurious FP errors.
+! DESCRIPTION:  Restricts solutions to [0, 1] and eliminates spurious FP errors.
 !-------------------------------------------------------------------------------
 
     pure elemental function cFPe(x) result(y)
@@ -218,10 +219,10 @@ contains
     end function cFPe
 
 !-------------------------------------------------------------------------------
-! FUNCTION: lower_bound
+! FUNCTION:     lower_bound
 !
-! DESCRIPTION: Index of the first element of the non-decreasing vector v that
-!              is >= p, or 0 if no element is >= p.
+! DESCRIPTION:  Index of the first element of the non-decreasing vector v that
+!               is >= p, or 0 if no element is >= p.
 !
 ! GENERAL NOTE: Drop-in replacement for minloc(v, dim = 1, mask = v >= p) on
 !               sorted data - it returns the identical index - but in O(log n)
@@ -267,15 +268,15 @@ contains
     end function lower_bound
     
 !-------------------------------------------------------------------------------
-! FUNCTION: gOMPT
+! FUNCTION:     gOMPT
 !
-! DESCRIPTION: Gets the OpenMP runtime's maximum thread count.
+! DESCRIPTION:  Gets the OpenMP runtime's maximum thread count.
 !
 ! GENERAL NOTE: Called once at package load to seed the package-local thread
-!              setting; the per-call thread count is passed explicitly to each
-!              parallel region via its num_threads clause. The former companion
-!              sOMPT_f (omp_set_num_threads) was removed in 9.0.0 because it
-!              mutated process-global OpenMP state shared with other packages.
+!               setting; the per-call thread count is passed explicitly to each
+!               parallel region via its num_threads clause. The former companion
+!               sOMPT_f (omp_set_num_threads) was removed in 9.0.0 because it
+!               mutated process-global OpenMP state shared with other packages.
 !-------------------------------------------------------------------------------
 
     subroutine gOMPT_f(n) bind(C, name="gOMPT_f")

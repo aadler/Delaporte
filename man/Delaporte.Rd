@@ -62,8 +62,11 @@ called via \code{ddelap}, is:
 
 for \eqn{n = 0, 1, 2, \ldots}; \eqn{\alpha, \beta, \lambda > 0}.
   
-If an element of \code{x} is not integer, the result of \code{ddelap} is zero
-with a warning.
+If an element of \code{x} is negative---including \code{-Inf}---the result of
+\code{ddelap} is zero (\eqn{-\infty}{-Inf} on the log scale) and no warning is
+issued, matching base \R \code{\link{dpois}}. Likewise, for any \code{q} below
+the support \code{pdelap} returns a cumulative probability of zero and a
+survival  probability of one, also in agreement with base \R.
   
 The Delaporte's cumulative distribution function, \code{pdelap}, is calculated
 through double summation:
@@ -158,8 +161,12 @@ non-normal distributions.
   sending the user to the exact version which currently properly handles
   vector-based inputs which contain 0.
 
-  Invalid quantiles passed to \code{qdelap} will result in return values of
-  \code{NaN} or \code{Inf} as appropriate.
+  Arguments to \code{ddelap} and \code{pdelap} that fall below the support
+  (negative values and \code{-Inf}) return \code{0} for the density and the
+  lower-tail \acronym{CDF} (\code{-Inf} on the log scale) and \code{1} for the
+  survival function (\code{0} on the log scale), consistent with base \R
+  distributions. Invalid quantiles passed to \code{qdelap} will result in return
+  values of \code{NaN} or \code{Inf} as appropriate.
   
   The length of the result is determined by \code{x} for \code{ddelap}, \code{q}
   for \code{pdelap}, \code{p} for \code{qdelap}, and \code{n} for \code{rdelap}.

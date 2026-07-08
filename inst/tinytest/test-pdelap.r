@@ -83,10 +83,29 @@ expect_equal(pdelap(2L, 1L, 2L, 3L), pdelap(2L, 1, 2, 3), tolerance = tol)
 # print(pdelap(1000, 8, 15, 100), digits = 17) used to be 1.0000000000001035
 expect_true(pdelap(1000, 8, 15, 100) <= 1)
 
-# Infinite values
+# Positive infinite arguments
 expect_identical(pdelap(Inf, 1L, 2L, 3L), 1)
 expect_identical(pdelap(c(Inf, Inf), c(1L, 2L), 2L, 3L), c(1, 1))
-expect_warning(pdelap(-Inf, 1L, 2L, 3L), nanWarn)
+
+# Negative and -Inf arguments follow base R: below the support the CDF is 0
+# (-Inf on the log scale) and the survival is 1 (0 on the log scale), all
+# returned silently. Previously NaN with a warning.
+expect_identical(pdelap(-Inf, 1L, 2L, 3L), 0)
+expect_identical(pdelap(-1, 1, 2, 3), 0)
+expect_identical(pdelap(-Inf, 1L, 2L, 3L, log.p = TRUE), -Inf)
+expect_identical(pdelap(-1, 1, 2, 3, log.p = TRUE), -Inf)
+expect_identical(pdelap(-1, 1, 2, 3, lower.tail = FALSE), 1)
+expect_identical(pdelap(-Inf, 1, 2, 3, lower.tail = FALSE), 1)
+expect_identical(pdelap(-1, 1, 2, 3, lower.tail = FALSE, log.p = TRUE), 0)
+expect_identical(pdelap(-Inf, 1, 2, 3, lower.tail = FALSE, log.p = TRUE), 0)
+
+# Mixed vector keeps input order and stays silent. A negative entry forces the
+# per-element path, whose values differ from the singleton fast-path table by at
+# most an ulp, so compare with tolerance. Below-support entries are exactly 0.
+expect_equal(pdelap(c(-1, 5, -Inf, 10), 1, 2, 3),
+             c(0, pdelap(5, 1, 2, 3), 0, pdelap(10, 1, 2, 3)), tolerance = tol)
+expect_identical(pdelap(c(-1, 5, -Inf, 10), 1, 2, 3)[c(1, 3)], c(0, 0))
+expect_silent(pdelap(c(-1, -Inf, 0, 5), 1, 2, 3))
 
 # Zero-length inputs return numeric(0) (SIGFPE regression guard).
 expect_identical(pdelap(0:3, numeric(0), 1, 2), numeric(0))

@@ -20,6 +20,15 @@
       this reached the sixth significant figure of ordinary probabilities.
       Results for \eqn{\beta > 10^{-4}}{beta > 1e-4} are bitwise-unchanged.
       
+      \item \strong{Breaking:} \code{ddelap} and \code{pdelap} now treat
+      arguments below the support---negative values and \code{-Inf}---the same
+      way base \R does. \code{ddelap} returns \code{0} (\code{-Inf} with
+      \code{log = TRUE}) as \code{\link{dpois}} does, and \code{pdelap} returns
+      a lower-tail \acronym{CDF} of \code{0} and a survival of \code{1} as
+      \code{\link{ppois}} does, in each case silently. Previously these inputs
+      returned \code{NaN} with a \dQuote{NaNs produced} warning. Values for
+      non-negative \code{x} and \code{q} are bitwise-unchanged.
+      
       \item \strong{Breaking:} \code{ddelap} with \code{log = TRUE} now
       accumulates the PMF in log space using a streaming log-sum-exp instead of
       taking the log of the linear-space result. This is technically breaking

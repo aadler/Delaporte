@@ -69,10 +69,21 @@ expect_warning(ddelap(seq(2, 3, 0.1), c(1, 1), 2, 3), nonIntErr)
 # Non-double parameters converted
 expect_equal(ddelap(2L, 1L, 2L, 3L), ddelap(2L, 1, 2, 3), tolerance = tol)
 
-# Infinite values
+# Positive infinite arguments
 expect_identical(ddelap(Inf, 1L, 2L, 3L), 0)
 expect_identical(ddelap(c(Inf, Inf), c(1L, 2L), 2L, 3L), c(0, 0))
-expect_warning(ddelap(-Inf, 1L, 2L, 3L), nanWarn)
+
+# Negative and -Inf arguments follow base R: any x below the support has zero
+# probability (-Inf on the log scale) and is returned silently, with no "NaNs
+# produced" warning. Previously these returned NaN with a warning.
+expect_identical(ddelap(-Inf, 1L, 2L, 3L), 0)
+expect_identical(ddelap(-1, 1, 2, 3), 0)
+expect_identical(ddelap(-Inf, 1L, 2L, 3L, log = TRUE), -Inf)
+expect_identical(ddelap(-1, 1, 2, 3, log = TRUE), -Inf)
+expect_identical(ddelap(c(-2, -1, 0, 1), 1, 2, 3)[1:2], c(0, 0))
+
+# Negative integer and -Inf input emit no warning (matches dpois).
+expect_silent(ddelap(c(-1, -Inf, 0, 5), 1, 2, 3))
 
 # Test log1p using Taylor branch; only used by beta parameter.
 expect_equal(ddelap(1, 1, 1e-10, 2), 0.270670566459692, tolerance = tol)

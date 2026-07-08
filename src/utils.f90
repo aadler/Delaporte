@@ -116,20 +116,21 @@ module utils
     ! = 16384 to 2**24 now that the CDF table is built by an O(K) three-term
     ! recurrence; the binding constraint is now the two K+1-length work
     ! vectors (16 bytes per support point, ~270 MB at 2**24), not compute
-    ! time. (AA & Claude: 2026-07-07)
+    ! time.
+    ! (AA & Claude: 2026-07-07)
     integer, parameter               :: MAXVECSIZE = 16777216
     
 ! ------------------------------------------------------------------------------
-! Interface to C-side RNG bridge (defined in utils_and_wrappers.c). Declared
-! here at module scope so any procedure that uses this module gets a
-! compiler-checked, explicit interface -- replaces the implicit "external
-! unifrnd" declaration formerly local to rdelap_f. bind(C) pins the linker
-! symbol to literally "unifrnd", so the C definition needs no F77_SUB/mangling
-! macro.
+! Interface to C-side RNG bridge (defined in delaporteC.c). Declared here at
+! module scope so any procedure that uses this module gets a compiler-checked,
+! explicit interface. It replaces the implicit "external unifrnd" declaration
+! formerly local to rdelap_f. bind(C) pins the linker symbol to literally
+! "unifrnd", so the C definition needs no F77_SUB/mangling macro.
 ! NOTE: interface bodies are their own scoping unit and do NOT inherit the
 ! module's use statements, so iso_c_binding must be re-imported inside the body
 ! (or brought in via an IMPORT statement).
-! ---------------------------------------------------------------------
+! ------------------------------------------------------------------------------
+
     interface
         subroutine unifrnd(n, x) bind(C, name = "unifrnd")
             use, intrinsic :: iso_c_binding, only: c_int, c_double
@@ -144,8 +145,23 @@ contains
 !-------------------------------------------------------------------------------
 ! FUNCTION: log1p
 !
-! DESCRIPTION: Fortran 2008 does not have log1p as an intrinsic. This uses the
-!              Taylor expansion for small x to reduce relative error.
+! DESCRIPTION: Fortran 2008 does not have log1p as an intrinsic. This uses a
+!              three-term Taylor expansion for small x to reduce relative error.
+!
+! GENERAL NOTE: The degree-3 Taylor expansion for log(x) around 1 is 
+!               x - x^2/2 + x^3/3. The old degree-2 form, x - x^2/2, truncated
+!               at O(x^3), so its absolute error was ~x^3/3 ~ 3.3e-13 at the
+!               switch x = 1e-4 -- ~3e4x worse there than plain log(1+x)
+!              (~1e-16). log1p enters only as log1p(beta) in
+!              c = -lambda - alpha*log1p(beta), the seed of ddelap_table, so
+!              the error became a uniform ~alpha*3.3e-13 relative error on every
+!              d/p/q value (e.g. ddelap(300, 3e6, 1e-4, 1) was off by 1e-6 vs
+!              the NB (x) Poisson oracle). The cubic term cuts truncation to
+!              ~x^4/4 ~ 2.5e-17 < EPS at the switch (verified: abs err 2.5e-17
+!              at 1e-4, 0 for x <= 1e-6), so the polynomial is now at least as
+!              accurate as log(1+x) across all of [0, 1e-4] while keeping its
+!              small-x edge. ONE/THREE folds to a compile-time constant (both
+!              are parameters), so no runtime division is added.
 !-------------------------------------------------------------------------------
 
     pure elemental function log1p(x) result(y)
@@ -154,19 +170,7 @@ contains
         real(kind = c_double)             :: y
 
         if (abs(x) <= 1.e-4_c_double) then
-            ! Degree-3 Taylor: x - x^2/2 + x^3/3. The old degree-2 form
-            ! (x - x^2/2) truncated at O(x^3), so its absolute error was
-            ! ~x^3/3 ~ 3.3e-13 at the switch x = 1e-4 -- ~3e4x worse there than
-            ! plain log(1+x) (~1e-16). log1p enters only as log1p(beta) in
-            ! c = -lambda - alpha*log1p(beta), the seed of ddelap_table, so that
-            ! error became a uniform ~alpha*3.3e-13 relative error on every
-            ! d/p/q value (e.g. ddelap(300, 3e6, 1e-4, 1) was off by 1e-6 vs the
-            ! NB (x) Poisson oracle). The cubic term cuts truncation to
-            ! ~x^4/4 ~ 2.5e-17 < EPS at the switch (verified: abs err 2.5e-17 at
-            ! 1e-4, 0 for x <= 1e-6), so the polynomial is now at least as
-            ! accurate as log(1+x) across all of [0, 1e-4] while keeping its
-            ! small-x edge. ONE/THREE folds to a compile-time constant (both are
-            ! parameters), so no runtime division is added.
+           
             ! (AA & Claude: 2026-07-07)
             y = ((x * (ONE / THREE) - HALF) * x + ONE) * x
         else
@@ -179,15 +183,23 @@ contains
 ! FUNCTION: imk (i mod k)
 !
 ! DESCRIPTION: Calculates mod(i - 1, k) + 1 for vector recyling.
+! 
+! GENERAL NOTE: mod(i - 1, k) has NO internal k == 0 guard: k == 0 is integer
+!               division by zero -> SIGFPE -> the R process dies (the original
+!               zero-length-parameter crash). Safe ONLY because every caller
+!               passes a validated parameter-vector length (na/nb/nl >= 1),
+!               enforced in the R wrappers AND in the C entry points
+!               (delaporteC.c) exported via R_RegisterCCallable. Any new call
+!               site MUST keep k fenced >= 1. 
 !-------------------------------------------------------------------------------
 
     pure elemental function imk(i, k) result(j)
 
     integer(kind = c_int), intent(in) :: i, k
     integer(kind = c_int)             :: j
-    
+
         j = mod(i - 1, k) + 1
-    
+
     end function imk
     
 !-------------------------------------------------------------------------------
@@ -209,16 +221,16 @@ contains
 ! FUNCTION: lower_bound
 !
 ! DESCRIPTION: Index of the first element of the non-decreasing vector v that
-!              is >= p, or 0 if no element is. Drop-in replacement for
-!              minloc(v, dim = 1, mask = v >= p) on sorted data - it returns
-!              the identical index - but in O(log n) instead of a full O(n)
-!              masked scan. With the O(K) table build in place, the masked
-!              minloc scan had become the dominant cost of quantile lookups:
-!              qdelap/rdelap on np variates cost O(np * K) there, e.g. ~11s
-!              for rdelap(1e6, 50, 100, 100) versus ~0.06s with the binary
-!              search. Requires v non-decreasing, which the cFPe-clamped
-!              cumulative sums built in qdelap_f always are.
-!              (AA & Claude: 2026-07-07)
+!              is >= p, or 0 if no element is >= p.
+!
+! GENERAL NOTE: Drop-in replacement for minloc(v, dim = 1, mask = v >= p) on
+!               sorted data - it returns the identical index - but in O(log n)
+!               instead of a full O(n) masked scan. With the O(K) table build in
+!               place, the masked minloc scan had become the dominant cost of
+!               quantile lookups: qdelap/rdelap on np variates cost O(np * K)
+!               there, e.g. ~11s for rdelap(1e6, 50, 100, 100) versus ~0.06s
+!               with the binary search. Requires v non-decreasing, which the
+!               cFPe-clamped cumulative sums built in qdelap_f always are.
 !-------------------------------------------------------------------------------
 
     pure function lower_bound(v, p) result(lo)
@@ -237,6 +249,7 @@ contains
             ! invariant below and the search would silently return
             ! size(v)---a plausible wrong answer---rather than a value the
             ! caller detects and clamps.
+            ! (AA & Claude: 2026-07-07)
             lo = 0                          ! No element reaches p.  ! # nocov
         else
             lo = 1
@@ -256,10 +269,11 @@ contains
 !-------------------------------------------------------------------------------
 ! FUNCTION: gOMPT
 !
-! DESCRIPTION: Gets the OpenMP runtime's maximum thread count. Called once at
-!              package load to seed the package-local thread setting; the
-!              per-call thread count is passed explicitly to each parallel
-!              region via its num_threads clause. The former companion
+! DESCRIPTION: Gets the OpenMP runtime's maximum thread count.
+!
+! GENERAL NOTE: Called once at package load to seed the package-local thread
+!              setting; the per-call thread count is passed explicitly to each
+!              parallel region via its num_threads clause. The former companion
 !              sOMPT_f (omp_set_num_threads) was removed in 9.0.0 because it
 !              mutated process-global OpenMP state shared with other packages.
 !-------------------------------------------------------------------------------

@@ -96,6 +96,8 @@
 !                                  linear scan, O(n).
 !                               4) Grows lookup table geometrically instead of
 !                                  observation by observation.
+!                               5) Now matches R convention to return Inf at 1
+!                                  and NaN when > 1.
 !                         rdelap:
 !                               1) Trap singleton NaN error which resulted in
 !                                  function hanging until memory was exhausted.
@@ -839,13 +841,15 @@ contains
 
         ! Parameters must be strictly positive AND finite, mirroring the
         ! screens in the d/p elementals; NaN p is caught here since the
-        ! screen no longer folds p into the parameter sum.
-        ! (AA & Claude: 2026-07-07)
+        ! screen no longer folds p into the parameter sum. p > 1 is not a
+        ! probability and also returns NaN - base R agrees: qpois(1.5, 1) is
+        ! NaN with a warning while qpois(1, 1) is Inf - so only exactly-one
+        ! takes the +Inf branch below. (AA & Claude: 2026-07-07)
         if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. p < ZERO &
-          .or. ieee_is_nan(p) &
+          .or. p > ONE .or. ieee_is_nan(p) &
           .or. .not. ieee_is_finite(alpha + beta + lambda)) then
             value = ieee_value(p, ieee_quiet_nan)
-        else if (p >= ONE) then
+        else if (p == ONE) then
             value = ieee_value(p, ieee_positive_inf)
         else
             value = ZERO
@@ -983,9 +987,12 @@ contains
                     end do
                 end if
                 do i = 1, np
-                    if (p(i) < ZERO .or. ieee_is_nan(p(i))) then
+                    ! p > 1 is not a probability and returns NaN, matching
+                    ! qpois(1.5, 1); only exactly-one maps to +Inf.
+                    ! (AA & Claude: 2026-07-07)
+                    if (p(i) < ZERO .or. p(i) > ONE .or. ieee_is_nan(p(i))) then
                         obsv(i) = ieee_value(p(i), ieee_quiet_nan)
-                    else if (p(i) >= ONE) then
+                    else if (p(i) == ONE) then
                         obsv(i) = ieee_value(p(i), ieee_positive_inf)
                     else
                         ! Kind-correct conversion (default real would pass

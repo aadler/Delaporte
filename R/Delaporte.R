@@ -96,23 +96,31 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE,
             " version instead.")
     QDLAP <- .Call(qdelap_C, p, alpha, beta, lambda, lt_f, lp_f,
                    getDelapThreads())
-  } else if (alpha <= 0 || beta <= 0 || lambda <= 0) {
+  } else if (alpha <= 0 || beta <= 0 || lambda <= 0 ||
+             !is.finite(alpha + beta + lambda)) {
+    # Non-finite parameters (NaN or any Inf) are invalid here exactly as in
+    # the exact path's Fortran screens; without this, Inf parameters fed
+    # rgamma() below and returned NA instead of NaN. (AA & Claude: 2026-07-07)
     QDLAP <- rep.int(NaN, length(p))
   } else {
-      if (log.p) p <- exp(p)
-      if (!lower.tail) p <- 1 - p
-      validIdx <- p > 0 & p < 1
-      QDLAP <- double(length(p))
-      QDLAP[p < 0] <- NaN
-      QDLAP[p == 0] <- 0
-      QDLAP[p >= 1] <- Inf
-      if (any(validIdx)) {
-        n <- min(10 ^ (ceiling(log(alpha * beta + lambda, 10)) + 5), 1e7)
-        shiftedGammas <- rgamma(n, shape = alpha, scale = beta)
-        DP <- rpois(n, lambda = (shiftedGammas + lambda))
-        QDLAP[validIdx] <- as.vector(quantile(DP, p[validIdx], na.rm = TRUE,
-                                              type = 8L))
-      }
+    if (log.p) p <- exp(p)
+    if (!lower.tail) p <- 1 - p
+    validIdx <- p > 0 & p < 1
+    QDLAP <- double(length(p))
+    QDLAP[p < 0] <- NaN
+    QDLAP[p == 0] <- 0
+    # p > 1 is not a probability and maps to NaN, matching both the exact
+    # path and base R's qpois(1.5, 1); only exactly-one maps to +Inf.
+    # (AA & Claude: 2026-07-07)
+    QDLAP[p == 1] <- Inf
+    QDLAP[p > 1] <- NaN
+    if (any(validIdx)) {
+      n <- min(10 ^ (ceiling(log(alpha * beta + lambda, 10)) + 5), 1e7)
+      shiftedGammas <- rgamma(n, shape = alpha, scale = beta)
+      DP <- rpois(n, lambda = (shiftedGammas + lambda))
+      QDLAP[validIdx] <- as.vector(quantile(DP, p[validIdx],
+                                            na.rm = TRUE, type = 8L))
+    }
   }
   if (any(is.nan(QDLAP))) warning("NaNs produced")
   QDLAP

@@ -70,6 +70,12 @@
       sessions are interactive. Otherwise it checks new \code{Delaporte.maxq}
       option in the local environment and stops if the largest value exceeds
       the option or warns if it does not. The default value is \eqn{2^{15}}.
+       \item \strong{Breaking:} Both the exact and approximate versions of
+       \code{qdelap} now return \code{NaN} with a warning for probabilities
+       strictly greater than one, following \code{qpois}, \code{qnbinom}, etc.
+       in base \R. The function returns \code{Inf} only for probabilities
+       exactly equal to one. Prior behavior was that all probabilities
+       \eqn{\ge 1} returned \code{Inf}.
     }
   }
   \subsection{Fixed}{

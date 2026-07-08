@@ -146,26 +146,34 @@ expect_identical(suppressWarnings(qdelap(c(5, NaN), c(1, 3), 1, 6,
                                          exact = FALSE)),
                  suppressWarnings(qdelap(c(5, NaN), c(1, 3), 1, 6)))
 
-# Singleton Inf
+# Singleton: p == 1 is Inf; p > 1 is not a probability and is NaN with a
+# warning, matching qpois(1, 1) = Inf and qpois(5, 1) = NaN.
 expect_true(is.infinite(qdelap(1, 3, 1, 2)))
 expect_true(is.infinite(qdelap(1, 3, 1, 2, exact = FALSE)))
-expect_true(is.infinite(qdelap(5, 1, 2, 3)))
-expect_true(is.infinite(qdelap(5, 1, 2, 3, exact = FALSE)))
-expect_identical(is.infinite(qdelap(c(1, 3), 3, 1, 2)), rep(TRUE, 2))
-expect_identical(is.infinite(qdelap(c(1, 3), 3, 1, 2, exact = FALSE)),
-                 rep(TRUE, 2))
-# Vector Inf
-expect_identical(is.infinite(qdelap(1:2, 3, c(1, 1), 2)), rep(TRUE, 2))
-expect_identical(is.infinite(qdelap(1:3, c(2, 1, 2), c(1, 6, 2), c(1, 2, 0.4))),
-                 rep(TRUE, 3))
+expect_warning(qdelap(5, 1, 2, 3), nanWarn)
+expect_true(is.nan(suppressWarnings(qdelap(5, 1, 2, 3))))
+expect_warning(qdelap(5, 1, 2, 3, exact = FALSE), nanWarn)
+expect_true(is.nan(suppressWarnings(qdelap(5, 1, 2, 3, exact = FALSE))))
+expect_identical(suppressWarnings(qdelap(c(1, 3), 3, 1, 2)), c(Inf, NaN))
+expect_identical(suppressWarnings(qdelap(c(1, 3), 3, 1, 2, exact = FALSE)),
+                 c(Inf, NaN))
+
+# Vector parameters route through the elemental path with the same split.
+expect_identical(suppressWarnings(qdelap(1:2, 3, c(1, 1), 2)), c(Inf, NaN))
+expect_identical(suppressWarnings(
+  qdelap(1:3, c(2, 1, 2), c(1, 6, 2), c(1, 2, 0.4))), c(Inf, NaN, NaN))
 expect_warning(qdelap(1:2, 3, c(1, 1), 2, exact = FALSE), inpWarn)
 expect_identical(suppressWarnings(qdelap(1:2, 3, c(1, 1), 2, exact = FALSE)),
-                 qdelap(1:2, 3, c(1, 1), 2))
+                 suppressWarnings(qdelap(1:2, 3, c(1, 1), 2)))
 expect_warning(qdelap(1:3, c(2, 1, 2), c(1, 6, 2), c(1, 2, 0.4), exact = FALSE),
                inpWarn)
 expect_identical(suppressWarnings(qdelap(1:3, c(2, 1, 2), c(1, 6, 2),
                                          c(1, 2, 0.4), exact = FALSE)),
-                 qdelap(1:3, c(2, 1, 2), c(1, 6, 2), c(1, 2, 0.4)))
+                 suppressWarnings(qdelap(1:3, c(2, 1, 2), c(1, 6, 2),
+                                         c(1, 2, 0.4))))
+
+# Non-finite parameters through the approximate branch match the exact path.
+expect_true(is.nan(suppressWarnings(qdelap(0.5, Inf, 2, 3, exact = FALSE))))
 
 # Approximate throws error when nonpositive is passed
 expect_warning(qdelap(0.1, 0, 2, 3, exact = FALSE), nanWarn)

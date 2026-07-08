@@ -112,8 +112,10 @@ faster for reasonable values of the parameters. Also, the \dQuote{exact} method
 \emph{must} be used when passing parameter vectors, as the pooling would become
 intractable. Ad-hoc testing indicates that the \dQuote{exact} method should be
 used until \eqn{\alpha\beta + \lambda \approx 2500}{\alpha\beta +
-\lambda ~ 2500}. Both versions return \code{NaN} for quantiles \eqn{< 0},
-\eqn{0} for quantiles \eqn{= 0}, and \code{Inf} for quantiles \eqn{\ge 1}.
+\lambda ~ 2500}. Both versions return \code{NaN} for quantiles \eqn{< 0} or
+\eqn{> 1}, \eqn{0} for quantiles \eqn{= 0}, and \code{Inf} for quantiles
+exactly \eqn{= 1}, following the conventions of
+\code{\link[stats:Poisson]{qpois}}.
 }
 \subsection{Random Variate Generation}{
 The random variate generator, \code{rdelap}, also has multiple versions. When

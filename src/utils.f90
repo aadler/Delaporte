@@ -45,6 +45,7 @@
 !                       This is a binary search, O(log n), and not a linear
 !                       scan, O(n).
 !                       Changed MAXVECSIZE to 2^24 given ddelap enhancements.
+!                       Fixed "bug" in log1p. Cutoff too high. See note.
 !
 ! LICENSE:
 !   Copyright (c) 2016, Avraham Adler
@@ -153,11 +154,25 @@ contains
         real(kind = c_double)             :: y
 
         if (abs(x) <= 1.e-4_c_double) then
-            y = (-x * HALF + ONE) * x
+            ! Degree-3 Taylor: x - x^2/2 + x^3/3. The old degree-2 form
+            ! (x - x^2/2) truncated at O(x^3), so its absolute error was
+            ! ~x^3/3 ~ 3.3e-13 at the switch x = 1e-4 -- ~3e4x worse there than
+            ! plain log(1+x) (~1e-16). log1p enters only as log1p(beta) in
+            ! c = -lambda - alpha*log1p(beta), the seed of ddelap_table, so that
+            ! error became a uniform ~alpha*3.3e-13 relative error on every
+            ! d/p/q value (e.g. ddelap(300, 3e6, 1e-4, 1) was off by 1e-6 vs the
+            ! NB (x) Poisson oracle). The cubic term cuts truncation to
+            ! ~x^4/4 ~ 2.5e-17 < EPS at the switch (verified: abs err 2.5e-17 at
+            ! 1e-4, 0 for x <= 1e-6), so the polynomial is now at least as
+            ! accurate as log(1+x) across all of [0, 1e-4] while keeping its
+            ! small-x edge. ONE/THREE folds to a compile-time constant (both are
+            ! parameters), so no runtime division is added.
+            ! (AA & Claude: 2026-07-07)
+            y = ((x * (ONE / THREE) - HALF) * x + ONE) * x
         else
             y = log(x + ONE)
         end if
-            
+
     end function log1p
     
 !-------------------------------------------------------------------------------

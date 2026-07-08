@@ -146,33 +146,30 @@ module delaporte
 contains
 
 !-------------------------------------------------------------------------------
-! FUNCTION: ddelap_f_s
+! FUNCTION:     ddelap_f_s
 !
-! DESCRIPTION: Calculate the Delaporte probability mass function for a single
-!              observation and return the value or its log. Calculated through
-!              explicit summation. Follows R convention that real observations
-!              are errors and have 0 probability, so calls floor to build to
-!              the last integer. Implements hard floor of 0 and hard ceiling of
-!              1 to prevent spurious floating point errors. The single vector
-!              trick from pdelap actually slows ddelap down in almost all case
-!              unless the passed vectors are very close to one another and small
-!              in magnitude, so it is not worth programming for now.
+! DESCRIPTION:  Calculate the Delaporte probability mass function for a single
+!               observation and return the value or its log.
 !
-!              NOTE: the four loop-invariant transcendental calls (log(beta),
-!              log(lambda), log_gamma(alpha), log1p(beta)) are hoisted out of
-!              the summation loop BY HAND. gfortran under R's default
-!              IEEE-strict flags will not hoist libm calls itself, because
-!              they may set errno and floating-point exception flags; measured
-!              speedup from manual hoisting is roughly 10%. The hoisted
-!              scalars replace the calls in-place with the operand order and
-!              association of the original expression untouched, so results
-!              are bitwise identical to the pre-hoist code. The summand must
-!              stay in sync with the identical expression in ddelap_f_s_log;
-!              it is deliberately duplicated there rather than shared through
-!              a helper function, since hiding it behind a call boundary
-!              blocks all invariant reuse and was measured to slow this hot
-!              loop by roughly 24%.
-!              (AA & Claude: 2026-07-06)
+! GENERAL NOTE: This function uses explicit summation. Follows R convention that
+!               real observations are errors and have 0 probability, so calls
+!               floor to build to the last integer. Implements hard floor of 0
+!               and hard ceiling of 1 to prevent spurious floating point errors.
+!
+! ADDITIONAL:   The four loop-invariant transcendental calls---log(beta),
+!               log(lambda), log_gamma(alpha), log1p(beta)---are manually
+!               hoisted out of the summation loop . gfortran under R's default
+!               IEEE-strict flags will not hoist libm calls on its own, as they
+!               may set errno and floating-point exception flags. The measured
+!               speedup from manual hoisting is roughly 10%. The hoisted
+!               scalars replace the calls in-place with the operand order and
+!               association of the original expression untouched, so results
+!               are bitwise identical to the pre-hoist code. The summand must
+!               stay in sync with the identical expression in ddelap_f_s_log;
+!               it is deliberately duplicated there rather than shared through
+!               a helper function, since hiding it behind a call boundary
+!               blocks all invariant reuse and was measured to slow this hot
+!               loop by roughly 24%.
 !-------------------------------------------------------------------------------
 
     pure elemental function ddelap_f_s(x, alpha, beta, lambda) result(pmf)
@@ -226,25 +223,26 @@ contains
     end function ddelap_f_s
 
 !-------------------------------------------------------------------------------
-! FUNCTION: ddelap_f_s_log
+! FUNCTION:     ddelap_f_s_log
 !
-! DESCRIPTION: Calculate the LOG of the Delaporte probability mass function
-!              for a single observation directly in log space. The linear-space
-!              function underflows to 0 once the PMF drops below the smallest
-!              double (~1e-308), so log(ddelap_f_s(...)) returns -Inf for
-!              deep-tail log-probabilities that are perfectly representable
-!              (e.g. log P(X = 2000 | 1, 1, 1) is about -1386). Since every
-!              summand is already assembled in log space, this accumulates them
-!              with a streaming log-sum-exp: it tracks the running maximum
-!              log-term mx and the sum s of exp(term - mx), rescaling s
-!              whenever a new maximum appears. The result mx + log(s) never
-!              underflows while the true log-PMF is finite, and s lies in
-!              [1, k + 1] so it can neither underflow nor overflow. Guards and
-!              structure deliberately mirror ddelap_f_s: NaN for invalid
-!              parameters, negative, or NaN x; -Inf (the log of 0) for
-!              non-integer or over-large x. The hoisted invariants and the
-!              summand are the identical expression, token for token, as in
-!              ddelap_f_s (line wrapping aside) - keep the two in sync.
+! DESCRIPTION:  Calculate the LOG of the Delaporte probability mass function
+!               for a single observation directly in log space.
+!
+! GENERAL NOTE: The linear-space function underflows to 0 once the PMF drops
+!               below the smallest double (~1e-308), so log(ddelap_f_s(...))
+!               returns -Inf for deep-tail log-probabilities that are actually
+!               representable, e.g. log P(X = 2000 | 1, 1, 1) is about -1386.
+!               Since every summand is already assembled in log space, this
+!               accumulates them with a streaming log-sum-exp: it tracks the
+!               running maximum log-term mx and the sum s of exp(term - mx),
+!               rescaling s whenever a new maximum appears. The result
+!               mx + log(s) never underflows while the true log-PMF is finite,
+!               and s lies in [1, k + 1] so it can neither underflow nor
+!               overflow. Guards and structure deliberately mirror ddelap_f_s:
+!               NaN for invalid parameters, negative, or NaN x; -Inf (the log of
+!               0) for non-integer or over-large x. The hoisted invariants and
+!               the summand are the identical expression, token for token, as in
+!               ddelap_f_s (line wrapping aside) to keep the two in sync.
 !-------------------------------------------------------------------------------
 
     pure elemental function ddelap_f_s_log(x, alpha, beta, lambda) result(lpmf)
@@ -304,69 +302,71 @@ contains
     end function ddelap_f_s_log
 
 !-------------------------------------------------------------------------------
-! ROUTINE: ddelap_table
+! ROUTINE:      ddelap_table
 !
-! DESCRIPTION: Fill pv(1:k+1) with the Delaporte PMF at 0, 1, ..., k in O(k)
-!              total operations using the distribution's own three-term
-!              recurrence. Differentiating the probability generating function
-!              P(z) = exp(lambda(z-1)) * (1 + beta - beta*z)**(-alpha) gives
-!              (1 + beta - beta*z) P'(z) = (lambda(1 + beta - beta*z)
-!              + alpha*beta) P(z); matching coefficients of z**n yields
+! DESCRIPTION:  Fill pv(1:k+1) with the Delaporte PMF at 0, 1, ..., k in O(k)
+!               total operations using the distribution's own three-term
+!               recurrence.
 !
-!                (1+b)(n+1) p(n+1) = (b*n + lambda(1+b) + alpha*b) p(n)
-!                                    - lambda*b p(n-1),      p(-1) = 0.
+! DERIVATION:   Differentiating the Delaporte's probability generating function:
+!               P(z) = exp(lambda(z - 1)) * (1 + beta - beta * z) ** (-alpha)
+!               gives (1 + beta - beta * z) P'(z) =
+!               (lambda(1 + beta - beta * z) + alpha * beta) P(z);
+!               matching coefficients of z ** n yields:
 !
-!              Each support point therefore costs a handful of flops instead
-!              of an O(n) summation of log_gamma/exp terms, turning the CDF
-!              table build in pdelap_f from O(K**2) transcendental calls into
-!              O(K) arithmetic. Forward recursion is numerically stable here:
-!              the wanted PMF is the *dominant* solution of the recurrence
-!              (geometric tail ~ (b/(1+b))**n, versus a recessive solution
-!              decaying factorially like a Poisson tail), so rounding errors
-!              are damped rather than amplified.
+!               (1 + b)(n + 1) p(n + 1) =
+!               (b * n + lambda(1 + b) + alpha * b) p(n) - lambda * b p(n-1),
+!               with (-1) = 0.
 !
-!              Scaling: p(0) = exp(-lambda) * (1+b)**(-alpha) underflows to 0
-!              for lambda + alpha*log(1+b) > ~745 even though mid-distribution
-!              masses are perfectly representable, which would zero the whole
-!              forward pass. The recurrence therefore runs on scaled values
-!              ps(n) = p(n) * exp(-c), seeded with ps(0) = 1 and
-!              c = -lambda - alpha*log1p(b). Whenever the scaled value climbs
-!              past CAP = 2**900 it and its predecessor are divided by CAP and
-!              c increases by log(CAP); rescaling can only occur while the
-!              true masses are still far below the smallest double, so the
-!              masses stored as pv = ps * exp(c) in that region are correctly
-!              0 and no CDF accuracy is lost. Once no rescale has happened
-!              (every lambda/alpha/beta of ordinary size), c never changes and
-!              results carry no scaling error at all; with rescales the log
-!              bookkeeping costs about (lambda + alpha*log1p(b)) * EPS
-!              relative error, i.e. ~2e-13 even at lambda = 1000.
+!               Each support point therefore costs a handful of flops instead
+!               of an O(n) summation of log_gamma/exp terms, turning the CDF
+!               table build in pdelap_f from O(K**2) transcendental calls into
+!               O(K) arithmetic. Forward recursion is numerically stable here:
+!               the wanted PMF is the *dominant* solution of the recurrence
+!               (geometric tail ~ (b / (1 + b)) ** n, versus a recessive
+!               solution decaying factorially like a Poisson tail), so rounding
+!               errors are damped rather than amplified.
 !
-!              A spurious negative from the single subtraction is clamped to
-!              zero; the subtraction cannot cancel catastrophically because
-!              the positive term dominates by construction once n exceeds the
-!              mode, and below the mode both terms are of the same modest
-!              magnitude as the result.
+! SCALING:      p(0) = exp(-lambda) * (1+b) ** (-alpha) underflows to 0 for
+!               lambda + alpha * log(1 + b) > ~745 even though mid-distribution
+!               masses are perfectly representable, which would zero the whole
+!               forward pass. The recurrence therefore runs on scaled values
+!               ps(n) = p(n) * exp(-c), seeded with ps(0) = 1 and
+!               c = -lambda - alpha * log1p(b). Whenever the scaled value climbs
+!               past CAP = 2**900 it and its predecessor are divided by CAP and
+!               c increases by log(CAP); rescaling can only occur while the true
+!               masses are still far below the smallest double, so the masses
+!               stored as pv = ps * exp(c) in that region are correctly 0 and no
+!               CDF accuracy is lost. Once no rescale has happened (every
+!               lambda/alpha/beta is of ordinary size), c never changes and
+!               results carry no scaling error at all; with rescales the log
+!               bookkeeping costs about (lambda + alpha * log1p(b)) * EPS
+!               relative error, i.e. ~2e-13 even at lambda = 1000.
 !
-!              When lg == 1, pv receives the LOG of the PMF instead, computed
-!              as c + log(ps) so that deep-tail log-masses whose linear values
-!              underflow to 0 still come back finite - preserving the
-!              log-space guarantee ddelap_f_s_log provides on the elemental
-!              path (e.g. log P(X = 2000 | 1, 1, 1) ~ -1387, not -Inf). The
-!              log variant additionally rescales DOWNWARD whenever the scaled
-!              mass decays below CAPINV = 2**(-900): without it, ps itself
-!              underflows in a long decaying tail (the scale c only ever
-!              climbed) and the log would hit -Inf exactly like the linear
-!              path. Downward rescaling is deliberately restricted to
-!              lg == 1 so the lg == 0 path remains byte-identical to the
-!              version validated against the convolution oracle and relied
-!              on, bitwise, by the pdelap/qdelap round trip.
-!              (AA & Claude: 2026-07-07)
+!               A spurious negative from the single subtraction is clamped to
+!               zero; the subtraction cannot cancel catastrophically because
+!               the positive term dominates by construction once n exceeds the
+!               mode, and below the mode both terms are of the same modest
+!               magnitude as the result.
 !
-!              PRECONDITION: callers must have validated alpha, beta, lambda
-!              as strictly positive, finite, non-NaN, and small enough that
-!              the bracketed coefficient below cannot overflow when multiplied
-!              by CAP (pdelap_f checks coefmax < TBLMAXCOEF before selecting
-!              this path). (AA & Claude: 2026-07-07)
+!               When lg == 1, pv receives the LOG of the PMF instead, computed
+!               as c + log(ps) so that deep-tail log-masses whose linear values
+!               underflow to 0 still come back finite - preserving the
+!               log-space guarantee ddelap_f_s_log provides on the elemental
+!               path (e.g. log P(X = 2000 | 1, 1, 1) ~ -1387, not -Inf). The
+!               log variant additionally rescales DOWNWARD whenever the scaled
+!               mass decays below CAPINV = 2**(-900): without it, ps itself
+!               underflows in a long decaying tail (the scale c only ever
+!               climbed) and the log would hit -Inf exactly like the linear
+!               path. Downward rescaling is deliberately restricted to
+!               lg == 1 so the lg == 0 path remains byte-identical to the
+!               version validated against the convolution oracle and relied
+!               on, bitwise, by the pdelap/qdelap round trip.
+!
+! PRECONDITION: Callers must have validated alpha, beta, lambda as strictly
+!               positive, finite, non-NaN, and small enough that the bracketed
+!               coefficient below cannot overflow when multiplied by CAP. 
+!               pdelap_f checks coefmax < TBLMAXCOEF before selecting this path.
 !-------------------------------------------------------------------------------
 
     pure subroutine ddelap_table(k, alpha, beta, lambda, lg, pv)
@@ -384,8 +384,8 @@ contains
     real(kind = c_double), parameter    :: SCMIN = -690._c_double
 
         ob = ONE + beta                    ! Hoisted loop invariants:
-        cf0 = lambda * ob + alpha * beta   !   n-independent coefficient piece
-        lb = lambda * beta                 !   weight of the trailing term
+        cf0 = lambda * ob + alpha * beta   ! n-independent coefficient piece
+        lb = lambda * beta                 ! weight of the trailing term
         lcap = log(CAP)                    ! log(2**900); not a constant expr
                                            ! in F2008, so computed once here.
         c = -lambda - alpha * log1p(beta)  ! log of the true p(0)
@@ -465,32 +465,33 @@ contains
     end subroutine ddelap_table
 
 !-------------------------------------------------------------------------------
-! ROUTINE: ddelap_f
+! ROUTINE:      ddelap_f
 !
-! DESCRIPTION: Vector-based PMF allowing parameter vector recycling and called 
-!              from C. As Fortran starts its indices at 1, for the mod function
-!              to properly recycle the vectors, the index needs to be reduced by
-!              one, mod applied, and then increased by one again. This is
-!              handled by the imk function found in the utils module. Follows R
-!              convention that real observations are errors and have 0
-!              probability, so returns 0 for non-integer without calling
-!              summation loop.
+! DESCRIPTION:  Vector-based PMF allowing parameter vector recycling and called 
+!               from C.
 !
-!              When every parameter is a singleton and the observations are
-!              well-behaved, the PMF (or log-PMF) at 0..max(x) is built once
-!              by the O(K) three-term recurrence in ddelap_table and every
-!              element is answered by an O(1) lookup, replacing an O(x_i)
-!              log_gamma summation per element. This is the same O(K**2) -> O(K)
-!              restructure which pdelap_f received. On Claude,
-!              the timing of ddelap(0:5000, 4, 6, 10) dropped from ~0.8s to
-!              under a millisecond. The routing test mirrors pdelap_f in that
-!              any vector parameter, NaN, negative, or over-large observation;
-!              invalid parameters; or parameters past TBLMAXCOEF fall through to
-!              the per-element path, which is unchanged. Non-integer x inside
-!              the fast path needs no table entry: it is 0 (lg = 0) or -Inf
-!              (lg = 1) by convention, and its floor is still <= k so sizing
-!              remains unaffected.
-!              (AA & Claude: 2026-07-07)
+! GENERAL NOTE: As Fortran starts its indices at 1, for the mod function to
+!               properly recycle the vectors, the index needs to be reduced by
+!               one, mod applied, and then increased by one again. This is
+!               handled by the imk function found in the utils module. Follows R
+!               convention that real observations are errors and have 0
+!               probability, so returns 0 for non-integer without calling
+!               summation loop.
+!
+!               When every parameter is a singleton and the observations are
+!               well-behaved, the PMF (or log-PMF) at 0..max(x) is built once
+!               by the O(K) three-term recurrence in ddelap_table and every
+!               element is answered by an O(1) lookup, replacing an O(x_i)
+!               log_gamma summation per element. This is the same
+!               O(K**2) -> O(K) restructure which pdelap_f received. On Claude,
+!               the timing of ddelap(0:5000, 4, 6, 10) dropped from ~0.8s to
+!               under a millisecond. The routing test mirrors pdelap_f in that
+!               any vector parameter, NaN, negative, or over-large observation;
+!               invalid parameters; or parameters past TBLMAXCOEF fall through
+!               to the per-element path, which is unchanged. Non-integer x
+!               inside the fast path needs no table entry: it is 0 (lg = 0) or
+!               -Inf (lg = 1) by convention, and its floor is still <= k so
+!               sizing remains unaffected.
 !-------------------------------------------------------------------------------
 
     subroutine ddelap_f(x, nx, a, na, b, nb, l, nl, lg, threads, pmfv) &
@@ -587,14 +588,15 @@ contains
     end subroutine ddelap_f
     
 !-------------------------------------------------------------------------------
-! FUNCTION: pdelap_f_s
+! FUNCTION:     pdelap_f_s
 !
-! DESCRIPTION: Calculate the Delaporte cumulative distribution function for a
-!              single observation and return the value or its log. Calculated
-!              through explicit summation. Follows R convention that real
-!              observations are errors and have 0 probability, so calls floor to
-!              build to last integer. Implements hard floor of 0 and hard
-!              ceiling of 1 to prevent spurious floating point errors.
+! DESCRIPTION:  Calculate the Delaporte cumulative distribution function for a
+!               single observation and return the value or its log.
+!
+! GENERAL NOTE: Calculated through explicit summation. Follows R convention that
+!               real observations are errors and have 0 probability, so calls
+!               floor to build to last integer. Implements hard floor of 0 and
+!               hard ceiling of 1 to prevent spurious floating point errors.
 !-------------------------------------------------------------------------------
 
     pure elemental function pdelap_f_s(q, alpha, beta, lambda) result(cdf)
@@ -626,32 +628,34 @@ contains
     end function pdelap_f_s
 
 !-------------------------------------------------------------------------------
-! FUNCTION: sdelap_f_s
+! FUNCTION:     sdelap_f_s
 !
-! DESCRIPTION: Calculate the Delaporte survival function P(X > q) for a single
-!              observation by summing the PMF upwards from floor(q) + 1, instead
-!              of computing 1 - CDF. When the survival probability is below
-!              about 1e-16, computing it as 1 - CDF loses all significant
-!              digits to catastrophic cancellation (the CDF rounds to 1). Direct
-!              summation of the tail keeps full relative precision, mirroring
-!              base R's practice of computing the smaller tail directly.
+! DESCRIPTION:  Calculate the Delaporte survival function P(X > q) for a single
+!               observation by summing the PMF upwards from floor(q) + 1,
+!               instead of computing 1 - CDF.
 !
-!              The summation stops when a provable bound on the remaining tail
-!              is negligible relative to the accumulated sum. The Delaporte
-!              PMF is unimodal (it is the convolution of a negative binomial
-!              with a Poisson, and the Poisson is log-concave), so once terms
-!              decrease they keep decreasing, and successive term ratios
-!              approach beta / (1 + beta) - the geometric decay rate of the
-!              dominant negative binomial tail. Bounding all future ratios by
-!              rb = max(observed ratio, beta / (1 + beta)) < 1 bounds the
-!              uncomputed remainder by term * rb / (1 - rb).
+! GENERAL NOTE: When the survival probability is below about 1e-16, computing it
+!               as 1 - CDF loses all significant digits to catastrophic
+!               cancellation (the CDF rounds to 1). Direct summation of the tail
+!               keeps full relative precision, mirroring base R's practice of
+!               computing the smaller tail directly.
 !
-!              PRECONDITION: callers must invoke this only when the upper tail
-!              is the smaller tail, i.e. when CDF(q) > 0.5, as pdelap_f does.
-!              That guarantees floor(q) is at or past the distribution's mode,
-!              so the first term cannot have underflowed while real mass
-!              remains further out, and the loop is guaranteed to terminate
-!              (terms decay to zero past the mode).
+!               The summation stops when a provable bound on the remaining tail
+!               is negligible relative to the accumulated sum. The Delaporte
+!               PMF is unimodal (it is the convolution of a negative binomial
+!               with a Poisson, and the Poisson is log-concave), so once terms
+!               decrease they keep decreasing, and successive term ratios
+!               approach beta / (1 + beta) - the geometric decay rate of the
+!               dominant negative binomial tail. Bounding all future ratios by
+!               rb = max(observed ratio, beta / (1 + beta)) < 1 bounds the
+!               uncomputed remainder by term * rb / (1 - rb).
+!
+! PRECONDITION: Callers must invoke this only when the upper tail is the smaller
+!               tail, i.e. when CDF(q) > 0.5, as pdelap_f does. This guarantees
+!               floor(q) is at or past the distribution's mode, so the first
+!               term cannot have underflowed while real mass remains further
+!               out, and the loop is guaranteed to terminate as terms decay to
+!               zero past the mode.
 !-------------------------------------------------------------------------------
 
     pure elemental function sdelap_f_s(q, alpha, beta, lambda) result(sf)
@@ -703,18 +707,20 @@ contains
     end function sdelap_f_s
 
 !-------------------------------------------------------------------------------
-! ROUTINE: pdelap_f
+! ROUTINE:      pdelap_f
 !
-! DESCRIPTION: Vector-based CDF allowing parameter vector recycling and called
-!              from C. If parameters are all singletons (not vectors) then the
-!              idea is to find the largest value in the vector and build the PDF
-!              up to that point. Building the vector has each succesive value
-!              piggyback off of the prior instead of calling p_delap_f_s each
-!              time which increases the speed dramatically. Once created,
-!              remaining values are simple lookups off of the svec vector.
-!              Otherwise, each entry will need to build its own pmf value by
-!              calling p_delap_f_s on each entry. Implements hard floor of 0 and
-!              hard ceiling of 1 to prevent spurious floating point errors.
+! DESCRIPTION:  Vector-based CDF allowing parameter vector recycling and called
+!               from C.
+!
+! GENERAL NOTE: If parameters are all singletons, not vectors, the idea is to
+!               find the largest value in the vector and build the PDF up to
+!               that point. Building the vector has each succesive value
+!               piggyback off of the prior instead of calling p_delap_f_s each
+!               time which increases the speed dramatically. Once created,
+!               remaining values are simple lookups off of the svec vector.
+!               Otherwise, each entry will need to build its own pmf value by
+!               calling p_delap_f_s on each entry. Implements hard floor of 0
+!               and hard ceiling of 1 to prevent spurious floating point errors.
 !-------------------------------------------------------------------------------
 
     subroutine pdelap_f(q, nq, a, na, b, nb, l, nl, lt, lg, threads, pmfv) &
@@ -827,11 +833,13 @@ contains
     end subroutine pdelap_f
 
 !-------------------------------------------------------------------------------
-! FUNCTION: qdelap_f_s
+! FUNCTION:     qdelap_f_s
 !
-! DESCRIPTION: Calculate the Delaporte quantile function for a single 
-!              observation and return the value. Calculated through explicit
-!              summation. Returns NaN and Inf where appropriate.
+! DESCRIPTION:  Calculate the Delaporte quantile function for a single 
+!               observation and return the value.
+!
+! GENERAL NOTE: Calculated through explicit summation. Returns NaN and Inf
+!               where appropriate.
 !-------------------------------------------------------------------------------
 
     pure elemental function qdelap_f_s(p, alpha, beta, lambda) result(value)
@@ -842,9 +850,9 @@ contains
         ! Parameters must be strictly positive AND finite, mirroring the
         ! screens in the d/p elementals; NaN p is caught here since the
         ! screen no longer folds p into the parameter sum. p > 1 is not a
-        ! probability and also returns NaN - base R agrees: qpois(1.5, 1) is
-        ! NaN with a warning while qpois(1, 1) is Inf - so only exactly-one
-        ! takes the +Inf branch below. (AA & Claude: 2026-07-07)
+        ! probability and also returns NaN, agreeing with base R as
+        ! qpois(1.5, 1) is NaN with a warning while qpois(1, 1) is Inf.
+        ! (AA & Claude: 2026-07-07)
         if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. p < ZERO &
           .or. p > ONE .or. ieee_is_nan(p) &
           .or. .not. ieee_is_finite(alpha + beta + lambda)) then
@@ -863,24 +871,27 @@ contains
     end function qdelap_f_s
 
 !-------------------------------------------------------------------------------
-! ROUTINE: qdelap_f
+! ROUTINE:      qdelap_f
 !
-! DESCRIPTION: Vector-based quantile function with parameter vector recycling.
-!              If parameters are all singletons (not vectors) then the idea is
-!              to find the largest value in the vector and build the PDF up to
-!              that point. Building the vector has each succesive value
-!              piggyback off of the prior instead of calling p_delap_f_s each
-!              time which increases the speed dramatically. Once created,
-!              remaining values are lookups off of the svec vector.
-!              Otherwise, each entry will need to build its own pmf value by
-!              calling q_delap_f_s on each entry.
-!              Per Claude, it is preferable to place the copy on the heap to
-!              prevent blowing out the stack, so it is allocatable and not a
-!              fixed size.
-!              Critical: the table must be built with the same routine and the
-!              same accumulation order as pdelap_f (existing test suite caught
-!              it immediately). The shared ddelap_table + identical cumsum
-!              guarantees bitwise-identical CDFs.
+! DESCRIPTION:  Vector-based quantile function with parameter vector recycling.
+!
+! GENERAL NOTE: If parameters are all singletons (not vectors) then the idea is
+!               to find the largest value in the vector and build the PDF up to
+!               that point. Building the vector has each succesive value
+!               piggyback off of the prior instead of calling p_delap_f_s each
+!               time which increases the speed dramatically. Once created,
+!               remaining values are lookups off of the svec vector.
+!               Otherwise, each entry will need to build its own pmf value by
+!               calling q_delap_f_s on each entry.
+!
+! CRITICAL:     The table must be built with the same routine and the same
+!               accumulation order as pdelap_f (existing test suite caught it
+!               immediately). The shared ddelap_table + identical cumsum
+!               guarantees bitwise-identical CDFs.
+!
+! ARCHITECTURE: It is preferable to place the copy on the heap to prevent
+!               blowing out the stack. So the accumulation vectors are created
+!               as allocatable and not as fixed size.
 !-------------------------------------------------------------------------------
 
     subroutine qdelap_f(pp, np, a, na, b, nb, l, nl, lt, lg, threads, obsv) &
@@ -932,7 +943,8 @@ contains
                 ! rebuilds costs at most twice the final build, i.e. O(K)
                 ! total work and O(1) allocations, replacing the old
                 ! grow-by-one allocate/copy/move_alloc dance whose copying
-                ! alone was O(K**2). (AA & Claude: 2026-07-07)
+                ! alone was O(K**2).
+                ! (AA & Claude: 2026-07-07)
                 x = maxval(p, 1, p < ONE)
                 mu = a(1) * b(1) + l(1)
                 k = int(min(mu + 10._c_double * &
@@ -1025,21 +1037,15 @@ contains
     end subroutine qdelap_f
 
 !-------------------------------------------------------------------------------
-! ROUTINE: rdelap_f
+! ROUTINE:      rdelap_f
 !
-! DESCRIPTION: Vector-based random number generator with parameter vector
-!              recycling. It calls a C procedure to generate uniform random
-!              variates which jibe with R's own internals and then calls
-!              qdelap_f on the uniforms. This allows qdelap's singleton mode to
-!              activate if appropriate. This is the single routine slower in
-!              this Fortran implementation than the prior C++ implementation, as
-!              the vector creation and pushback is more efficient in C++ STL
-!              than the ballet between allocate and move_alloc in Fortran. On
-!              vector-valued parameters Fortran is faster than C++. Technically
-!              this is a slowdown in qdelap, not rdelap, but the C++ version of
-!              qdelap did not use the vector lookup trick; it was only
-!              programmed in rdelap, wheras now the Fortran version of qdelap
-!              uses the trick for a net speedup. Only rdelap suffers slightly.
+! DESCRIPTION:  Vector-based random number generator with parameter vector
+!               recycling.
+!
+! GENERAL NOTE: The routine calls a C procedure to generate uniform random
+!               variates which jibe with R's own internals and then calls
+!               qdelap_f on the uniforms. This allows qdelap's singleton mode to
+!               activate if appropriate.
 !-------------------------------------------------------------------------------
 
     subroutine rdelap_f(n, a, na, b, nb, l, nl, threads, vars) &
@@ -1057,12 +1063,12 @@ contains
     end subroutine rdelap_f
 
 !-------------------------------------------------------------------------------
-! ROUTINE: momdelap_f
+! ROUTINE:      momdelap_f
 !
-! DESCRIPTION: Calculates method of moments estimates of parameters for a 
-!              Delaporte distribution based on supplied vector. Based on
-!              algorithms of Welford, Knuth, and Cook.
-!              https://www.johndcook.com/blog/skewness_kurtosis/
+! DESCRIPTION:  Calculates method of moments estimates of parameters for a 
+!               Delaporte distribution based on supplied vector. Based on
+!               algorithms of Welford, Knuth, and Cook.
+!               https://www.johndcook.com/blog/skewness_kurtosis/
 !-------------------------------------------------------------------------------
 
     pure subroutine momdelap_f(obs, n, tp, params) bind(C, name="momdelap_f")

@@ -179,8 +179,10 @@ expect_equal(pdelap(qMod, 4, 6, 10, lower.tail = FALSE, log.p = TRUE),
 # only ~0.5, nowhere near the tiny-survival regime the direct sum exists for.
 # Generous 5s bound avoids flakiness on slow runners while still catching a
 # regression back to the old threshold (which would take 20-30s).
+
+# nolint start: implicit_assignment_linter
 perfElapsed <- system.time(
-  perfVal <- pdelap(694, 1, 1000, 1, lower.tail = FALSE)
+  perfVal <- pdelap(694, 1, 1000, 1, lower.tail = FALSE) 
 )[["elapsed"]]
 expect_true(perfElapsed < 5)
 expect_equal(perfVal, sdelapOracle(694, 1, 1000, 1, J = 20000L),
@@ -191,6 +193,7 @@ perfElapsedLog <- system.time(
 expect_true(perfElapsedLog < 5)
 expect_equal(perfValLog, log(sdelapOracle(694, 1, 1000, 1, J = 20000L)),
              tolerance = tol)
+# nolint end: implicit_assignment_linter
 
 # Survival function is nonincreasing and nonnegative over a long range
 survivalCheck <- pdelap(0:400, 1, 1, 1, lower.tail = FALSE)

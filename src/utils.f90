@@ -302,17 +302,16 @@ contains
     integer                             :: lo, hi, mid
 
         if (v(size(v)) < p) then
-            ! Unreachable from qdelap_f in ordinary operation: every p sent
-            ! here satisfies p <= x, and both table builds only exit once
-            ! svec(size) >= x, so v(size(v)) >= p by transitivity on the
-            ! identical stored doubles. The sole breach is the MAXTBL cap
-            ! exit (an ~8GB table), the same contingency as the j == 0
-            ! defence at the call site, which carries the same marker. The
-            ! guard stays because without it this input violates the loop
-            ! invariant below and the search would silently return
-            ! size(v)---a plausible wrong answer---rather than a value the
-            ! caller detects and clamps.
-            lo = 0                          ! No element reaches p.  ! # nocov
+            ! No stored value reaches p. This is now a regular, expected
+            ! return, not a defensive corner: qdelap_f queries the forward CDF
+            ! svec with targets p that can lie above its saturated ceiling
+            ! (within ~K * EPS of 1 the cumulative sum plateaus below such p),
+            ! and it relies on the 0 here to divert those targets to its
+            ! accurate survival-table search. Returning 0 -- rather than
+            ! falling into the search below, whose invariant v(hi) >= p this
+            ! input violates -- keeps that signal unambiguous; the search would
+            ! otherwise return size(v), a plausible wrong index.
+            lo = 0                          ! No element reaches p.
         else
             lo = 1
             hi = size(v)

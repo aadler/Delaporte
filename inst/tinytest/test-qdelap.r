@@ -242,8 +242,9 @@ expect_equal(qdelap(pdelap(testV, 5, 3, 800), 5, 3, 800), testV,
 # tail as the oracle: the returned quantile must land where the true
 # survival crosses 1e-12.
 qDeep <- qdelap(1 - 1e-12, 50, 100, 100)
-expect_true(pdelap(qDeep, 50, 100, 100, lower.tail = FALSE) <= 2e-12)
-expect_true(pdelap(qDeep - 100, 50, 100, 100, lower.tail = FALSE) > 1e-12)
+survDeep <- pdelap(c(qDeep, qDeep - 100), 50, 100, 100, lower.tail = FALSE)
+expect_true(survDeep[1] <= 2e-12)
+expect_true(survDeep[2] > 1e-12)
 
 # The geometrically-doubled lookup table must return the identical quantiles
 # as the elemental search path (forced by a vector-valued parameter).
@@ -273,6 +274,38 @@ expect_identical(is.nan(suppressWarnings(qdelap(c(0.4, 0.5), 2, c(Inf, 3),
 
 # Test floor on Monte Carlo variate generation
 expect_identical(qdelap(0.5, 1e-12, 1e-12, 1e-12, exact = FALSE), 0)
+
+# Regression: for ordinary (non-extreme) parameters, a target probability
+# close enough to 1 can fall inside the accumulated rounding band of the
+# linear-space cumulative sum, so the forward CDF at any achievable table
+# size plateaus just below it. Unpatched, qdelap_f's table-doubling loop had
+# no way to tell "not there yet" from "the CDF has plateaued": it kept
+# doubling toward the MAXTBL ceiling (2^30 support points, an ~8GB allocation
+# per array), and once there, silently returned the array-size ceiling itself
+# (size(svec) - 1, i.e. exactly 2^30 = 1073741824) as though it were a real
+# quantile -- a plausible-looking wrong answer with no warning at all.
+# alpha = 5, beta = 5, lambda = 7000 at p = 1 - 1e-12 reproduces this: on a
+# memory-constrained machine it OOM-crashes before reaching MAXTBL; on one
+# with enough RAM it completes (confirmed ~20s, ~16GB) and returns 1073741824.
+# The quantile is nonetheless finite and well defined -- base R's
+# qpois(1 - 1e-12, 7025) returns 7623 for the Poisson analogue -- and the
+# upper tail is accurately summable where the saturating CDF is not, giving a
+# true value of 7630 (survival crosses 1 - p between q = 7629 and q = 7630).
+# Confirm the fix resolves it from the survival table: the correct finite
+# quantile, promptly (the survival table is built by an O(K) recurrence, so
+# the timing bound guards against any regression to the multi-second bisection
+# or the multi-gigabyte doubling spiral) and with no warning, since a real
+# answer is returned.
+tStag <- system.time(qStag <- qdelap(1 - 1e-12, 5, 5, 7000)) # nolint implicit_assignment_linter
+expect_identical(qStag, 7630)
+expect_true(tStag[["elapsed"]] < 1)
+
+# Same saturated target reached through the other tail/scale conventions must
+# resolve to the same quantile (the survival search keys off 1 - p, so a
+# lower.tail = FALSE or log.p input must not drift).
+expect_identical(qdelap(1e-12, 5, 5, 7000, lower.tail = FALSE), 7630)
+expect_identical(qdelap(log(1e-12), 5, 5, 7000, lower.tail = FALSE,
+                        log.p = TRUE), 7630)
 
 # Restore original thread count
 setDelapThreads(oldThreads)

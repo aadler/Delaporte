@@ -174,6 +174,25 @@ contains
 !               a helper function, since hiding it behind a call boundary
 !               blocks all invariant reuse and was measured to slow this hot
 !               loop by roughly 24%.
+!
+! LOOP SUMMAND: (log_gamma(alpha + ii) - lga) is parenthesized to force it to
+!               resolve BEFORE lambda and the other terms are added. For small
+!               alpha, log_gamma(alpha) can be large (e.g. ~115 for alpha =
+!               1e-50), and at ii = 0 the two terms are identical and must
+!               cancel exactly. Adding lambda to the running sum before that
+!               cancellation resolves means lambda gets rounded away whenever it
+!               is smaller than the ULP of that still-large intermediate value.
+!               This silently loses a real contribution before the cancellation
+!               ever happens. Isolating the cancellation first means the running
+!               sum is already at its true (potentially exactly 0) magnitude
+!               before lambda is added, so nothing is lost regardless of how
+!               large log_gamma(alpha) is. This was invisible here because exp()
+!               of the resulting log-space error is itself unrepresentably close
+!               to exp(0) = 1 in linear space for the affected magnitudes, but
+!               the identical formula in ddelap_f_s_log makes the error directly
+!               visible. For example, ddelap_f_s_log(0, 1e-50, 1e-100, 1e-50)
+!               returned -1e-150 instead of the true -1e-50 before this fix).
+!
 !-------------------------------------------------------------------------------
 
     pure elemental function ddelap_f_s(x, alpha, beta, lambda) result(pmf)
@@ -222,9 +241,11 @@ contains
                     l1pb = log1p(beta)
                     do i = 0_INT64, k
                         ii = real(i, c_double)
-                        pmf = pmf + exp(log_gamma(alpha + ii) + ii * lb &
-                        + (kk - ii) * ll - lambda - lga - log_gamma(ii + ONE) &
-                        - (alpha + ii) * l1pb - log_gamma(kk - ii + ONE))
+                        ! See note in ddelap_f_s_log for reason for extra ().
+                        pmf = pmf + &
+                              exp((log_gamma(alpha + ii) - lga) + ii * lb &
+                             + (kk - ii) * ll - lambda - log_gamma(ii + ONE) &
+                             - (alpha + ii) * l1pb - log_gamma(kk - ii + ONE))
                     end do
                     pmf = cFPe(pmf)           ! Clear floating point errors
                 end if
@@ -254,6 +275,26 @@ contains
 !               0) for non-integer or over-large x. The hoisted invariants and
 !               the summand are the identical expression, token for token, as in
 !               ddelap_f_s (line wrapping aside) to keep the two in sync.
+!
+! LOOP SUMMAND: (log_gamma(alpha+ii) - lga) is parenthesized to force it to
+!               resolve BEFORE lambda and the other terms are added. For small
+!               alpha, log_gamma(alpha) can be large (e.g. ~115 for alpha =
+!               1e-50), and at ii = 0 the two terms are identical and must
+!               cancel exactly. Adding lambda to the running sum before that
+!               cancellation resolves means lambda gets rounded away whenever it
+!               is smaller than the ULP of that still-large intermediate value.
+!               This silently loses a real contribution before the cancellation
+!               ever happens. This was confirmed by execution. With alpha =
+!               1e-50, beta = 1e-100, and lambda = 1e-50, the old ordering
+!               returned log-PMF(0) = -1e-150 instead of the true -1e-50 (off by
+!               60 orders of magnitude), which then corrupted pdelap's log-space
+!               CDF accumulation, as logaddexp of the corrupted PMF(0) with
+!               PMF(1) yielded a positive "log-CDF", an impossibility that
+!               surfaced the bug). Isolating the cancellation first means the
+!               running sum is already at its true (potentially exactly 0)
+!               magnitude before lambda is added, so nothing is lost regardless
+!               of how large log_gamma(alpha) is.
+!
 !-------------------------------------------------------------------------------
 
     pure elemental function ddelap_f_s_log(x, alpha, beta, lambda) result(lpmf)
@@ -293,8 +334,10 @@ contains
                     s = ZERO
                     do i = 0_INT64, k
                         ii = real(i, c_double)
-                        lt = log_gamma(alpha + ii) + ii * lb + (kk - ii) * ll &
-                             - lambda - lga - log_gamma(ii + ONE) &
+                        ! Parenthesize the first two terms to prevent
+                        ! catastrophic cancellation when lambda is really small.
+                        lt = (log_gamma(alpha + ii) - lga) + ii * lb &
+                             + (kk - ii) * ll - lambda - log_gamma(ii + ONE) &
                              - (alpha + ii) * l1pb - log_gamma(kk - ii + ONE)
                         if (lt > mx) then
                             ! New running maximum: rescale the accumulated sum

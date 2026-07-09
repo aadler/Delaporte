@@ -20,6 +20,10 @@
       this reached the sixth significant figure of ordinary probabilities.
       Results for \eqn{\beta > 10^{-4}}{beta > 1e-4} are bitwise-unchanged.
       
+      \item \strong{Breaking:} Non-finite parameters, including infinities,
+      now return \code{NaN} with a warning across \code{d/p/q/rdelap} instead of
+      clamp-laundered 0s and 1s.
+
       \item \strong{Breaking:} \code{ddelap} and \code{pdelap} now treat
       arguments below the support---negative values and \code{-Inf}---the same
       way base \R does. \code{ddelap} returns \code{0} (\code{-Inf} with
@@ -28,7 +32,7 @@
       \code{\link{ppois}} does, in each case silently. Previously these inputs
       returned \code{NaN} with a \dQuote{NaNs produced} warning. Values for
       non-negative \code{x} and \code{q} are bitwise-unchanged.
-      
+    
       \item \strong{Breaking:} \code{ddelap} with \code{log = TRUE} now
       accumulates the PMF in log space using a streaming log-sum-exp instead of
       taking the log of the linear-space result. This is technically breaking
@@ -105,10 +109,21 @@
       that element \code{i} of the output always corresponds to element \code{i}
       of the input. Prior method may have scrambled the "valid" inputs if there
       were non-valid inputs in the source.
-
-      \item Non-finite parameters, including infinities, now return \code{NaN}
-      with a warning across \code{d/p/q/rdelap} instead of clamp-laundered 0s
-      and 1s.
+      
+      \item \strong{Breaking:} \code{qdelap} for probabilities extremely close
+      to 1 combined with highly overdispersed parameters previously returned an
+      incorrect value instead of the true quantile. The internal lookup table's
+      linear-space cumulative sum can accumulate enough rounding error near 1
+      that it never reaches such a probability no matter how large the table
+      grows; the doubling loop had no way to distinguish this from \dQuote{not
+      built far enough yet}, so it kept doubling toward its 2^30-row ceiling
+      and, on reaching it, silently returned the ceiling itself as though it
+      were the answer (e.g. \code{qdelap(1 - 1e-12, 5, 5, 7000)} returned
+      \code{1073741824}, taking upwards of twenty seconds and multiple
+      gigabytes of memory to do so). The true quantile is finite and is now
+      found directly from the accurate upper-tail survival instead of the
+      saturating cumulative sum. The example above now returns \code{7630}
+      instantly. Ordinary probabilities are unaffected.
 
       \item For \eqn{x \geq 2^{63}}, including +\code{Inf}, the functions no
       longer convert \code{x} to an integer kind it which it then overflows.

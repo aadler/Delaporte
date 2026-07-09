@@ -139,6 +139,59 @@ expect_equal(pdelap(c(60, 80), c(1, 2), c(1, 3), c(1, 2), lower.tail = FALSE),
 expect_equal(pdelap(60, 1, 1, 1, lower.tail = FALSE, log.p = TRUE),
              log(sdelapOracle(60, 1, 1, 1)), tolerance = tol)
 
+# log.p in the astronomically deep tail, where the linear-space value
+# underflows to exactly 0 (survival ~ exp(-1386), far below the smallest
+# representable double): log() of that would be -Inf, but the true log-CDF/
+# log-survival is finite. Oracle built independently via log-sum-exp over
+# already-validated ddelap(..., log = TRUE) points, not via pdelap itself.
+logSumExpOracle <- function(lx) {
+  m <- max(lx)
+  m + log(sum(exp(lx - m)))
+}
+deepUpperOracle <- logSumExpOracle(ddelap(2001:20000, 1, 1, 1, log = TRUE))
+expect_equal(pdelap(2000, 1, 1, 1, lower.tail = FALSE, log.p = TRUE),
+             deepUpperOracle, tolerance = tol)
+expect_false(is.infinite(pdelap(0, 1, 1, 1000, log.p = TRUE)))
+expect_equal(pdelap(0, 1, 1, 1000, log.p = TRUE), log(0.5) - 1000,
+             tolerance = tol)
+
+# Same two deep-tail cases via the vector-recycling fallback path (na > 1
+# forces this branch instead of the singleton table build)
+expect_equal(pdelap(2000, c(1, 1), 1, 1, lower.tail = FALSE, log.p = TRUE),
+             deepUpperOracle, tolerance = tol)
+expect_equal(pdelap(0, c(1, 1), 1, 1000, log.p = TRUE), log(0.5) - 1000,
+             tolerance = tol)
+
+# Moderate tail (survival comfortably above sqrt(EPS), where the complement
+# 1 - CDF is used instead of direct summation after the TAILSWITCH threshold
+# change): linear and log.p agree with each other and with the oracle.
+qMod <- c(50, 55, 60, 65, 70)
+modOracle <- vapply(qMod, sdelapOracle, double(1), a = 4, b = 6, l = 10)
+expect_equal(pdelap(qMod, 4, 6, 10, lower.tail = FALSE), modOracle,
+             tolerance = tol)
+expect_equal(pdelap(qMod, 4, 6, 10, lower.tail = FALSE, log.p = TRUE),
+             log(modOracle), tolerance = tol)
+
+# Performance guard: sdelap_f_s's remainder-bound floor forces roughly
+# 36 * beta iterations regardless of q once invoked, an O(beta^2) cost per
+# call; pdelap(694, 1, 1000, 1, lower.tail = FALSE) took ~27.5s under the old
+# CDF > 0.5 invocation threshold (confirmed by execution) because its CDF is
+# only ~0.5, nowhere near the tiny-survival regime the direct sum exists for.
+# Generous 5s bound avoids flakiness on slow runners while still catching a
+# regression back to the old threshold (which would take 20-30s).
+perfElapsed <- system.time(
+  perfVal <- pdelap(694, 1, 1000, 1, lower.tail = FALSE)
+)[["elapsed"]]
+expect_true(perfElapsed < 5)
+expect_equal(perfVal, sdelapOracle(694, 1, 1000, 1, J = 20000L),
+             tolerance = tol)
+perfElapsedLog <- system.time(
+  perfValLog <- pdelap(694, 1, 1000, 1, lower.tail = FALSE, log.p = TRUE)
+)[["elapsed"]]
+expect_true(perfElapsedLog < 5)
+expect_equal(perfValLog, log(sdelapOracle(694, 1, 1000, 1, J = 20000L)),
+             tolerance = tol)
+
 # Survival function is nonincreasing and nonnegative over a long range
 survivalCheck <- pdelap(0:400, 1, 1, 1, lower.tail = FALSE)
 expect_true(all(diff(survivalCheck) <= 0))

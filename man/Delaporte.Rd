@@ -173,9 +173,17 @@ non-normal distributions.
   The distributional parameters (\eqn{\alpha, \beta, \lambda}) are recycled as
   necessary to the length of the result.
   
-  When using the \code{lower.tail = FALSE} or \code{log / log.p = TRUE} options,
-  some accuracy may be lost at knot points or the tail ends of the distributions
-  due to the limitations of floating point representation.
+  \code{ddelap} with \code{log = TRUE} and \code{pdelap} with \code{log.p =
+  TRUE} compute log-probabilities directly in log space rather than taking
+  \code{log()} of a linear-space result, so deep-tail log-probabilities and
+  log-CDF/log-survival values remain accurate to near full double precision
+  even where the corresponding linear-space value underflows to \code{0}
+  (e.g. \code{pdelap(2000, 1, 1, 1, lower.tail = FALSE, log.p = TRUE)} returns
+  approximately \code{-1386} rather than \code{-Inf}). \code{pdelap} with
+  \code{lower.tail = FALSE} likewise computes the survival function by direct
+  tail summation once it is small enough that \eqn{1 - \textrm{CDF}} would
+  lose precision to catastrophic cancellation, rather than always subtracting
+  from \code{1}.
   
   \code{MoMdelap} returns a triplet comprising a method-of-moments based
   estimate of \eqn{\alpha}, \eqn{\beta}, and \eqn{\lambda}.

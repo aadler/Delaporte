@@ -40,15 +40,47 @@
       space routines makes them slightly faster than before.
       
       \item \strong{Breaking:} \code{pdelap} with \code{lower.tail = FALSE} now
-      computes the upper tail by direct summation of the PMF whenever the upper
-      tail is the smaller one, instead of \eqn{1 - \textrm{CDF}}. Survival
+      computes the upper tail by direct summation of the PMF when doing so is
+      needed to preserve accuracy, instead of \eqn{1 - \textrm{CDF}}. Survival
       probabilities near or below machine epsilon previously returned only
       floating-point rounding noise (e.g. 
       \code{pdelap(60, 1, 1, 1, lower.tail = FALSE)} returned roughly 3.3e-16
       when the true value is roughly 1.18e-18); they are now accurate to near
-      full double precision, as is \code{log.p = TRUE} on the deep upper tail.
-      This is technically breaking, but users should see no change outside of
-      the deep tail which was likely not of interest to most.
+      full double precision. This is technically breaking, but users should
+      see no change outside of the deep tail which was likely not of interest
+      to most.
+
+      \item \strong{Breaking:} \code{pdelap} and \code{qdelap} with
+      \code{log.p = TRUE} previously computed the linear-space CDF/survival
+      first and took \code{log()} of the result, so any value that underflowed
+      to exactly 0 in the deep tail silently returned \code{-Inf} even though
+      the true log-probability is finite (e.g.
+      \code{pdelap(2000, 1, 1, 1, lower.tail = FALSE, log.p = TRUE)} returned
+      \code{-Inf} instead of approximately -1386). \code{log.p = TRUE} is now
+      computed directly in log space throughout, matching the log-space
+      guarantee \code{ddelap(..., log = TRUE)} already provides, and is
+      accurate to near full double precision even where the linear-space
+      value underflows. This does not affect \code{qdelap}, whose internal
+      computation was already entirely in linear-probability space regardless
+      of the \code{log.p} input encoding.
+
+      \item \strong{Breaking:} \code{pdelap}'s direct upper-tail summation
+      (the fix two items above) is now used only once the survival
+      probability is small enough (below \eqn{\sqrt{\epsilon} \approx
+      1.49 \times 10^{-8}}{sqrt(EPS) ~ 1.49e-8}) that the ordinary complement
+      \eqn{1 - \textrm{CDF}} would lose meaningful precision, rather than
+      whenever the upper tail is merely the smaller of the two. The
+      summation's cost is not driven by the observation but by \code{beta}: a
+      necessary safeguard in its remainder-bound test means its iteration
+      count approaches \eqn{36 \times \beta}{36 * beta}, each iteration itself
+      an \eqn{O(i)} calculation, for an \eqn{O(\beta^2)}{O(beta^2)} worst
+      case. \code{pdelap(694, 1, 1000, 1, lower.tail = FALSE)}, for example,
+      took roughly 27.5 seconds to return a survival of approximately 0.5 - a
+      value the ordinary complement gives instantly and to full accuracy.
+      Raising the threshold leaves results unchanged outside a narrow survival
+      band (\eqn{\sqrt{\epsilon}}{sqrt(EPS)} to about \eqn{10^{-8}}{1e-8}
+      wide) where the complement's own accuracy (about 1e-13 relative) already
+      matches what the direct sum bought.
       
       \item \strong{Breaking:} The non-exact version of \code{qdelap} now
       pre-allocates the result vector at full length first and then assigns the

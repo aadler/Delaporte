@@ -267,5 +267,35 @@ expect_true(is.nan(suppressWarnings(pdelap(1, Inf, 2, 3))))
 expect_true(is.nan(suppressWarnings(pdelap(1, 2, Inf, 3, lower.tail = FALSE))))
 expect_true(is.nan(suppressWarnings(pdelap(1, 2, 3, c(Inf, Inf)))))
 
+# Specialty tests to reach 100% coverage
+# Trigger lcdf = ieee_value(q, ieee_quiet_nan) in pdelap_f_s_log (line 684)
+expect_warning(pdelap(NaN, c(1, 1), 2, 3, log.p = TRUE), nanWarn)
+
+# Trigger lcdf = ZERO in pdelap_f_s_log (line 688)
+expect_identical(pdelap(Inf, c(1, 1), 2, 3, log.p = TRUE), 0)
+
+# Trigger lsf = ieee_value(q, ieee_negative_inf) in sdelap_f_s_log (line 831)
+expect_identical(pdelap(Inf, c(1, 1), 2, 3, log.p = TRUE, lower.tail = FALSE),
+                 -Inf)
+
+# pdelap_f's lg == 1 table branch has its own TBLMINRATIO fallback loop
+# (mirroring ddelap_f's), routed to when the guaranteed per-step ratio is too
+# small for the table's rescue band to survive. This is triggered by tiny
+# alpha/beta/lambda---a degenerate-mass regime---not by huge ones. Huge ones are
+# covered by TBLMAXCOEF, a different branch. Now, a small q keeps the loop
+# itself fast, avoiding the O(K) slowdown huge parameters would cause.
+# Cross-checked against an independent oracle built from ddelap(..., log = TRUE)
+# which is the same underlying elemental function the fallback loop calls, but
+# accumulated independently in R.
+a <- 1e-50; b <- 1e-100; l <- 1e-50
+qCov <- 0:5
+covOracle <- sapply(qCov, function(qi) {
+  lx <- ddelap(0:qi, a, b, l, log = TRUE)
+  m <- max(lx)
+  m + log(sum(exp(lx - m)))
+})
+expect_equal(pdelap(qCov, a, b, l, log.p = TRUE), covOracle, tolerance = tol)
+expect_true(all(pdelap(qCov, a, b, l, log.p = TRUE) <= 0))
+
 # Restore original thread count
 setDelapThreads(oldThreads)

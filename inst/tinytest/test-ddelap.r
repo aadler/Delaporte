@@ -202,6 +202,21 @@ expect_true(all(is.nan(suppressWarnings(
 # Trigger lpmf = ieee_value(x, ieee_quiet_nan) in ddelap_f_s_log
 expect_warning(ddelap(2e30, 1, 1, NaN, log = TRUE), nanWarn)
 
+# Catastrophic-cancellation ordering bug (2026-07-08, confirmed by execution):
+# ddelap_f_s/ddelap_f_s_log's summand used to subtract lambda from the
+# running sum BEFORE the log_gamma(alpha + ii) - log_gamma(alpha) term (which
+# is exactly 0 at ii = 0) had resolved. With alpha this small, log_gamma
+# (alpha) is itself large (~115 here), and lambda - smaller than its ULP -
+# was silently rounded away before the cancellation completed, before this
+# fix returning log-PMF(0) = -1e-150 instead of the true -1e-50 (60 orders of
+# magnitude off). Invisible in linear space (both round to exp(0) = 1), which
+# is how it went undetected; only visible once log = TRUE reports the actual
+# magnitude. True value: -lambda - alpha * log1p(beta), since at x = 0 (k = 0)
+# only the i = 0 term contributes, and log_gamma(alpha + 0) - log_gamma(alpha)
+# is exactly 0.
+a <- 1e-50; b <- 1e-100; l <- 1e-50
+expect_equal(ddelap(0, a, b, l, log = TRUE), -l - a * log1p(b), tolerance = tol)
+
 # Non-finite parameters are invalid: any infinite parameter implies an
 # infinite-mean distribution with no mass at any finite point, so the result
 # is NaN with a warning - previously Inf-driven NaNs were laundered into

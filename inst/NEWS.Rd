@@ -39,6 +39,23 @@
       instead of \code{-Inf}). Hoisting the variables for both log and normal
       space routines makes them slightly faster than before.
       
+      \item \strong{Breaking:} \code{ddelap}'s internal summand formula
+      subtracted \eqn{\lambda} from its running sum before a large cancelling
+      pair---\eqn{\log\Gamma(\alpha + i) - \log\Gamma(\alpha)}{lgamma(alpha+i) -
+      lgamma(alpha)}, which is exactly \eqn{0} at \eqn{i = 0}---had resolved.
+      When \eqn{\alpha} is very small, \eqn{\log\Gamma(\alpha)}{lgamma(alpha)}
+      is itself large, and \eqn{\lambda}, when smaller than that intermediate
+      value's rounding unit, was silently discarded before the cancellation
+      completed. This was invisible with \code{log = FALSE}, since \code{exp()}
+      of the resulting error and \code{exp(0) = 1} are both indistinguishable in
+      linear-space double precision at the affected magnitudes. This is why it
+      went undetected; it surfaces only with \code{log = TRUE}. For example,
+      \code{ddelap(0, 1e-50, 1e-100, 1e-50, log = TRUE)} returned approximately
+      -1e-150 instead of the true approximately -1e-50, a 60-order-of-magnitude
+      error. Parenthesizing the cancelling pair so it resolves first fixes both
+      the log-space and linear-space summand formulas; ordinary (non-degenerate)
+      parameters are bitwise-unchanged.
+      
       \item \strong{Breaking:} \code{pdelap} with \code{lower.tail = FALSE} now
       computes the upper tail by direct summation of the PMF when doing so is
       needed to preserve accuracy, instead of \eqn{1 - \textrm{CDF}}. Survival

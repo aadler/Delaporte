@@ -139,9 +139,9 @@ module delaporte
                                              ieee_quiet_nan, ieee_is_nan, &
                                              ieee_is_finite, ieee_negative_inf
     !$ use omp_lib
-    use utils, only: imk, cFPe, log1p, unifrnd, lower_bound, ZERO, HALF, ONE, &
-                     THREEHALFS, TWO, THREE, EPS, MAXD, MAXVECSIZE, &
-                     TBLMAXCOEF, TBLMINRATIO
+    use utils, only: imk, cFPe, log1p, unifrnd, lower_bound, logaddexp, ZERO, &
+                     HALF, ONE, THREEHALFS, TWO, THREE, EPS, MAXD, MAXVECSIZE, &
+                     TBLMAXCOEF, TBLMINRATIO, TAILSWITCH
 
     implicit none
     private
@@ -653,6 +653,56 @@ contains
         end if
 
     end function pdelap_f_s
+    
+!-------------------------------------------------------------------------------
+! FUNCTION:     pdelap_f_s_log
+!
+! DESCRIPTION:  Calculate the LOG of the Delaporte cumulative distribution
+!               function for a single observation directly in log space.
+!
+! GENERAL NOTE: Log-space image of pdelap_f_s: log(pdelap_f_s(...)) returns
+!               -Inf once the linear-space CDF underflows below ~1e-308 (e.g.
+!               deep in the lower tail with a very large lambda), even though
+!               the true log-CDF is finite. Every summand is obtained from
+!               ddelap_f_s_log (already in log space) and accumulated with the
+!               same streaming log-sum-exp ddelap_f_s_log itself uses: running
+!               maximum mx, running sum s of exp(term - mx). Used only by
+!               pdelap_f's vector-recycling/irregular-input fallback path;
+!               the singleton fast path builds an equivalent log-space table
+!               once for the whole vector instead of calling this per element.
+!-------------------------------------------------------------------------------
+
+    pure elemental function pdelap_f_s_log(q, alpha, beta, lambda) result(lcdf)
+
+    real(kind = c_double), intent(in)   :: q, alpha, beta, lambda
+    real(kind = c_double)               :: lcdf, lterm, mx, s
+    integer(INT64)                      :: i, k
+
+        if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO &
+            .or. ieee_is_nan(q) &
+            .or. .not. ieee_is_finite(alpha + beta + lambda)) then
+            lcdf = ieee_value(q, ieee_quiet_nan)
+        else if (q < ZERO) then
+            lcdf = ieee_value(q, ieee_negative_inf)   ! log(0): below support
+        else if (.not. ieee_is_finite(q)) then
+            lcdf = ZERO                                ! log(1): q = +Inf
+        else
+            k = floor(q, INT64)
+            mx = ieee_value(q, ieee_negative_inf)
+            s = ZERO
+            do i = 0_INT64, k
+                lterm = ddelap_f_s_log(real(i, c_double), alpha, beta, lambda)
+                if (lterm > mx) then
+                    s = s * exp(mx - lterm) + ONE
+                    mx = lterm
+                else
+                    s = s + exp(lterm - mx)
+                end if
+            end do
+            lcdf = min(mx + log(s), ZERO)   ! log-space ceiling; see cFPe
+        end if
+
+    end function pdelap_f_s_log    
 
 !-------------------------------------------------------------------------------
 ! FUNCTION:     sdelap_f_s
@@ -732,6 +782,91 @@ contains
         end if
 
     end function sdelap_f_s
+    
+!-------------------------------------------------------------------------------
+! FUNCTION:     sdelap_f_s_log
+!
+! DESCRIPTION:  Calculate the LOG of the Delaporte survival function
+!               log P(X > q) for a single observation directly in log space,
+!               by log-sum-exp accumulating the tail PMF upward from
+!               floor(q) + 1.
+!
+! GENERAL NOTE: The linear-space sdelap_f_s underflows to exactly 0 once the
+!               survival probability drops below ~1e-308, so log(sdelap_f_s
+!               (...)) returns -Inf for deep-tail log-survival values that are
+!               actually finite and representable (e.g. log P(X > 2000 | 1, 1,
+!               1) is about -1386, not -Inf). This mirrors sdelap_f_s exactly
+!               - same tail walk, same geometric-remainder termination rule -
+!               but each term is ddelap_f_s_log(i, ...) (already in log space,
+!               so it never underflows before the true mass does) and the
+!               running total is kept as a streaming log-sum-exp (running
+!               max mx, running sum s of exp(term - mx)), the identical
+!               pattern ddelap_f_s_log uses to accumulate its own summation.
+!               The remainder bound is evaluated as a log-space inequality
+!               (comparing logs directly) rather than by exponentiating the
+!               bound itself, so no intermediate can overflow or underflow
+!               even when accumulated terms are astronomically small.
+!
+! PRECONDITION: Identical to sdelap_f_s: callers must invoke this only when
+!               the survival probability is small enough to need direct
+!               summation, i.e. when the lower-tail log-CDF at q exceeds
+!               log(TAILSWITCH) (see TAILSWITCH's definition in utils.f90).
+!-------------------------------------------------------------------------------
+
+    pure elemental function sdelap_f_s_log(q, alpha, beta, lambda) result(lsf)
+
+    real(kind = c_double), intent(in)   :: q, alpha, beta, lambda
+    real(kind = c_double)               :: lsf, lterm, plterm, rb, mx, s
+    integer(INT64)                      :: i
+
+        if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. q < ZERO &
+            .or. ieee_is_nan(q) &
+            .or. .not. ieee_is_finite(alpha + beta + lambda)) then
+            ! Defence in depth; see the identical note in sdelap_f_s - pdelap_f
+            ! only reaches here after a log-CDF computed from the same
+            ! arguments exceeded log(0.5), which invalid parameters or NaN q
+            ! can never satisfy (NaN comparisons are always false).
+            lsf = ieee_value(q, ieee_quiet_nan)                      ! # nocov
+        else if (.not. ieee_is_finite(q)) then
+            lsf = ieee_value(q, ieee_negative_inf)   ! log(0): no mass above Inf
+        else
+            mx = ieee_value(q, ieee_negative_inf)
+            s = ZERO
+            plterm = ieee_value(q, ieee_positive_inf)
+            i = floor(q, INT64) + 1_INT64
+            do
+                lterm = ddelap_f_s_log(real(i, c_double), alpha, beta, lambda)
+                if (lterm > mx) then
+                    s = s * exp(mx - lterm) + ONE
+                    mx = lterm
+                else
+                    s = s + exp(lterm - mx)
+                end if
+
+                ! Tail term hit -Inf (hard underflow); precondition guarantees
+                ! we are past the mode, so every subsequent term is smaller
+                ! still and the remainder is exactly zero.
+                if (.not. ieee_is_finite(lterm)) exit
+
+                ! Only test convergence once terms are strictly decreasing
+                ! (past the mode); rb < 1 is then guaranteed and the geometric
+                ! remainder bound is valid. Comparison is done entirely in log
+                ! space: lterm + log(rb / (1 - rb)) <= (running log-sum) +
+                ! log(EPS), the log-space image of
+                ! term * (rb / (1 - rb)) <= sf * EPS in sdelap_f_s.
+                if (lterm < plterm) then
+                    rb = max(exp(lterm - plterm), beta / (beta + ONE))
+                    if (lterm + log(rb / (ONE - rb)) <= mx + log(s) + log(EPS)) &
+                        exit
+                end if
+                plterm = lterm
+                i = i + 1_INT64
+            end do
+            ! Log-space analogue of cFPe's ceiling of 1 (see ddelap_f_s_log).
+            lsf = min(mx + log(s), ZERO)
+        end if
+
+    end function sdelap_f_s_log    
 
 !-------------------------------------------------------------------------------
 ! ROUTINE:      pdelap_f
@@ -742,12 +877,61 @@ contains
 ! GENERAL NOTE: If parameters are all singletons, not vectors, the idea is to
 !               find the largest value in the vector and build the PDF up to
 !               that point. Building the vector has each succesive value
-!               piggyback off of the prior instead of calling p_delap_f_s each
-!               time which increases the speed dramatically. Once created,
-!               remaining values are simple lookups off of the svec vector.
-!               Otherwise, each entry will need to build its own pmf value by
-!               calling p_delap_f_s on each entry. Implements hard floor of 0
-!               and hard ceiling of 1 to prevent spurious floating point errors.
+!               piggyback off of the prior instead of calling the singleton
+!               function each time which increases the speed dramatically. Once
+!               created, remaining values are simple lookups off of the svec
+!               vector. For vector parameters, or if the R wrapper senses NaNs
+!               or other weirdness, each entry will be built by calling the
+!               appropriate singleton function. The function implements a hard
+!               floor of 0 and a hard ceiling of 1 to prevent spurious floating
+!               point errors.
+!
+! LOG BRANCH:   The vector-recycling/irregular-input branches had the identical
+!               deep-tail log.p underflow as the table-built branch: the linear
+!               CDF/survival was computed first and log() taken afterward, so
+!               any value that underflowed to exactly 0 came back -Inf even
+!               though the true log value is finite. lg == 1 now calls
+!               pdelap_f_s_log/sdelap_f_s_log directly, which never form
+!               linear-space values at all; lg == 0 is unchanged.
+!
+! UPPER TAIL:   For the upper tail, the function uses the direct tail summation
+!               (sdelap_f_s / sdelap_f_s_log) only once the survival probability
+!               is small enough that 1 - CDF would lose precision to
+!               catastrophic cancellation: when CDF > TAILSWITCH, the constant
+!               set at 1 - sqrt(EPS). Below that, the complement (written as
+!               HALF - x + HALF per R's dpq.h) is accurate to ~1e-13 relative,
+!               already at the precision of the direct sum, but whose time is
+!               O(1) instead of the direct sum's O(beta**2) worst case (see
+!               TAILSWITCH's definition in utils.f90).  NaN CDFs fail both
+!               threshold tests and propagate through the complement unchanged.
+!               The lg == 1 complement recovers the linear CDF via exp() of the
+!               already- accurate log-CDF. This is safe because this branch only
+!               runs when CDF <= TAILSWITCH, nowhere near 1 or 0. So it takes
+!               the identical linear complement, and re-logs it. This avoids
+!               needing a general log(1 - exp(.)) routine, which would require
+!               a specialized EXPM1 to stay accurate as the log-CDF approaches 0
+!               (a domain this threshold actually reaches, unlike the old
+!               CDF > HALF one). Fortran 2008 does not have EXPM1 intrinsically.
+!
+!               Specifically for the log version, the backwards accumulation
+!               calls new function logaddexp, the log-space image of the linear
+!               backward accumulation.
+!
+! TABLE MAX:    When parameters are so extreme that the ddelap_table bracketed 
+!               coefficient, at magnitude up to coefmax and multiplied by a
+!               scaled mass as large as CAP = 2**900 (~8.5e270), could overflow
+!               a double (~1.8e308), the function cannot use the fast table.
+!               TBLMAXCOEF of 1e30 leaves seven orders of magnitude of headroom.
+!               Parameters beyond it (including infinities) take the legacy
+!               O(K**2) singleton-function-based  summation build, which
+!               reproduces the pre-recurrence behavior exactly.
+!
+!               Specifically for the log version, there is a TBLMINRATIO
+!               degeneracy check: a single recurrence step whose ratio is too
+!               small to survive the table's rescue band would wrongly hand back
+!               -Inf even though the true log-mass is finite. A failure here
+!               also falls back to the elemental ddelap_f_s_log, which has no
+!               scaled-recurrence overflow/underflow exposure at all.
 !-------------------------------------------------------------------------------
 
     subroutine pdelap_f(q, nq, a, na, b, nb, l, nl, lt, lg, threads, pmfv) &
@@ -758,6 +942,7 @@ contains
     integer(kind = c_int), intent(in)           :: lg, lt, threads
     real(kind = c_double), intent(out)          :: pmfv(nq)
     real(kind = c_double), allocatable          :: svec(:), pv(:)
+    real(kind = c_double), allocatable          :: logpv(:), logsvec(:)
     integer                                     :: i, k
 
 ! If there are any complications at all, don't use the fast version. pdelap_f_s
@@ -769,27 +954,31 @@ contains
             !$omp parallel do num_threads(threads) default(shared) private(i) &
             !$omp schedule(static)
                 do i = 1, nq
-                    pmfv(i) = pdelap_f_s(q(i), a(imk(i, na)), b(imk(i, nb)), &
-                    l(imk(i, nl)))
-                    
-                    ! For the upper tail, compute whichever tail is smaller
-                    ! directly. When the CDF is <= 0.5, the complement 1 - CDF
-                    ! is at least 0.5, so the subtraction (written as in R's
-                    ! dpq.h) costs at most one ulp of relative accuracy. When
-                    ! the CDF exceeds 0.5, 1 - CDF suffers catastrophic
-                    ! cancellation once the survival probability nears machine
-                    ! epsilon, so sum the tail PMF directly instead. NaN CDFs
-                    ! fail the > HALF test and propagate through the subtraction
-                    ! unchanged.
+                    if (lg == 1_c_int) then
+                        pmfv(i) = pdelap_f_s_log(q(i), a(imk(i, na)), &
+                        b(imk(i, nb)), l(imk(i, nl)))
+                    else
+                        pmfv(i) = pdelap_f_s(q(i), a(imk(i, na)), &
+                        b(imk(i, nb)), l(imk(i, nl)))
+                    end if
+                    ! See UPPER TAIL note
                     if (lt == 0_c_int) then
-                        if (pmfv(i) > HALF) then
-                            pmfv(i) = sdelap_f_s(q(i), a(imk(i, na)), &
-                            b(imk(i, nb)), l(imk(i, nl)))
+                        if (lg == 1_c_int) then
+                            if (pmfv(i) > log(TAILSWITCH)) then
+                                pmfv(i) = sdelap_f_s_log(q(i), a(imk(i, na)), &
+                                b(imk(i, nb)), l(imk(i, nl)))
+                            else
+                                pmfv(i) = log(HALF - exp(pmfv(i)) + HALF)
+                            end if
                         else
-                            pmfv(i) = HALF - pmfv(i) + HALF     ! See dpq.h
+                            if (pmfv(i) > TAILSWITCH) then
+                                pmfv(i) = sdelap_f_s(q(i), a(imk(i, na)), &
+                                b(imk(i, nb)), l(imk(i, nl)))
+                            else
+                                pmfv(i) = HALF - pmfv(i) + HALF   ! See dpq.h
+                            end if
                         end if
                     end if
-                    if (lg == 1_c_int) pmfv(i) = log(pmfv(i))
                 end do
             !$omp end parallel do
         else if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO .or. &
@@ -799,20 +988,52 @@ contains
         else
             k = floor(maxval(q))
 
+            if (lg == 1_c_int) then
+                allocate (logpv(k + 1))
+                allocate (logsvec(k + 1))
+
+                if (b(1) * (real(k, c_double) + ONE) + l(1) * (ONE + b(1)) &
+                    + a(1) * b(1) < TBLMAXCOEF .and. &
+                    max(l(1) / (real(k, c_double) + ONE), &
+                        min(a(1), ONE) * b(1) / (ONE + b(1))) &
+                        >= TBLMINRATIO) then
+                    call ddelap_table(k, a(1), b(1), l(1), 1_c_int, logpv)
+                else
+                    do i = 1, k + 1
+                        logpv(i) = ddelap_f_s_log(real(i - 1, c_double), &
+                                                   a(1), b(1), l(1))
+                    end do
+                end if
+
+                logsvec(1) = logpv(1)
+                do i = 2, k + 1
+                    logsvec(i) = logaddexp(logsvec(i - 1), logpv(i))
+                end do
+
+                if (lt == 0_c_int) then
+                    if (logsvec(k + 1) > log(TAILSWITCH)) then
+                        logsvec(k + 1) = sdelap_f_s_log(real(k, c_double), &
+                                                         a(1), b(1), l(1))
+                    else
+                        logsvec(k + 1) = log(HALF - exp(logsvec(k + 1)) + HALF)
+                    end if
+                    do i = k, 1, -1
+                        logsvec(i) = logaddexp(logsvec(i + 1), logpv(i + 1))
+                    end do
+                end if
+
+                do i = 1, nq
+                    pmfv(i) = logsvec(floor(q(i)) + 1)
+                end do
+                deallocate(logsvec)
+                deallocate(logpv)
+            else
             ! Retain the individual PMF values while building the CDF; the
             ! upper-tail branch reuses them to build the survival vector without
             ! recomputation.
             allocate (pv(k + 1))
             allocate (svec(k + 1))
 
-            ! Route to the O(K) recurrence table unless the parameters are so
-            ! extreme that its bracketed coefficient, at magnitude up to
-            ! coefmax and multiplied by a scaled mass as large as CAP = 2**900
-            ! (~8.5e270), could overflow a double (~1.8e308). TBLMAXCOEF of
-            ! 1e30 leaves seven orders of magnitude of headroom. Parameters
-            ! beyond it (including infinities) take the legacy O(K**2)
-            ! summation build, which reproduces the pre-recurrence behavior
-            ! exactly. (AA & Claude: 2026-07-07)
             if (b(1) * (real(k, c_double) + ONE) + l(1) * (ONE + b(1)) &
                 + a(1) * b(1) < TBLMAXCOEF) then
                 call ddelap_table(k, a(1), b(1), l(1), 0_c_int, pv)
@@ -829,15 +1050,7 @@ contains
                 svec(i) = cFPe(svec(i - 1) + pv(i))
             end do
             if (lt == 0_c_int) then
-                ! Overwrite svec with the survival function:
-                ! svec(j) = P(X > j - 1). Anchor the largest support point
-                ! accurately - by direct tail summation when the upper tail is
-                ! the smaller one, by complement otherwise - then accumulate
-                ! backwards, adding the saved PMF values. Backward accumulation
-                ! sums positive, increasing terms, so every entry keeps full
-                ! relative precision instead of inheriting the cancellation
-                ! error of 1 - CDF.
-                if (svec(k + 1) > HALF) then
+                if (svec(k + 1) > TAILSWITCH) then
                     svec(k + 1) = sdelap_f_s(real(k, c_double), a(1), b(1), &
                                              l(1))
                 else
@@ -849,10 +1062,10 @@ contains
             end if
             do i = 1, nq
                 pmfv(i) = svec(floor(q(i)) + 1)
-                if (lg == 1_c_int) pmfv(i) = log(pmfv(i))
             end do
             deallocate(svec)
             deallocate(pv)
+            end if
         end if
         
         if (any(ieee_is_nan(pmfv))) call rwarn("NaNs produced")

@@ -30,17 +30,17 @@ pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE) {
   # These interrupts throw errors even using expect_error. Excluding for now
   # nocov start
   
-  # The interactive gate now only guards the genuinely slow routes. With
-  # scalar parameters the CDF table is built by an O(K) recurrence
-  # (ddelap_table in delaporte.f90), so values up to MAXVECSIZE = 2^24
-  # compute in milliseconds and need no gate. What remains quadratic - and
-  # therefore still gated at the old 2^15 threshold - is the per-element
-  # summation path, taken when any parameter is vector-valued or when q
-  # exceeds 2^24. (AA & Claude: 2026-07-07)
   if (any(q[is.finite(q)] >= 2 ^ 63)) {
     stop("Function cannot handle values >= 2^63.")
   }
   
+  # The interactive gate now only guards the genuinely slow routes. With
+  # scalar parameters the CDF table is built by an O(K) recurrence
+  # (ddelap_table in delaporte.f90), so values up to MAXVECSIZE = 2^24
+  # compute in milliseconds and need no gate. What remains quadratic, and
+  # therefore still gated at the old 2^15 threshold, is the per-element
+  # summation path, taken when any parameter is vector-valued or when q
+  # exceeds 2^24.
   slowpath <- length(alpha) > 1L || length(beta) > 1L || length(lambda) > 1L
   qmax <- suppressWarnings(max(q[is.finite(q)], -Inf))
   if ((slowpath && qmax >= 2 ^ 15) || qmax >= 2 ^ 24) {
@@ -98,9 +98,6 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE,
                    getDelapThreads())
   } else if (alpha <= 0 || beta <= 0 || lambda <= 0 ||
              !is.finite(alpha + beta + lambda)) {
-    # Non-finite parameters (NaN or any Inf) are invalid here exactly as in
-    # the exact path's Fortran screens; without this, Inf parameters fed
-    # rgamma() below and returned NA instead of NaN. (AA & Claude: 2026-07-07)
     QDLAP <- rep.int(NaN, length(p))
   } else {
     if (log.p) p <- exp(p)
@@ -109,20 +106,20 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE,
     QDLAP <- double(length(p))
     QDLAP[p < 0] <- NaN
     QDLAP[p == 0] <- 0
-    # p > 1 is not a probability and maps to NaN, matching both the exact
-    # path and base R's qpois(1.5, 1); only exactly-one maps to +Inf.
-    # (AA & Claude: 2026-07-07)
     QDLAP[p == 1] <- Inf
     QDLAP[p > 1] <- NaN
     if (any(validIdx)) {
       n <- min(10 ^ (ceiling(log(alpha * beta + lambda, 10)) + 5), 1e7)
+      # Pathologically tiny means (e.g. 1e-12) used to generate n < 1 so
+      # returned NA.
+      n <- max(n, 1e4) 
       shiftedGammas <- rgamma(n, shape = alpha, scale = beta)
       DP <- rpois(n, lambda = (shiftedGammas + lambda))
       QDLAP[validIdx] <- as.vector(quantile(DP, p[validIdx],
                                             na.rm = TRUE, type = 8L))
     }
   }
-  if (any(is.nan(QDLAP))) warning("NaNs produced")
+  if (anyNA(QDLAP)) warning("NaNs produced")
   QDLAP
 }
 
@@ -160,8 +157,11 @@ MoMdelap <- function(x, type = 2L) { # nolint object_name_linter
   if (length(x) < 3L) {
     stop("MoMdelap requires at least three data points.")
   }
+  if (anyNA(x)) {
+    stop("MoMdelap does not accept missing values.")
+  }
   moMDLAP <- .Call(MoMdelap_C, as.double(x), type)
-  if (any(moMDLAP <= 0)) {
+  if (isTRUE(any(moMDLAP <= 0))) {
     stop("Method of moments not appropriate for this data; results include ",
          "non-positive parameters.")
   }

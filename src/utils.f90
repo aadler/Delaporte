@@ -233,7 +233,11 @@ contains
         hi = max(a, b)
         lo = min(a, b)
         if (.not. ieee_is_finite(hi)) then
-            y = hi                       ! both -Inf; avoid NaN from Inf - Inf
+            ! Technically, if addends are -Inf this avoids the NaN. However, it
+            ! is unreachable in this code base. It needs ddelap_table's own
+            ! -Inf branch (already # nocov there; TBLMINRATIO precludes it) to
+            ! fire at two adjacent support points at once.
+            y = hi  ! # nocov
         else
             y = hi + log1p(exp(lo - hi))
         end if

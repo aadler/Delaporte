@@ -1157,9 +1157,10 @@ contains
     real(kind = c_double), intent(in)               :: pp(np)
     real(kind = c_double), intent(out)              :: obsv(np)
     real(kind = c_double), allocatable              :: p(:), svec(:), pv(:)
-    real(kind = c_double)                           :: x, mu
-    integer                                         :: i, j, k
-    
+    real(kind = c_double), allocatable              :: surv(:)
+    real(kind = c_double)                           :: x, mu, prevCeil, ts
+    integer                                         :: i, j, k, qlo, qhi, qmid
+
     ! Hard ceiling on the lookup table (2**30 support points ~ 8GB per
     ! vector); unreachable for any parameters of practical size, present so
     ! integer arithmetic in the doubling below can never overflow.
@@ -1181,6 +1182,9 @@ contains
                 k = int(min(mu + 10._c_double * &
                     sqrt(a(1) * b(1) * (ONE + b(1)) + l(1)) + 9._c_double, &
                     real(MAXTBL, c_double)))
+                ! Sentinel: no completed build to compare against yet, so the
+                ! stagnation check below cannot fire on the very first pass.
+                prevCeil = -ONE
                 do
                     ! EXIT 1: extreme parameters. svec is NOT allocated here -
                     ! either this is the first iteration and it never was, or a
@@ -1198,10 +1202,35 @@ contains
                         svec(i) = cFPe(svec(i - 1) + pv(i))
                     end do
                     deallocate(pv)
-                    ! EXIT 2: the normal, successful exit. The table covers x
-                    ! (or hit the MAXTBL ceiling). svec IS allocated, and the
-                    ! two lines below are skipped entirely.
+                    ! EXIT 2: the table reached the largest target x (the
+                    ! normal success), or -- defensively -- hit the MAXTBL
+                    ! ceiling. Either way svec is complete for every target
+                    ! it can resolve; targets beyond its saturated ceiling
+                    ! are handled by the survival search in the lookup loop.
                     if (svec(k + 1) >= x .or. k >= MAXTBL) exit
+                    ! EXIT 3: bitwise stagnation. x sits closer to 1 than this
+                    ! linear-space cumulative sum can ever resolve: cFPe caps
+                    ! every partial sum at 1, and once the tail mass being
+                    ! added on each doubling falls below the ULP of the
+                    ! running total, svec(k + 1) stops changing at all, no
+                    ! matter how large k grows. This is PURELY a performance
+                    ! optimization: it stops the doubling as soon as the CDF
+                    ! plateaus instead of grinding all the way to MAXTBL (a
+                    ! ~1e9 element, multi-GB table -- ~20s and ~16GB in
+                    ! testing). It does not change any returned value: the
+                    ! lookup loop below resolves every saturated-band target
+                    ! from the accurate upper-tail survival, not from svec,
+                    ! so the answer is identical whether the doubling stopped
+                    ! here or was allowed to run on. The comparison is exact
+                    ! equality on purpose: ddelap_table's recurrence is
+                    ! deterministic, so a doubled build reproduces the shorter
+                    ! build's partial sums bit for bit through the shorter
+                    ! table's own length; svec(k + 1) can only be unchanged
+                    ! from the previous iteration's ceiling if every term
+                    ! added since then was individually too small to move the
+                    ! sum.
+                    if (prevCeil >= ZERO .and. svec(k + 1) == prevCeil) exit
+                    prevCeil = svec(k + 1)
                     ! Reached only when looping again: the table was too
                     ! short, so release it before rebuilding at double size.
                     k = min(2 * k, MAXTBL)
@@ -1229,25 +1258,68 @@ contains
                                        b(1), l(1))
                     end do
                 end if
+                ! Any target above the forward CDF's saturated ceiling cannot
+                ! be resolved from svec: within ~K * EPS of 1 the cumulative
+                ! sum's accumulated rounding deficit exceeds 1 - p, so it
+                ! plateaus below such p and lower_bound below returns 0. The
+                ! upper tail is nonetheless finite and accurately summable from
+                ! the top, so build a survival table by the same backward
+                ! recurrence pdelap_f uses -- seed the top with the directly
+                ! summed tail sdelap_f_s(k), then accumulate PMF mass moving
+                ! down -- and resolve those targets against it. surv(i) holds
+                ! P(X > i - 1) and is monotone decreasing. Built only when a
+                ! saturated target actually exists; svec and the byte-identical
+                ! CDF lookup used for every resolvable target are untouched.
+                if (svec(size(svec)) < x) then
+                    allocate(surv(size(svec)))
+                    allocate(pv(size(svec)))
+                    call ddelap_table(size(svec) - 1, a(1), b(1), l(1), &
+                                      0_c_int, pv)
+                    surv(size(svec)) = sdelap_f_s(real(size(svec) - 1, &
+                                                  c_double), a(1), b(1), l(1))
+                    do i = size(svec) - 1, 1, -1
+                        surv(i) = cFPe(surv(i + 1) + pv(i + 1))
+                    end do
+                    deallocate(pv)
+                end if
                 do i = 1, np
                     if (p(i) < ZERO .or. p(i) > ONE .or. ieee_is_nan(p(i))) then
                         obsv(i) = ieee_value(p(i), ieee_quiet_nan)
                     else if (p(i) == ONE) then
                         obsv(i) = ieee_value(p(i), ieee_positive_inf)
                     else
-                        ! Kind-correct conversion (default real would pass
-                        ! through single precision). j == 0, meaning no table
-                        ! entry reaches p(i), is unreachable when the build
-                        ! loop exited on svec >= x; defence for the MAXTBL
-                        ! cap.
                         j = lower_bound(svec, p(i))
-                        if (j == 0) then
-                            obsv(i) = real(size(svec) - 1, c_double) ! # nocov
-                        else
+                        if (j > 0) then
                             obsv(i) = real(j - 1, c_double)
+                        else
+                            ! Saturated target: the forward CDF plateaued below
+                            ! p(i) (base R's qpois returns a finite quantile for
+                            ! the analogous case, and so must this). Resolve it
+                            ! from the accurate survival table: find the
+                            ! smallest q = qlo - 1 with P(X > q) = surv(qlo)
+                            ! <= 1 - p(i). surv is decreasing and surv(size) ~ 0,
+                            ! so a satisfying index always exists. Computing
+                            ! ts = 1 - p(i) can shed a little precision when
+                            ! p(i) itself arrived as an upper-tail 1 - p input,
+                            ! but by well under one integer of quantile (the
+                            ! tail is steep here), so the returned integer is
+                            ! unaffected.
+                            ts = ONE - p(i)
+                            qlo = 1
+                            qhi = size(surv)
+                            do while (qlo < qhi)
+                                qmid = (qlo + qhi) / 2
+                                if (surv(qmid) <= ts) then
+                                    qhi = qmid
+                                else
+                                    qlo = qmid + 1
+                                end if
+                            end do
+                            obsv(i) = real(qlo - 1, c_double)
                         end if
                     end if
                 end do
+                if (allocated(surv)) deallocate(surv)
                 deallocate(svec)
             end if
         else

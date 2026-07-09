@@ -198,8 +198,6 @@ contains
         real(kind = c_double)             :: y
 
         if (abs(x) <= 1.e-4_c_double) then
-           
-            ! (AA & Claude: 2026-07-07)
             y = ((x * (ONE / THREE) - HALF) * x + ONE) * x
         else
             y = log(x + ONE)
@@ -314,7 +312,6 @@ contains
             ! invariant below and the search would silently return
             ! size(v)---a plausible wrong answer---rather than a value the
             ! caller detects and clamps.
-            ! (AA & Claude: 2026-07-07)
             lo = 0                          ! No element reaches p.  ! # nocov
         else
             lo = 1

@@ -60,3 +60,6 @@ expect_equal(MoMdelap(c(30L, 32L, 39L, 50L), type = 2L),
 # Need at least three data points
 expect_error(MoMdelap(testData[6:7]),
              "MoMdelap requires at least three data points.")
+
+# No NA/NaN
+expect_error(MoMdelap(c(1, 2, NA)), "MoMdelap does not accept missing values.")

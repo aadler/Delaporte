@@ -271,5 +271,8 @@ expect_true(is.nan(suppressWarnings(qdelap(0.5, Inf, 2, 3))))
 expect_identical(is.nan(suppressWarnings(qdelap(c(0.4, 0.5), 2, c(Inf, 3),
                                                 1))), c(TRUE, FALSE))
 
+# Test floor on Monte Carlo variate generation
+expect_identical(qdelap(0.5, 1e-12, 1e-12, 1e-12, exact = FALSE), 0)
+
 # Restore original thread count
 setDelapThreads(oldThreads)

@@ -98,27 +98,57 @@ nature.
 \subsection{Quantile}{
 The quantile function, \code{qdelap}, is right continuous:
 \code{qdelap(q, alpha, beta, lambda)} is the smallest integer \eqn{x} such that
-\eqn{P(X \le x) \ge q}. This function has two versions. When
-\code{exact = TRUE}, the function builds a \acronym{CDF} vector and the first
-value for which the \acronym{CDF} is greater than or equal to \eqn{q} is
-returned as the quantile. While this procedure is accurate, for sufficiently
-large \eqn{\alpha, \beta}, or \eqn{\lambda} it can take a very long time.
-Therefore, when dealing with singleton parameters, \code{exact = FALSE} can be
-passed to take advantage of the Delaporte's definition as a counting
-distribution with both a Poisson and a negative binomial component. Based on
-Karlis & Xekalaki (2005) it will generate \eqn{n} gamma variates \eqn{\Gamma}
-with shape \eqn{\alpha} and scale \eqn{\beta} and then \eqn{n} pseudo-Delaporte
-variates as Poisson random variables with parameter \eqn{\lambda + \Gamma},
-finally calling the \code{\link{quantile}} function on the result.
-The \dQuote{exact} method is always more accurate and is also significantly
-faster for reasonable values of the parameters. Also, the \dQuote{exact} method
-\emph{must} be used when passing parameter vectors, as the pooling would become
-intractable. Ad-hoc testing indicates that the \dQuote{exact} method should be
-used until \eqn{\alpha\beta + \lambda \approx 2500}{\alpha\beta +
-\lambda ~ 2500}. Both versions return \code{NaN} for quantiles \eqn{< 0} or
-\eqn{> 1}, \eqn{0} for quantiles \eqn{= 0}, and \code{Inf} for quantiles
-exactly \eqn{= 1}, following the conventions of
-\code{\link[stats:Poisson]{qpois}}.
+\eqn{P(X \le x) \ge q}. This function has two versions:
+\enumerate{
+  \item When \code{exact = TRUE}, the function builds a \acronym{CDF} vector and
+  the first value for which the \acronym{CDF} is greater than or equal to
+  \eqn{q} is returned as the quantile.
+  \item When \code{exact = FALSE} \emph{and} there are no vector-valued
+  parameters or \code{NA}/\code{NaN} in the data, the Delaporte's definition as
+  a counting distribution with both a Poisson and a negative binomial component
+  is used. Based on Karlis & Xekalaki (2005), the function generates \eqn{n}
+  gamma variates \eqn{\Gamma} with shape \eqn{\alpha} and scale \eqn{\beta},
+  then \eqn{n} pseudo-Delaporte variates as Poisson random variables with
+  parameter \eqn{\lambda + \Gamma}, and finally calls the \code{\link{quantile}}
+  (with type = 8) on the result. The number of variates \eqn{n} is set to five
+  orders of magnitude greater than the mean, with a minimum of 10K variates and
+  a maximum of 10M variates.
+}
+
+The \dQuote{exact} method is \strong{always} more accurate and, since the
+table-building algorithm was rewritten to build the \acronym{CDF} vector in
+\eqn{O(K)} rather than \eqn{O(K^2)} time, orders of magnitude faster than
+\code{exact = FALSE} for essentially all practical parameter ranges. Benchmarks
+show \code{exact = TRUE} outperforming the approximate version by roughly 30- to
+50,000-fold across means from single digits up to the low millions. The
+\dQuote{exact} method \emph{must} be used when passing parameter vectors, since
+pooling observations across distinct parameter triplets would be intractable.
+
+There remains a niche use case for \code{exact = FALSE}. Since
+\code{exact = TRUE} builds an explicit table of length \eqn{K}, its time and
+memory cost grow with \eqn{K}, while \code{exact = FALSE} has a roughly fixed
+cost bounded by its capped simulation size. \eqn{K} depends on both the mean
+and dispersion of the distribution:
+\deqn{K \approx \alpha\beta + \lambda + 10\sqrt{\alpha\beta\left(1 +
+\beta\right) + \lambda}}{K ~ alpha*beta + lambda + 10 *
+sqrt(alpha*beta*(1 + beta) + lambda)}
+A distribution with a modest mean but high overdispersion, such as one with a
+small \eqn{\alpha} relative to \eqn{\beta}, can require as large a table as one
+with a much larger, near-Poisson mean.
+
+Current benchmarks indicate \code{exact = FALSE} is worth considering only once
+\eqn{K} exceeds approximately \eqn{1.5 \times 10^7}{1.5e7}, the point at which
+the exact method's memory use of roughly 17 bytes per unit of \eqn{K} begins to
+exceed the bounded cost of the approximate method. This supersedes the older
+ad-hoc guidance of using \code{exact = FALSE} once
+\eqn{\alpha\beta + \lambda \approx 2500}{alpha*beta + lambda ~ 2500}. This older
+guidance is now four to five orders of magnitude too conservative given the
+current algorithm, and was in any case based on the mean alone rather than
+\eqn{K}.
+
+Both versions return \code{NaN} for quantiles \eqn{< 0} or \eqn{> 1}, \eqn{0}
+for quantiles \eqn{= 0}, and \code{Inf} for quantiles exactly \eqn{= 1},
+following the conventions of \code{\link[stats:Poisson]{qpois}}.
 }
 \subsection{Random Variate Generation}{
 The random variate generator, \code{rdelap}, also has multiple versions. When
@@ -205,7 +235,7 @@ non-normal distributions.
 
   Vose, D. (2008) \emph{Risk analysis: a quantitative guide} (Third, illustrated
   ed.). John Wiley & Sons. pp. 618--619. ISBN 978-0-470-51284-5
-}  
+}
 
 \seealso{
   \link{Distributions} for standard distributions, including

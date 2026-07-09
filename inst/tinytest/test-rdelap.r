@@ -82,6 +82,13 @@ expect_identical(suppressWarnings(rdelap(3, 1, numeric(0), 3, exact = FALSE)),
 expect_identical(suppressWarnings(rdelap(0, numeric(0), 2, 3)), numeric(0))
 expect_identical(.Call(Delaporte:::rdelap_C, 3L, 2, double(0), 2, 1L), nan3)
 
+# Defense in depth: rdelap_C is exported via R_RegisterCCallable, so a
+# zero-length n can reach the C entry point directly, bypassing rdelap()'s
+# own length(n) handling. Previously this read one element past the end of
+# a zero-length INTSXP (undefined behavior). Now it errors cleanly.
+expect_error(.Call(Delaporte:::rdelap_C, integer(0), 1, 2, 3, 1L),
+             "'n' must have positive length")
+
 expect_warning(rdelap(2, 1, 2, Inf), nanWarn)
 expect_true(all(is.nan(suppressWarnings(rdelap(2, 1, 2, Inf)))))
 

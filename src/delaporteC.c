@@ -95,6 +95,24 @@ SEXP qdelap_C(SEXP p, SEXP alpha, SEXP beta, SEXP lambda, SEXP lt, SEXP lg,
 }
 
 SEXP rdelap_C(SEXP n, SEXP alpha, SEXP beta, SEXP lambda, SEXP threads) {
+  
+  /*
+   Defense in depth, matching the zero-length guards already present in
+   ddelap_C/pdelap_C/qdelap_C. The R wrapper (rdelap()) always passes a
+   length-1 integer n, so INTEGER(n)[0] was previously safe in practice.
+   But rdelap_C is also exported via R_RegisterCCallable, so an external C
+   caller can pass a zero-length n directly. LENGTH(n) == 0 means
+   INTEGER(n)[0] reads one element past the end of a zero-length INTSXP:
+   undefined behavior, confirmed by execution to return a different garbage
+   value on each run (manifesting as spurious multi-GB allocation attempts
+   here, but not guaranteed to fail that cleanly in general). Unlike
+   alpha/beta/lambda, n has no zero-length-vector interpretation to fall
+   back on (it specifies an output length, not a parameter), so the correct
+   response is a clean R-level error, not a silent numeric(0)/NaN return.
+   */
+  if (LENGTH(n) == 0) {
+    Rf_error("'n' must have positive length");
+  }
   const int nn = INTEGER(n)[0];
   const int na = LENGTH(alpha);
   const int nb = LENGTH(beta);

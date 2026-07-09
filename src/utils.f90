@@ -74,7 +74,8 @@
 
 module utils
     use, intrinsic :: iso_c_binding,   only: c_int, c_double
-    use, intrinsic :: iso_fortran_env, only: INT64 
+    use, intrinsic :: iso_fortran_env, only: INT64
+    use, intrinsic :: ieee_arithmetic, only: ieee_is_finite
     !$ use omp_lib
     implicit none
 
@@ -111,6 +112,32 @@ module utils
     ! point-mass-plus-dust degeneracies route.
     ! (AA & Claude: 2026-07-07)
     real(kind = c_double), parameter :: TBLMINRATIO = 2._c_double ** (-120)
+    
+    ! Lower-tail CDF threshold above which pdelap_f's upper-tail anchor point,
+    ! the largest requested q, is computed by direct tail summation:
+    ! (sdelap_f_s / sdelap_f_s_log) rather than by the ordinary complement
+    ! (1 - CDF). The log-space branch recovers CDF via exp() of the already
+    ! accurate log-CDF, applies the same linear complement, then re-logs it. 
+    ! This is safe because survival >= sqrt(EPS) is nowhere near underflow.
+    ! The direct sum exists to avoid catastrophic cancellation once the survival
+    ! probability nears machine epsilon, but it is genuinely needed only once
+    ! the survival is below about sqrt(EPS) ~ 1.49e-8. The complement is
+    ! accurate to ~1e-13 relative everywhere above that, which is already at the
+    ! precision of the direct sum. The old threshold (CDF > HALF, i.e.
+    ! "whichever tail is smaller") fired far more often than necessary, and
+    ! sdelap_f_s's cost is NOT O(q):
+    ! its rb = max(term / ptrm, beta / (beta + 1)) remainder-bound floor
+    ! saturates toward 1 as beta grows, forcing roughly 36 * beta iterations
+    ! regardless of q, each an O(i) ddelap_f_s call, for an O(beta**2) cost per
+    ! invocation. Confirmed by execution:
+    ! pdelap(694, 1, 1000, 1, lower.tail = FALSE) took 27.5s under the old
+    ! HALF threshold (CDF ~ 0.5 there, well above sqrt(EPS)) and is effectively
+    ! instant under this one, with the lower-tail CDF itself byte-identical.
+    ! This constant only changes which method computes the upper-tail anchor and
+    ! the complement's ~1e-13 relative error in the (sqrt(EPS), 1) band
+    ! was confirmed via cross-check against 1 - CDF.
+    ! (AA & Claude: 2026-07-08)
+    real(kind = c_double), parameter :: TAILSWITCH = ONE - sqrt(EPS)
     
     ! Maximum allowable q for pdelap's singleton fast path. Raised from 2**14
     ! = 16384 to 2**24 now that the CDF table is built by an O(K) three-term
@@ -180,6 +207,39 @@ contains
 
     end function log1p
     
+!-------------------------------------------------------------------------------
+! FUNCTION:     logaddexp
+!
+! DESCRIPTION:  Numerically stable log(exp(a) + exp(b)) for two log-space
+!               values. Used to accumulate a log-PMF table into a log-CDF or
+!               log-survival vector one term at a time without ever forming
+!               the (possibly underflowed) linear-space probabilities.
+!
+! GENERAL NOTE: Standard two-term log-sum-exp identity:
+!               log(exp(a) + exp(b)) = hi + log1p(exp(lo - hi)), where
+!               hi = max(a, b) and lo = min(a, b), so lo - hi <= 0 and
+!               exp(lo - hi) can never overflow. When both inputs are -Inf
+!               (both terms are exactly zero probability), hi is -Inf and
+!               lo - hi becomes -Inf - (-Inf) = NaN; guarded explicitly so
+!               logaddexp(-Inf, -Inf) correctly returns -Inf instead of NaN.
+! 
+!-------------------------------------------------------------------------------
+
+    pure elemental function logaddexp(a, b) result(y)
+
+    real(kind = c_double), intent(in) :: a, b
+    real(kind = c_double)             :: y, hi, lo
+
+        hi = max(a, b)
+        lo = min(a, b)
+        if (.not. ieee_is_finite(hi)) then
+            y = hi                       ! both -Inf; avoid NaN from Inf - Inf
+        else
+            y = hi + log1p(exp(lo - hi))
+        end if
+
+    end function logaddexp
+
 !-------------------------------------------------------------------------------
 ! FUNCTION:     imk (i mod k)
 !

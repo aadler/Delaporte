@@ -123,6 +123,10 @@
       
       \item Prevented \code{qdelap} from overwriting passed \code{p} vector
       within Fortran, preserving the \code{.Call} contract.
+      
+      \item The approximate form of \code{qdelap}, which has much less utility
+      now (see documentation), will always generate at least 10,000 variates for
+      pooling. It remains capped at no more that 10M variates.
     }
   }
   \subsection{Changed}{
@@ -136,16 +140,16 @@
       underflows---roughly \eqn{\lambda + \alpha\log(1+\beta) > 745}---are
       handled by internal rescaling, allowing accuracy to be retained for very
       large \eqn{\lambda}. This is why the change is considered \emph{breaking}.
-      Some results that formerly errored out may not do so now. Parameters
-      extreme enough to risk overflow in the recurrence fall back to the
-      summation algorithm, and vector-valued parameters continue to use the
+      Some results that formerly returned an error out may not do so now.
+      Parameters extreme enough to risk overflow in the recurrence fall back to
+      the summation algorithm, and vector-valued parameters continue to use the
       per-element path.
       
       \item \strong{Breaking:} \code{ddelap} with \code{log = TRUE} and
       singleton parameters builds its table directly in log space, preserving
       finite deep-tail log-probabilities where the linear-space mass underflows
       to zero. This is considered \emph{breaking} as some results that formerly
-      errored out may not do so now.
+      returned an error may not do so now.
       
       \item \strong{Breaking:} Both the exact and approximate versions of
       \code{qdelap} now return \code{NaN} with a warning for probabilities
@@ -177,6 +181,21 @@
       accumulation order as \code{pdelap}, so the \code{qdelap(pdelap(k)) == k}
       round trip is preserved bitwise. They now also locate quantiles in the
       sorted CDF vector by a binary search instead of a linear scan.
+      
+      \item Changing \code{qdelap} to use the lookup table most of the time
+      \code{exact = TRUE} orders of magnitude faster than \code{exact = FALSE}
+      for essentially all practical parameter ranges. The only time where
+      \code{exact = FALSE} may still be worth considering is when the expected
+      table length, \eqn{K = \alpha\beta + \lambda +
+      10\sqrt{\alpha\beta(1+\beta) + \lambda}}, exceeds roughly \eqn{1.5\times
+      10^{7}}{1.5e7}. Beyond that point, the exact path's memory use of ~17 bytes
+      per unit of K begins to exceed the bounded ~330MB/2.5s cost of the Monte
+      Carlo approximation. The table size \eqn{K} depends on the distribution's
+      dispersion, not just its mean. A low mean with a high overdispersion can
+      require as large a table as a much larger, near-Poisson mean.
+      The \code{exact = FALSE} remains unavailable for vector-valued parameters
+      regardless of this threshold, as approximate quantiles cannot be pooled
+      across distinct parameter triplets.
       
       \item \code{MoMdelap} now checks that at least 3 values are passed to it,
       otherwise it will error. This is not considered breaking as it used to

@@ -6,153 +6,118 @@
 \title{NEWS file for the Delaporte package}
 
 \section{Version 9.0.0 (2026-10-01)}{
+While there are many breaking changes below, the vast majority of them would not
+have been encountered in \dQuote{normal} practice. Most users should see no
+change to their results, other than increased speed and fewer failures.
   \subsection{Fixed}{
     \itemize{
-      \item \strong{Breaking:} \code{log1p} (used internally for
-      \code{log(1 + beta)}) now carries a cubic Taylor term when
-      \eqn{|\beta| \leq 10^{-4}}{abs(beta) <= 1e-4}. The prior quadratic form
-      left a truncation error of order \eqn{\frac{\beta^3}{3}}{beta^3 / 3}.
-      This affected the seed of the \code{ddelap} recurrence table through
-      \eqn{-\lambda - \alpha * \log\left(1 + \beta\right)}{-lambda - alpha *
-      log1p(beta)}. Therefore, a uniform relative error of roughly
-      \code{alpha * 3.3e-13} propagated to every \code{ddelap}, \code{pdelap},
-      and \code{qdelap} value. For large \code{alpha} with small \code{beta}
-      this reached the sixth significant figure of ordinary probabilities.
-      Results for \eqn{\beta > 10^{-4}}{beta > 1e-4} are bitwise-unchanged.
+      \item \strong{Breaking:} Internal function \code{log1p} now carries a
+      cubic Taylor term. The prior quadratic form left a truncation error of
+      order \eqn{\frac{\beta^3}{3}}{beta^3 / 3}. For large \eqn{\alpha} with
+      very small \eqn{\beta} this reached the sixth significant figure of
+      ordinary probabilities. Results for \eqn{\beta > 10^{-4}}{beta > 1e-4} are
+      bitwise-unchanged.
       
-      \item \strong{Breaking:} Non-finite parameters, including infinities,
-      now return \code{NaN} with a warning across \code{d/p/q/rdelap} instead of
-      clamp-laundered 0s and 1s.
+      \item \strong{Breaking:} Non-finite parameters now return \code{NaN} with
+      a warning across \code{d/p/q/rdelap} instead of clamp-laundered 0s and 1s.
+      
+      \item \strong{Breaking:} \code{ddelap}, \code{pdelap}, \code{qdelap}, and
+      \code{rdelap} with singleton parameters now first attempt to build their
+      \acronym{PMF} and \acronym{CDF} tables using a three-term recurrence
+      relationship derived from the Delaporte distribution's probability
+      generating function. This takes \eqn{O(K)} arithmetic operations instead
+      of \eqn{O(K^2)} \code{log_gamma}/\code{exp} evaluations. Masses whose
+      leading term underflows---roughly \eqn{\lambda + \alpha\log(1+\beta) >
+      745}---are handled by internal rescaling, allowing accuracy to be retained
+      for very large \eqn{\lambda}. This is done natively in linear- or
+      log-space as per the call. This may shift results relative to the old
+      \dQuote{always sum} algorithm at the level of accumulated rounding: one or
+      two \acronym{ulp}s for short tables, growing with table length to roughly
+      the 13th significant digit for very long ones. Parameters extreme enough
+      to risk overflow in the recurrence fall back to the summation algorithm,
+      and vector-valued parameters continue to use the per-element path.
 
       \item \strong{Breaking:} \code{ddelap} and \code{pdelap} now treat
-      arguments below the support---negative values and \code{-Inf}---the same
-      way base \R does. \code{ddelap} returns \code{0} (\code{-Inf} with
-      \code{log = TRUE}) as \code{\link{dpois}} does, and \code{pdelap} returns
-      a lower-tail \acronym{CDF} of \code{0} and a survival of \code{1} as
-      \code{\link{ppois}} does, in each case silently. Previously these inputs
-      returned \code{NaN} with a \dQuote{NaNs produced} warning. Values for
-      non-negative \code{x} and \code{q} are bitwise-unchanged.
+      arguments below the support the same way base \R does. \code{ddelap}
+      returns \code{0} (\code{-Inf} with \code{log = TRUE}) and \code{pdelap}
+      returns a lower-tail \acronym{CDF} of \code{0} and a survival of \code{1}.
+      Previously these inputs returned \code{NaN} with a \dQuote{NaNs produced}
+      warning.
+      
+      \item \strong{Breaking:} \code{ddelap}'s internal summand formula
+      subtracted \eqn{\lambda} from its running sum before a large canceling
+      pair, \eqn{\log\Gamma(\alpha + i) - \log\Gamma(\alpha)}{lgamma(alpha+i) -
+      lgamma(alpha)} (exactly \eqn{0} at \eqn{i = 0}), had resolved. When
+      \eqn{\alpha} is very small, \eqn{\log\Gamma(\alpha)}{lgamma(alpha)} is
+      itself large, and \eqn{\lambda}, when smaller than that intermediate
+      value's rounding unit, was silently discarded before the cancellation
+      completed. This was invisible with \code{log = FALSE}, since \code{exp()}
+      of the resulting error and \code{exp(0) = 1} are both indistinguishable in
+      linear-space double precision at the affected magnitudes. Parenthesizing
+      the canceling pair so it resolves first fixes both the log-space and
+      linear-space summand formulas. Ordinary (non-degenerate) parameters are
+      bitwise-unchanged.
     
       \item \strong{Breaking:} \code{ddelap} with \code{log = TRUE} now
       accumulates the PMF in log space using a streaming log-sum-exp instead of
       taking the log of the linear-space result. This is technically breaking
       as deep-tail log-probabilities which previously returned \code{-Inf}
       because the linear PMF underflowed below the smallest representable double
-      are now accurate to near full precision (e.g. 
+      are now accurate to near full precision. For example,
       \code{ddelap(2000, 1, 1, 1, log = TRUE)} returns approximately -1385.99
-      instead of \code{-Inf}). Hoisting the variables for both log and normal
+      instead of \code{-Inf}. Hoisting the variables for both log and normal
       space routines makes them slightly faster than before.
-      
-      \item \strong{Breaking:} \code{ddelap}'s internal summand formula
-      subtracted \eqn{\lambda} from its running sum before a large canceling
-      pair---\eqn{\log\Gamma(\alpha + i) - \log\Gamma(\alpha)}{lgamma(alpha+i) -
-      lgamma(alpha)}, which is exactly \eqn{0} at \eqn{i = 0}---had resolved.
-      When \eqn{\alpha} is very small, \eqn{\log\Gamma(\alpha)}{lgamma(alpha)}
-      is itself large, and \eqn{\lambda}, when smaller than that intermediate
-      value's rounding unit, was silently discarded before the cancellation
-      completed. This was invisible with \code{log = FALSE}, since \code{exp()}
-      of the resulting error and \code{exp(0) = 1} are both indistinguishable in
-      linear-space double precision at the affected magnitudes. This is why it
-      went undetected; it surfaces only with \code{log = TRUE}. For example,
-      \code{ddelap(0, 1e-50, 1e-100, 1e-50, log = TRUE)} returned approximately
-      -1e-150 instead of the true approximately -1e-50, a 60-order-of-magnitude
-      error. Parenthesizing the canceling pair so it resolves first fixes both
-      the log-space and linear-space summand formulas; ordinary (non-degenerate)
-      parameters are bitwise-unchanged.
       
       \item \strong{Breaking:} \code{pdelap} with \code{lower.tail = FALSE} now
       computes the upper tail by direct summation of the PMF when doing so is
       needed to preserve accuracy, instead of \eqn{1 - \textrm{CDF}}. Survival
       probabilities near or below machine epsilon previously returned only
-      floating-point rounding noise (e.g. 
+      floating-point rounding noise. For example, 
       \code{pdelap(60, 1, 1, 1, lower.tail = FALSE)} returned roughly 3.3e-16
-      when the true value is roughly 1.18e-18); they are now accurate to near
-      full double precision. This is technically breaking, but users should
-      see no change outside of the deep tail which was likely not of interest
-      to most.
-
-      \item \strong{Breaking:} \code{pdelap} and \code{qdelap} with
-      \code{log.p = TRUE} previously computed the linear-space CDF/survival
-      first and took \code{log()} of the result, so any value that underflowed
-      to exactly 0 in the deep tail silently returned \code{-Inf} even though
-      the true log-probability is finite (e.g.
-      \code{pdelap(2000, 1, 1, 1, lower.tail = FALSE, log.p = TRUE)} returned
-      \code{-Inf} instead of approximately -1386). \code{log.p = TRUE} is now
-      computed directly in log space throughout, matching the log-space
-      guarantee \code{ddelap(..., log = TRUE)} already provides, and is
-      accurate to near full double precision even where the linear-space
-      value underflows. This does not affect \code{qdelap}, whose internal
-      computation was already entirely in linear-probability space regardless
-      of the \code{log.p} input encoding.
-
-      \item \strong{Breaking:} \code{pdelap}'s direct upper-tail summation
-      (the fix two items above) is now used only once the survival
-      probability is small enough (below \eqn{\sqrt{\epsilon} \approx
-      1.49 \times 10^{-8}}{sqrt(EPS) ~ 1.49e-8}) that the ordinary complement
-      \eqn{1 - \textrm{CDF}} would lose meaningful precision, rather than
-      whenever the upper tail is merely the smaller of the two. The
-      summation's cost is not driven by the observation but by \code{beta}: a
-      necessary safeguard in its remainder-bound test means its iteration
-      count approaches \eqn{36 \times \beta}{36 * beta}, each iteration itself
-      an \eqn{O(i)} calculation, for an \eqn{O(\beta^2)}{O(beta^2)} worst
-      case. \code{pdelap(694, 1, 1000, 1, lower.tail = FALSE)}, for example,
-      took roughly 27.5 seconds to return a survival of approximately 0.5 - a
-      value the ordinary complement gives instantly and to full accuracy.
-      Raising the threshold changes results only for survival values between
-      sqrt(EPS) and one half, and there only at the level of the complement's
-      accumulated rounding---absolute error of order K * EPS (about 1e-13 at
-      ordinary table lengths), growing in relative terms toward the sqrt(EPS)
-      edge, as documented in the manual's accuracy note.
+      when the true value is roughly 1.18e-18. The algorithms are now accurate
+      to near full double precision. This is technically breaking, but users
+      should see no change outside of the deep tail which was likely not of
+      interest to most.
       
-      \item \strong{Breaking:} \code{pdelap} with \code{log.p = TRUE} could
-      return \emph{positive} log-probabilities (up to about \code{+1.6e-14})
-      where the cumulative sum saturates near \eqn{1}, values which
-      \code{qdelap} correctly rejects as \code{NaN} if fed back in. All
-      log-space cumulative sums are now capped at \eqn{0}, the log-space
-      image of the linear path's ceiling of \eqn{1}. Only formerly invalid
-      (positive) values change.
+      This summation is used only once the survival probability is small enough
+      that the ordinary complement \eqn{1 - \textrm{CDF}} would lose meaningful
+      precision (below \eqn{\sqrt{\epsilon} \approx 1.49 \times
+      10^{-8}}{sqrt(EPS) ~ 1.49e-8}). Since the summation's remainder-bound
+      safeguard gives it an \eqn{O(\beta^2)}{O(beta^2)} worst-case cost, it is
+      reserved for where it is genuinely needed.
+      
+      \item \strong{Breaking:} \code{pdelap} with \code{log.p = TRUE} previously
+      computed the linear-space CDF/survival first and took \code{log()} of the
+      result, so any value that underflowed to exactly 0 in the deep tail
+      silently returned \code{-Inf} even though the true log-probability is
+      finite. \code{log.p = TRUE} is now computed directly in log space
+      throughout, matching the log-space guarantee
+      \code{ddelap(..., log = TRUE)} already provides, and is accurate to near
+      full double precision even where the linear-space value underflows.
 
-      \item \strong{Breaking:} \code{pdelap} with \code{log.p = TRUE} now
-      derives log-probabilities in the saturated bands -- log-CDF values
-      within about \code{sqrt(.Machine$double.eps)} of \eqn{0}, and their
-      log-survival mirror -- from the opposite, relatively accurate side via
+      \code{pdelap} derives log-probabilities in the saturated bands---log-CDF
+      values within about \code{sqrt(.Machine$double.eps)} of \eqn{0}, and their
+      log-survival mirror---from the opposite, relatively accurate side via
       \code{log1p(-exp(.))} rather than reporting the accumulation's own
-      rounding noise. On the log scale those values were previously wrong by
-      orders of magnitude (a true \code{-4.1e-24} could surface as
-      \code{-4.7e-10}, and a representable \code{-8.8e-18} log-survival as
-      exactly \code{0}); they now agree with an independent
-      \code{\link[stats:NegBinomial]{dnbinom}}\eqn{\ast}{*}
-      \code{\link[stats:Poisson]{dpois}}
-      convolution oracle to about \code{1e-13} relative. As probabilities the
-      old values were already accurate to an ulp, so linear-scale results are
-      unaffected, as is everything outside the bands (bitwise-verified). All
-      three computational routes (recurrence table, degenerate-ratio
-      elemental fill, and vector-parameter recycling) apply the same repair.
-      A consequence is that \code{qdelap}/\code{pdelap} round trips with
-      \code{log.p = TRUE} are now exact in both tails wherever the input is
-      representable.
+      rounding noise. On the log scale those values now agree with an
+      independent \code{\link[stats:NegBinomial]{dnbinom}}\eqn{\ast}{*}
+      \code{\link[stats:Poisson]{dpois}} convolution oracle to about
+      \code{1e-13} relative. In linear space, the original algorithm was already
+      accurate to an \acronym{ulp}, so linear-scale results are unaffected, as
+      is everything outside the bands. All three computational
+      routes---recurrence table, degenerate-ratio elemental fill, and
+      vector-parameter recycling---apply the same repair. A consequence is
+      that \code{qdelap}/\code{pdelap} round trips with \code{log.p = TRUE} are
+      now exact in both tails wherever the input is representable.
       
-      \item \strong{Breaking:} The non-exact version of \code{qdelap} now
-      pre-allocates the result vector at full length first and then assigns the
-      \code{NaN}, \code{Inf}, 0, or proper value for each category. This ensures
-      that element \code{i} of the output always corresponds to element \code{i}
-      of the input. Prior method may have scrambled the "valid" inputs if there
-      were non-valid inputs in the source.
-      
-      \item \strong{Breaking:} \code{qdelap} for probabilities extremely close
-      to 1 combined with highly overdispersed parameters previously returned an
-      incorrect value instead of the true quantile. The internal lookup table's
-      linear-space cumulative sum can accumulate enough rounding error near 1
-      that it never reaches such a probability no matter how large the table
-      grows; the doubling loop had no way to distinguish this from \dQuote{not
-      built far enough yet}, so it kept doubling toward its 2^30-row ceiling
-      and, on reaching it, silently returned the ceiling itself as though it
-      were the answer (e.g. \code{qdelap(1 - 1e-12, 5, 5, 7000)} returned
-      \code{1073741824}, taking upwards of twenty seconds and multiple
-      gigabytes of memory to do so). The true quantile is finite and is now
-      found directly from the accurate upper-tail survival instead of the
-      saturating cumulative sum. The example above now returns \code{7630}
-      instantly. Ordinary probabilities are unaffected.
+      \item \strong{Breaking:} \code{qdelap} for probabilities within
+      accumulated rounding of \eqn{1} combined with highly overdispersed
+      parameters previously ground its lookup-table build indefinitely,
+      as the cumulative sum plateaus below such targets no matter how far it
+      extends. These targets are now resolved from the accurate upper-tail
+      survival table, returning the true finite quantile instantly.
+      For example, \code{qdelap(1 - 1e-12, 5, 5, 7000)} now returns \code{7630}.
+      Ordinary probabilities are unaffected.
       
       \item \strong{Breaking:} \code{qdelap} with \code{lower.tail = FALSE}
       and/or \code{log.p = TRUE} now searches in the native space of the
@@ -161,59 +126,55 @@
       probabilities below machine epsilon to exactly \code{1}, returning
       \code{Inf} where \code{\link[stats:Poisson]{qpois}} resolves a finite
       quantile, and the old \code{exp()} of log-probabilities collapsed deep
-      log-space targets the same way; near-1 targets were inflated by an ulp,
-      stepping round-tripped quantiles up by one. Upper-tail targets are now
-      searched against a survival table built exactly as \code{pdelap}
-      builds one, and log-space targets against log-probability tables
-      accumulated by streaming log-sum-exp, so, for example,
-      \code{qdelap(1e-18, 1, 0.1, 0.05, lower.tail = FALSE)} returns
-      \code{17} and \code{qdelap(-1000, 1, 0.1, 0.05, lower.tail = FALSE,
-      log.p = TRUE)} returns \code{417}, each verified by bracketing against
-      \code{pdelap}. Base \R{} \eqn{\geq}{>=} 4.1 searches its discrete
-      quantiles natively for the same reason. The default
-      (\code{lower.tail = TRUE}, \code{log.p = FALSE}) path is
-      bitwise-unchanged. Interior search targets carry one-sided tolerances
-      sized to their measured noise sources, in the spirit of base \R's
-      \code{64 * EPS} fuzz in \file{qpois.c}; the vector-parameter path
-      retains base \R's fuzz verbatim.
+      log-space targets the same way; near-1 targets were inflated by an
+      \acronym{ulp}, stepping round-tripped quantiles up by one. Upper-tail
+      targets are now searched against a survival table built as \code{pdelap},
+      and log-space targets against log-probability tables accumulated by
+      streaming log-sum-exp. The default (\code{lower.tail = TRUE},
+      \code{log.p = FALSE}) path is bitwise-unchanged. Interior search targets
+      carry one-sided tolerances sized to their measured noise sources, in the
+      spirit of base \R's \code{64 * EPS} fuzz in \file{qpois.c}. The
+      vector-parameter path retains base \R's fuzz verbatim.
+      
+      \item \strong{Breaking:} The non-exact version of \code{qdelap} now
+      pre-allocates the result vector at full length first and then assigns the
+      \code{NaN}, \code{Inf}, 0, or proper value for each category. This ensures
+      that element \code{i} of the output always corresponds to element \code{i}
+      of the input. Previously, the return may have scrambled the "valid" inputs
+      if there were non-valid values in the input.
       
       \item \strong{Breaking:} Extreme parameter sets whose quantiles are
-      computationally unreachable no longer hang. The explicit-summation
-      fallback used when the recurrence table would overflow costs
-      \eqn{O(\textrm{answer}^2)}{O(answer^2)} (measured: cleanly quadratic,
-      about a second per six thousand support points on the test machine), so
-      past \eqn{2^{15}}{2^15} summation steps \code{qdelap} now returns
+      computationally unreachable no longer hang. The original
+      explicit-summation algorithm, now used when the recurrence table would
+      overflow, costs \eqn{O(\textrm{answer}^2)}{O(answer^2)}. Past
+      \eqn{2^{15}}{2^15} summation steps \code{qdelap} now returns
       \code{NaN} for the unresolved targets with the warning
       \dQuote{quantile too large to compute exactly for these parameter
-      values; NaN returned}. A truncated cumulative sum carries no
-      information about a quantile beyond it, so no estimate is attempted;
-      the parameter sets involved generally put the true quantile beyond
-      \eqn{2^{53}}{2^53}, where a count is no longer exactly representable in
-      a double in any case. Targets the partial sum \emph{did} resolve,
-      including the \eqn{p = 0} and \eqn{p = 1} boundaries, still answer
-      normally. The internal table ceiling was likewise lowered from
-      \eqn{2^{30}}{2^30} to \eqn{2^{27}}{2^27} support points (about 1GB per
-      working vector) to bound memory on pathological deep-tail log targets.
+      values; NaN returned}, as a truncated cumulative sum carries no
+      information about a quantile beyond it. The parameter sets involved
+      generally put the true quantile beyond \eqn{2^{53}}{2^53}, where a count
+      is no longer exactly representable as a double in any case. Targets the
+      partial sum \emph{did} resolve, including the \eqn{p = 0} and \eqn{p = 1}
+      boundaries, still return normally.
 
       \item For \eqn{x \geq 2^{63}}, including +\code{Inf}, the functions no
       longer convert \code{x} to an integer kind which it then overflows.
       Instead, they return 0 or \code{-Inf} directly.
 
-      \item Trapping for 0-length parameters in both C and \R prevents a
-      segfault in Fortran.
-
+      \item Zero-length parameters now return zero-length results in
+      \code{p/d/qdelap} per base \R. This is not considered breaking as it used
+      to fail with a segfault from Fortran.
+      
+      \item Zero-length parameters in \code{rdelap} now return \code{NaN}s per
+      base \R. This is not considered breaking as it used to fail with a
+      segfault from Fortran.
+      
       \item \code{qdelap} and \code{rdelap} with a \code{NaN} scalar parameter
       previously looped indefinitely while consuming memory. Now they return
       \code{NaN} with a warning, matching \code{pdelap}.
       
       \item Prevented \code{qdelap} from overwriting passed \code{p} vector
       within Fortran, preserving the \code{.Call} contract.
-      
-      \item \code{qdelap} survival targets within about
-      \code{sqrt(.Machine$double.eps)} of \eqn{1} (and their log images) are
-      now resolved through the forward \acronym{CDF} via the exact complement
-      -- the mirror image of \code{pdelap}'s internal tail-switch rule --
-      returning the finite quantile \code{qpois} would, instead of \code{0}.
       
       \item The approximate form of \code{qdelap}, which has much less utility
       now (see documentation), will always generate at least 10,000 variates for
@@ -222,38 +183,11 @@
   }
   \subsection{Changed}{
     \itemize{
-      \item \strong{Breaking:} \code{ddelap}, \code{pdelap}, \code{qdelap}, and 
-      \code{rdelap} with singleton parameters now build their \acronym{PMF} and
-      \acronym{CDF} tables using a three-term recurrence relationship derived
-      from the Delaporte distribution's probability generating function.
-      This takes \eqn{O(K)} arithmetic operations instead of \eqn{O(K^2)}
-      \code{log_gamma}/\code{exp} evaluations. Masses whose leading term
-      underflows---roughly \eqn{\lambda + \alpha\log(1+\beta) > 745}---are
-      handled by internal rescaling, allowing accuracy to be retained for very
-      large \eqn{\lambda}. This is why the change is considered \emph{breaking}.
-      Some results that formerly returned an error may not do so now.
-      Parameters extreme enough to risk overflow in the recurrence fall back to
-      the summation algorithm, and vector-valued parameters continue to use the
-      per-element path.
-      
-      \item \strong{Breaking:} \code{ddelap} with \code{log = TRUE} and
-      singleton parameters builds its table directly in log space, preserving
-      finite deep-tail log-probabilities where the linear-space mass underflows
-      to zero. This is considered \emph{breaking} as some results that formerly
-      returned an error may not do so now.
-      
       \item \strong{Breaking:} Both the exact and approximate versions of
       \code{qdelap} now return \code{NaN} with a warning for probabilities
-      strictly greater than one, following \code{qpois}, \code{qnbinom}, etc. in
-      base \R. The function returns \code{Inf} only for probabilities exactly
-      equal to one. Prior behavior was that all probabilities \eqn{\ge 1}
-      returned \code{Inf}.
-      
-      \item \strong{Breaking:} Zero-length parameters now return zero-length
-      results in \code{p/d/qdelap} per base \R. Prior behavior was a segfault.
-      
-      \item \strong{Breaking:} Zero-length parameters in \code{rdelap} now
-      return \code{NaN}s per base \R. Prior behavior was a segfault.
+      strictly greater than one, following base \R convention. The function
+      returns \code{Inf} only for probabilities exactly equal to one.
+      Prior behavior was that all probabilities \eqn{\ge 1} returned \code{Inf}.
       
       \item \strong{Breaking:} \code{setDelapThreads} no longer calls
       \code{omp_set_num_threads}, and \code{getDelapThreads} no longer calls
@@ -265,6 +199,31 @@
       from the OpenMP runtime default, which respects \env{OMP_NUM_THREADS} and
       \env{OMP_THREAD_LIMIT}.
       
+      \item As the singleton-parameter \acronym{CDF} build is no longer
+      quadratic, the maximum \code{q} for \code{pdelap}'s fast path was
+      raised from \eqn{2^{14}} to \eqn{2^{24}}, and the interactive
+      confirmation prompt now guards only the genuinely slow routes:
+      vector-valued parameters with \code{q} at or above \eqn{2^{15}}, or any
+      \code{q} at or above \eqn{2^{24}}. When not interactive, \code{pdelap}
+      checks the new (and undocumented) \code{Delaporte.maxq} option in the
+      local environment and stops if the largest value exceeds the option or
+      warns if it does not. The default value is \eqn{2^{15}}.
+      
+      \item Changing \code{qdelap} to use the lookup table most of the time
+      \code{exact = TRUE} makes it orders of magnitude faster than
+      \code{exact = FALSE} for essentially all practical parameter ranges.
+      The only time where \code{exact = FALSE} may still be worth considering is
+      when the expected table length, \eqn{K = \alpha\beta + \lambda +
+      10\sqrt{\alpha\beta(1+\beta) + \lambda}}, exceeds roughly \eqn{1.5\times
+      10^{7}}{1.5e7}. Beyond that point, the exact path's memory use of ~17
+      bytes per unit of \eqn{K} begins to exceed the bounded ~330MB/2.5s cost of
+      the Monte Carlo approximation. The table size \eqn{K} depends on the
+      distribution's dispersion, not just its mean. A low mean with a high
+      overdispersion can require as large a table as a much larger,
+      near-Poisson mean. The \code{exact = FALSE} remains unavailable for
+      vector-valued parameters regardless of this threshold, as approximate
+      quantiles cannot be pooled across distinct parameter triplets.
+      
       \item \code{qdelap} and \code{rdelap} with singleton parameters now size
       their quantile lookup table from a moment-based estimate and grow it
       geometrically, replacing element-by-element growth whose copying was
@@ -273,26 +232,11 @@
       round trip is preserved bitwise. They now also locate quantiles in the
       sorted CDF vector by a binary search instead of a linear scan.
       
-      \item Changing \code{qdelap} to use the lookup table most of the time
-      \code{exact = TRUE} makes it orders of magnitude faster than
-      \code{exact = FALSE} for essentially all practical parameter ranges.
-      The only time where \code{exact = FALSE} may still be worth considering is
-      when the expected table length, \eqn{K = \alpha\beta + \lambda +
-      10\sqrt{\alpha\beta(1+\beta) + \lambda}}, exceeds roughly \eqn{1.5\times
-      10^{7}}{1.5e7}. Beyond that point, the exact path's memory use of ~17 bytes
-      per unit of K begins to exceed the bounded ~330MB/2.5s cost of the Monte
-      Carlo approximation. The table size \eqn{K} depends on the distribution's
-      dispersion, not just its mean. A low mean with a high overdispersion can
-      require as large a table as a much larger, near-Poisson mean.
-      The \code{exact = FALSE} remains unavailable for vector-valued parameters
-      regardless of this threshold, as approximate quantiles cannot be pooled
-      across distinct parameter triplets.
-      
       \item \code{MoMdelap} now checks that at least 3 values are passed to it,
       none of which are \code{NA}, otherwise it will error. This is not
       considered breaking as it used to fail with a different error which
-      propagated from the Fortran (missing value where TRUE/FALSE needed). Now
-      it never triggers a Fortran call.
+      propagated from Fortran (missing value where TRUE/FALSE needed). Now it
+      never triggers a Fortran call.
       
       \item Cleaned \file{Makevars} from unneeded calls to \acronym{BLAS} and
       \acronym{LAPACK} libraries.
@@ -309,16 +253,6 @@
       and using the modern bind(C) interface to call back-and-forth between C
       and Fortran instead of the older F77 idiom.
       
-      \item As the singleton-parameter \acronym{CDF} build is no longer
-      quadratic, the maximum \code{q} for \code{pdelap}'s fast path was
-      raised from \eqn{2^{14}} to \eqn{2^{24}}, and the interactive
-      confirmation prompt now guards only the genuinely slow routes:
-      vector-valued parameters with \code{q} at or above \eqn{2^{15}}, or any
-      \code{q} at or above \eqn{2^{24}}. When not interative, \code{pdelap}
-      checks the new (and undocumented) \code{Delaporte.maxq} option in the
-      local environment and stops if the largest value exceeds the option or
-      warns if it does not. The default value is \eqn{2^{15}}.
-      
       \item The manual now documents the package's accuracy limits at the
       representation edges: the context dependence of \code{lower.tail =
       FALSE} values at the level of their accumulated rounding, the
@@ -327,6 +261,9 @@
       convention (and consequent deep-tail saturation) of vector-parameter
       \code{qdelap}, and the cost profile of deep upper-tail log-scale
       quantiles at high dispersion.
+      
+      \item Updated unit tests and documentation for the changes and fixed a
+      number of spelling and grammar mistakes.
     }
   }
   \subsection{Removed}{

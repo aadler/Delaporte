@@ -136,17 +136,10 @@ change to their results, other than increased speed and fewer failures.
       spirit of base \R's \code{64 * EPS} fuzz in \file{qpois.c}. The
       vector-parameter path retains base \R's fuzz verbatim.
       
-      \item \strong{Breaking:} The non-exact version of \code{qdelap} now
-      pre-allocates the result vector at full length first and then assigns the
-      \code{NaN}, \code{Inf}, 0, or proper value for each category. This ensures
-      that element \code{i} of the output always corresponds to element \code{i}
-      of the input. Previously, the return may have scrambled the "valid" inputs
-      if there were non-valid values in the input.
-      
-      \item \strong{Breaking:} Extreme parameter sets whose quantiles are
-      computationally unreachable no longer hang. The original
-      explicit-summation algorithm, now used when the recurrence table would
-      overflow, costs \eqn{O(\textrm{answer}^2)}{O(answer^2)}. Past
+      \item \strong{Breaking:} \code{qdelap} no longer hangs when passed extreme
+      parameter sets whose quantiles are computationally unreachable. The
+      original explicit-summation algorithm, now used when the recurrence table
+      would overflow, costs \eqn{O(\textrm{answer}^2)}{O(answer^2)}. Past
       \eqn{2^{15}}{2^15} summation steps \code{qdelap} now returns
       \code{NaN} for the unresolved targets with the warning
       \dQuote{quantile too large to compute exactly for these parameter
@@ -156,7 +149,20 @@ change to their results, other than increased speed and fewer failures.
       is no longer exactly representable as a double in any case. Targets the
       partial sum \emph{did} resolve, including the \eqn{p = 0} and \eqn{p = 1}
       boundaries, still return normally.
-
+      
+      \item \strong{Breaking:} The approximate form of \code{qdelap}, which has
+      much less utility now (see documentation), will always generate at least
+      10,000 variates for pooling. It remains capped at no more than 10M
+      variates. Prior behavior for pathologically tiny means (~1e-12) could have
+      resulted in no variants being generated and an NA return.
+      
+      \item \strong{Breaking:} The approximate form of \code{qdelap} now
+      pre-allocates the result vector at full length first and then assigns the
+      \code{NaN}, \code{Inf}, 0, or proper value for each category. This ensures
+      that element \code{i} of the output always corresponds to element \code{i}
+      of the input. Previously, the return may have scrambled the "valid" inputs
+      if there were non-valid values in the input.
+      
       \item For \eqn{x \geq 2^{63}}, including +\code{Inf}, the functions no
       longer convert \code{x} to an integer kind which it then overflows.
       Instead, they return 0 or \code{-Inf} directly.
@@ -175,10 +181,6 @@ change to their results, other than increased speed and fewer failures.
       
       \item Prevented \code{qdelap} from overwriting passed \code{p} vector
       within Fortran, preserving the \code{.Call} contract.
-      
-      \item The approximate form of \code{qdelap}, which has much less utility
-      now (see documentation), will always generate at least 10,000 variates for
-      pooling. It remains capped at no more than 10M variates.
     }
   }
   \subsection{Changed}{

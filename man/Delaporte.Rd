@@ -90,10 +90,27 @@ double summation for each entry in \eqn{q}.
 \subsection{Density and Distribution}{
 \code{ddelap} will return 0 for all values \eqn{> 2^{31}}{> 2^31} whereas
 \code{pdelap} will not run at all, due to the limitations of integer
-representation. Also, for values \eqn{> 2^{15}}{> 2^14}, \code{pdelap} will ask
+representation. Also, for values \eqn{> 2^{15}}{> 2^15}, \code{pdelap} will ask
 for positive input from the user to continue, as otherwise, depending on the
 parameters, the function can take hours to complete given its double-summation
 nature.
+
+\code{ddelap} with \code{log = TRUE} and \code{pdelap} with \code{log.p = TRUE}
+compute log-probabilities directly in log space rather than taking \code{log()}
+of a linear-space result, so deep-tail log-probabilities and
+log-CDF/log-survival values remain accurate to near full double precision even
+where the corresponding linear-space value underflows to \code{0}. For example,
+\code{pdelap(2000, 1, 1, 1, lower.tail = FALSE, log.p = TRUE)} returns
+approximately \code{-1386} rather than \code{-Inf}.
+
+\code{pdelap} with \code{lower.tail = FALSE} likewise computes the survival
+function by direct tail summation once it is small enough that
+\eqn{1 - \textrm{CDF}} would lose precision to catastrophic cancellation, rather
+than always subtracting from \eqn{1}. Near the opposite ends of the
+range---log-CDF values within roughly \code{sqrt(.Machine$double.eps)} of
+\eqn{0} and their log-survival mirror---\code{pdelap} derives the value from the
+complementary tail via \code{log1p(-exp(.))}, so log-scale results remain
+accurate to near full double precision throughout both saturated bands.
 }
 \subsection{Quantile}{
 The quantile function, \code{qdelap}, is right continuous:
@@ -149,6 +166,23 @@ current algorithm, and was in any case based on the mean alone rather than
 Both versions return \code{NaN} for quantiles \eqn{< 0} or \eqn{> 1}, \eqn{0}
 for quantiles \eqn{= 0}, and \code{Inf} for quantiles exactly \eqn{= 1},
 following the conventions of \code{\link[stats:Poisson]{qpois}}.
+
+\code{qdelap} with \code{lower.tail = FALSE} and/or \code{log.p = TRUE} searches
+in the native space of the supplied probabilities, so survival and log-scale
+targets resolve at their full representable depth. Round trips through
+\code{pdelap} in the same mode are exact wherever the probability is
+representable.
+
+Parameter sets extreme enough to defeat the internal recurrence table are
+handled by explicit summation whose cost grows with the \emph{square} of
+the answer. When the true quantile is computationally unreachable that
+way -- in practice, when it exceeds \eqn{2^{15}}{2^15}, and such parameter
+sets generally place it beyond \eqn{2^{53}}{2^53}, past exact integer
+representation in a double -- \code{qdelap} returns \code{NaN} for the
+affected entries with the warning \dQuote{quantile too large to compute
+exactly for these parameter values; NaN returned}, rather than an
+arbitrarily wrong bound. Entries the summation did resolve, and the
+\eqn{p = 0} and \eqn{p = 1} boundaries, are returned normally.
 }
 \subsection{Random Variate Generation}{
 The random variate generator, \code{rdelap}, also has multiple versions. When
@@ -190,6 +224,9 @@ non-normal distributions.
   \code{qdelap} and \code{rdelap}, having a value close to 0 will trip an error,
   sending the user to the exact version which currently properly handles
   vector-based inputs which contain 0.
+  
+  \code{MoMdelap} returns a triplet comprising a method-of-moments based
+  estimate of \eqn{\alpha}, \eqn{\beta}, and \eqn{\lambda}.
 
   Arguments to \code{ddelap} and \code{pdelap} that fall below the support
   (negative values and \code{-Inf}) return \code{0} for the density and the
@@ -202,21 +239,40 @@ non-normal distributions.
   for \code{pdelap}, \code{p} for \code{qdelap}, and \code{n} for \code{rdelap}.
   The distributional parameters (\eqn{\alpha, \beta, \lambda}) are recycled as
   necessary to the length of the result.
-  
-  \code{ddelap} with \code{log = TRUE} and \code{pdelap} with \code{log.p =
-  TRUE} compute log-probabilities directly in log space rather than taking
-  \code{log()} of a linear-space result, so deep-tail log-probabilities and
-  log-CDF/log-survival values remain accurate to near full double precision
-  even where the corresponding linear-space value underflows to \code{0}
-  (e.g. \code{pdelap(2000, 1, 1, 1, lower.tail = FALSE, log.p = TRUE)} returns
-  approximately \code{-1386} rather than \code{-Inf}). \code{pdelap} with
-  \code{lower.tail = FALSE} likewise computes the survival function by direct
-  tail summation once it is small enough that \eqn{1 - \textrm{CDF}} would
-  lose precision to catastrophic cancellation, rather than always subtracting
-  from \code{1}.
-  
-  \code{MoMdelap} returns a triplet comprising a method-of-moments based
-  estimate of \eqn{\alpha}, \eqn{\beta}, and \eqn{\lambda}.
+}
+\section{A Note on Accuracy}{
+Three limits at the edges of double-precision representation are inherent to
+these algorithms.
+
+First, \code{pdelap} with \code{lower.tail = FALSE} builds its survival values
+by backward accumulation over an internal table sized to \code{max(q)}, so a
+given survival probability may differ, at the level of its accumulated rounding,
+where the survival is derived from \eqn{1 - \textrm{CDF}}{1 - CDF}), depending
+on the other elements of \code{q} supplied in the same call. The relative
+rounding error is of order \code{K * .Machine$double.eps} for a table of length
+\eqn{K}, and up to about \code{sqrt(.Machine$double.eps)}.
+
+Second, in \emph{linear} space (\code{log.p = FALSE}), survival targets within
+about \code{K * .Machine$double.eps} of \eqn{1} sit below the accumulation's
+resolution, and targets within about \code{sqrt(.Machine$double.eps)} of \eqn{1}
+may round-trip through \code{qdelap} one support point high. Log-space inputs
+are not subject to either limit.
+
+Third, \code{qdelap} with vector-valued parameters follows base \R's
+linear-space convention (transforming log and upper-tail probabilities before
+searching, with base \R's \code{64 * EPS} fuzz), so deep-tail \code{log.p} and
+\code{lower.tail = FALSE} targets saturate there in the same way base \R's
+quantile functions did before \R{} 4.1; the full-depth native-space search
+applies to scalar parameters only.
+}
+\section{Performance}{
+Deep upper-tail quantiles on the log scale are exact but not free: the internal
+table must extend until the log-survival reaches the target, so the cost of
+\code{qdelap(lp, ..., lower.tail = FALSE, log.p = TRUE)} grows with \eqn{|lp|}
+divided by the tail's decay rate \eqn{\log((1+\beta)/\beta)}{log((1 + beta) /
+beta)}. At high dispersion this is material: with \eqn{\beta = 40}, a target of
+\code{-2000} requires a table of roughly \eqn{8 \times 10^4}{8e4} support points
+and several seconds of direct tail summation for its seeds.
 }
 \author{Avraham Adler \email{Avraham.Adler@gmail.com}}
 \references{

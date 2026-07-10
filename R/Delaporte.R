@@ -2,11 +2,6 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 ddelap <- function(x, alpha, beta, lambda, log = FALSE) {
-  # FIX #1: Zero-length parameter vectors previously reached the Fortran
-  # recycling helper imk(), where mod(i - 1, 0) is an integer division by zero
-  # -> SIGFPE -> the entire R process dies. Guard here and return numeric(0),
-  # matching base R semantics (dpois(1, numeric(0)) -> numeric(0)). Zero-length
-  # x is also handled explicitly for symmetry and to skip a pointless .Call.
   if (length(alpha) == 0 || length(beta) == 0 || length(lambda) == 0) {
     return(double())
   }
@@ -21,8 +16,6 @@ ddelap <- function(x, alpha, beta, lambda, log = FALSE) {
 }
 
 pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE) {
-  # Matches R convention to return 0 length result for 0 length parameter. Also
-  # Prevents segfault in Fortran.
   if (length(alpha) == 0 || length(beta) == 0 || length(lambda) == 0) {
     return(double())
   }
@@ -34,13 +27,6 @@ pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE) {
     stop("Function cannot handle values >= 2^63.")
   }
   
-  # The interactive gate now only guards the genuinely slow routes. With
-  # scalar parameters the CDF table is built by an O(K) recurrence
-  # (ddelap_table in delaporte.f90), so values up to MAXVECSIZE = 2^24
-  # compute in milliseconds and need no gate. What remains quadratic, and
-  # therefore still gated at the old 2^15 threshold, is the per-element
-  # summation path, taken when any parameter is vector-valued or when q
-  # exceeds 2^24.
   slowpath <- length(alpha) > 1L || length(beta) > 1L || length(lambda) > 1L
   qmax <- suppressWarnings(max(q[is.finite(q)], -Inf))
   if ((slowpath && qmax >= 2 ^ 15) || qmax >= 2 ^ 24) {
@@ -75,8 +61,6 @@ pdelap <- function(q, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE) {
 
 qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE,
                    exact = TRUE) {
-  # Matches R convention to return 0 length result for 0 length parameter. Also
-  # Prevents segfault in Fortran.
   if (length(alpha) == 0 || length(beta) == 0 || length(lambda) == 0) {
     return(double())
   }
@@ -109,10 +93,8 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE,
     QDLAP[p == 1] <- Inf
     QDLAP[p > 1] <- NaN
     if (any(validIdx)) {
-      n <- min(10 ^ (ceiling(log(alpha * beta + lambda, 10)) + 5), 1e7)
-      # Pathologically tiny means (e.g. 1e-12) used to generate n < 1 so
-      # returned NA.
-      n <- max(n, 1e4) 
+      n <- max(min(10 ^ (ceiling(log(alpha * beta + lambda, 10)) + 5), 1e7),
+               1e4)
       shiftedGammas <- rgamma(n, shape = alpha, scale = beta)
       DP <- rpois(n, lambda = (shiftedGammas + lambda))
       QDLAP[validIdx] <- as.vector(quantile(DP, p[validIdx],
@@ -124,13 +106,10 @@ qdelap <- function(p, alpha, beta, lambda, lower.tail = TRUE, log.p = FALSE,
 }
 
 rdelap <- function(n, alpha, beta, lambda, exact = TRUE) {
-  # Follow base R convention (e.g. rpois): a vector n means length(n)
-  # variates, and NA or negative n is an error.
   if (length(n) > 1L) n <- length(n) else n <- as.integer(n)
   if (is.na(n) || n < 0L) {
     stop("invalid arguments")
   }
-  # Zero-length parameters produce NAs with a warning, mirroring base R.
   if (length(alpha) == 0L || length(beta) == 0L || length(lambda) == 0L) {
     warning("NaNs produced")
     return(rep.int(NaN, n))

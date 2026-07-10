@@ -983,7 +983,7 @@ contains
 !                 this index gives it exactly as log1p(-exp(log F)). The band is
 !                 a prefix, so once entered every remaining index substitutes;
 !                 the one accumulation step that consumes a substituted
-!                 neighbour is the same pattern as the seed rule above and stays
+!                 neighbor is the same pattern as the seed rule above and stays
 !                 capped.
 !-------------------------------------------------------------------------------
 

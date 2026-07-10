@@ -103,6 +103,34 @@
       wide) where the complement's own accuracy (about 1e-13 relative) already
       matches what the direct sum bought.
       
+      \item \strong{Breaking:} \code{pdelap} with \code{log.p = TRUE} could
+      return \emph{positive} log-probabilities (up to about \code{+1.6e-14})
+      where the cumulative sum saturates near \eqn{1}, values which
+      \code{qdelap} correctly rejects as \code{NaN} if fed back in. All
+      log-space cumulative sums are now capped at \eqn{0}, the log-space
+      image of the linear path's ceiling of \eqn{1}. Only formerly invalid
+      (positive) values change.
+
+      \item \strong{Breaking:} \code{pdelap} with \code{log.p = TRUE} now
+      derives log-probabilities in the saturated bands -- log-CDF values
+      within about \code{sqrt(.Machine$double.eps)} of \eqn{0}, and their
+      log-survival mirror -- from the opposite, relatively accurate side via
+      \code{log1p(-exp(.))} rather than reporting the accumulation's own
+      rounding noise. On the log scale those values were previously wrong by
+      orders of magnitude (a true \code{-4.1e-24} could surface as
+      \code{-4.7e-10}, and a representable \code{-8.8e-18} log-survival as
+      exactly \code{0}); they now agree with an independent
+      \code{\link[stats:NegBinomial]{dnbinom}}\eqn{\ast}{*}
+      \code{\link[stats:Poisson]{dpois}}
+      convolution oracle to about \code{1e-13} relative. As probabilities the
+      old values were already accurate to an ulp, so linear-scale results are
+      unaffected, as is everything outside the bands (bitwise-verified). All
+      three computational routes (recurrence table, degenerate-ratio
+      elemental fill, and vector-parameter recycling) apply the same repair.
+      A consequence is that \code{qdelap}/\code{pdelap} round trips with
+      \code{log.p = TRUE} are now exact in both tails wherever the input is
+      representable.
+      
       \item \strong{Breaking:} The non-exact version of \code{qdelap} now
       pre-allocates the result vector at full length first and then assigns the
       \code{NaN}, \code{Inf}, 0, or proper value for each category. This ensures
@@ -124,6 +152,47 @@
       found directly from the accurate upper-tail survival instead of the
       saturating cumulative sum. The example above now returns \code{7630}
       instantly. Ordinary probabilities are unaffected.
+      
+      \item \strong{Breaking:} \code{qdelap} with \code{lower.tail = FALSE}
+      and/or \code{log.p = TRUE} now searches in the native space of the
+      supplied probabilities instead of transforming them to linear
+      lower-tail space first. The old \code{1 - p} flip collapsed survival
+      probabilities below machine epsilon to exactly \code{1}, returning
+      \code{Inf} where \code{\link[stats:Poisson]{qpois}} resolves a finite
+      quantile, and the old \code{exp()} of log-probabilities collapsed deep
+      log-space targets the same way; near-1 targets were inflated by an ulp,
+      stepping round-tripped quantiles up by one. Upper-tail targets are now
+      searched against a survival table built exactly as \code{pdelap}
+      builds one, and log-space targets against log-probability tables
+      accumulated by streaming log-sum-exp, so, for example,
+      \code{qdelap(1e-18, 1, 0.1, 0.05, lower.tail = FALSE)} returns
+      \code{17} and \code{qdelap(-1000, 1, 0.1, 0.05, lower.tail = FALSE,
+      log.p = TRUE)} returns \code{417}, each verified by bracketing against
+      \code{pdelap}. Base \R{} \eqn{\geq}{>=} 4.1 searches its discrete
+      quantiles natively for the same reason. The default
+      (\code{lower.tail = TRUE}, \code{log.p = FALSE}) path is
+      bitwise-unchanged. Interior search targets carry one-sided tolerances
+      sized to their measured noise sources, in the spirit of base \R's
+      \code{64 * EPS} fuzz in \file{qpois.c}; the vector-parameter path
+      retains base \R's fuzz verbatim.
+      
+      \item \strong{Breaking:} Extreme parameter sets whose quantiles are
+      computationally unreachable no longer hang. The explicit-summation
+      fallback used when the recurrence table would overflow costs
+      \eqn{O(\textrm{answer}^2)}{O(answer^2)} (measured: cleanly quadratic,
+      about a second per six thousand support points on the test machine), so
+      past \eqn{2^{15}}{2^15} summation steps \code{qdelap} now returns
+      \code{NaN} for the unresolved targets with the warning
+      \dQuote{quantile too large to compute exactly for these parameter
+      values; NaN returned}. A truncated cumulative sum carries no
+      information about a quantile beyond it, so no estimate is attempted;
+      the parameter sets involved generally put the true quantile beyond
+      \eqn{2^{53}}{2^53}, where a count is no longer exactly representable in
+      a double in any case. Targets the partial sum \emph{did} resolve,
+      including the \eqn{p = 0} and \eqn{p = 1} boundaries, still answer
+      normally. The internal table ceiling was likewise lowered from
+      \eqn{2^{30}}{2^30} to \eqn{2^{27}}{2^27} support points (about 1GB per
+      working vector) to bound memory on pathological deep-tail log targets.
 
       \item For \eqn{x \geq 2^{63}}, including +\code{Inf}, the functions no
       longer convert \code{x} to an integer kind it which it then overflows.
@@ -138,6 +207,12 @@
       
       \item Prevented \code{qdelap} from overwriting passed \code{p} vector
       within Fortran, preserving the \code{.Call} contract.
+      
+      \item \code{qdelap} survival targets within about
+      \code{sqrt(.Machine$double.eps)} of \eqn{1} (and their log images) are
+      now resolved through the forward \acronym{CDF} via the exact complement
+      -- the mirror image of \code{pdelap}'s internal tail-switch rule --
+      returning the finite quantile \code{qpois} would, instead of \code{0}.
       
       \item The approximate form of \code{qdelap}, which has much less utility
       now (see documentation), will always generate at least 10,000 variates for
@@ -244,6 +319,15 @@
       \code{Delaporte.maxq} option in the local environment and stops if the
       largest value exceeds the option or warns if it does not. The default
       value is \eqn{2^{15}}.
+      
+      \item The manual now documents the package's accuracy limits at the
+      representation edges: the context dependence of \code{lower.tail =
+      FALSE} values at the level of their accumulated rounding, the
+      \eqn{\pm 1}{+/-1} round-trip shoulder for survival targets within about
+      \code{sqrt(.Machine$double.eps)} of \eqn{1}, the linear-space
+      convention (and consequent deep-tail saturation) of vector-parameter
+      \code{qdelap}, and the cost profile of deep upper-tail log-scale
+      quantiles at high dispersion.
     }
   }
   \subsection{Removed}{

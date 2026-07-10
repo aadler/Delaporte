@@ -45,9 +45,11 @@ expect_equal(qdelap(0.4, 1, 4, 2, exact = FALSE), 4, tolerance = tol)
 expect_equal(qdelap(0.4, 1, 4, 2, exact = FALSE, lower.tail = FALSE), 6,
              tolerance = tol)
 
-# Singleton approx lower.tail & log.p
-expect_equal(qdelap(-0.7, 4, 6, 3, lower.tail = TRUE, log.p = TRUE,
-                    exact = FALSE), 25, tolerance = tol)
+# Singleton approx lower.tail & log.p (mean kept small so the internal
+# pooling size n stays at 1e6 rather than its 1e7 cap; the log.p/lower.tail
+# transforms under test are independent of n)
+expect_equal(qdelap(log(0.4), 1, 4, 2, lower.tail = TRUE, log.p = TRUE,
+                    exact = FALSE), 4, tolerance = tol)
 
 # Singleton approx bad parameters
 expect_warning(qdelap(0.05, 0, 1, 2, exact = FALSE), nanWarn)
@@ -201,8 +203,8 @@ expect_identical(qdelap(numeric(0), 1, 2, 3, exact = FALSE), numeric(0))
 # (Issue #3: previously bucketed as c(qNeg, q0, qValid, qInf), scrambling the
 # result whenever categories were interleaved).
 set.seed(9174L)
-mixedApprox <- qdelap(c(0.9, 0, 0.1), 4, 6, 10, exact = FALSE)
-mixedExact <- qdelap(c(0.9, 0, 0.1), 4, 6, 10, exact = TRUE)
+mixedApprox <- qdelap(c(0.9, 0, 0.1), 1, 4, 2, exact = FALSE)
+mixedExact <- qdelap(c(0.9, 0, 0.1), 1, 4, 2, exact = TRUE)
 expect_identical(mixedApprox[2L], 0)
 expect_true(mixedApprox[1L] > mixedApprox[3L])
 expect_equal(mixedApprox, mixedExact, tolerance = 0.02)
@@ -210,17 +212,17 @@ expect_equal(mixedApprox, mixedExact, tolerance = 0.02)
 # Edge values land in the right positions even with p < 0 and p >= 1 present.
 set.seed(9174L)
 edgeApprox <- suppressWarnings(
-  qdelap(c(1, 0.5, -0.2, 0), 4, 6, 10, exact = FALSE)
+  qdelap(c(1, 0.5, -0.2, 0), 1, 4, 2, exact = FALSE)
 )
 expect_identical(edgeApprox[1L], Inf)
 expect_identical(edgeApprox[3L], NaN)
 expect_identical(edgeApprox[4L], 0)
 expect_true(is.finite(edgeApprox[2L]))
 expect_true(edgeApprox[2L] > 0)
-expect_warning(qdelap(c(1, 0.5, -0.2, 0), 4, 6, 10, exact = FALSE), nanWarn)
+expect_warning(qdelap(c(1, 0.5, -0.2, 0), 1, 4, 2, exact = FALSE), nanWarn)
 
 # All-edge-case input skips simulation but still returns correct positions.
-expect_identical(suppressWarnings(qdelap(c(0, 1, -1), 4, 6, 10, exact = FALSE)),
+expect_identical(suppressWarnings(qdelap(c(0, 1, -1), 1, 4, 2, exact = FALSE)),
                  c(0, Inf, NaN))
 
 # qdelap builds its CDF lookup with the same recurrence and accumulation
@@ -235,14 +237,16 @@ testV <- c(700, 800, 900)
 expect_equal(qdelap(pdelap(testV, 5, 3, 800), 5, 3, 800), testV,
              tolerance = tol)
 
-# A quantile at survival 1e-12 with K ~ 11700 support points is
+# A quantile at survival 1e-12 with K ~ 7900 support points is
 # ill-conditioned for any linear-space CDF accumulation (total rounding
-# ~ K * eps ~ 2.6e-12 exceeds the target), so cross-path equality cannot be
+# ~ K * eps ~ 1.75e-12 exceeds the target), so cross-path equality cannot be
 # asserted there. Assert accuracy instead, using the directly-summed upper
 # tail as the oracle: the returned quantile must land where the true
-# survival crosses 1e-12.
-qDeep <- qdelap(1 - 1e-12, 50, 100, 100)
-survDeep <- pdelap(c(qDeep, qDeep - 100), 50, 100, 100, lower.tail = FALSE)
+# survival crosses 1e-12. (Same parameter family as the stagnation
+# regression below; beta is kept moderate because the direct tail
+# summation's cost grows as 36 * beta per seed.)
+qDeep <- qdelap(1 - 1e-12, 5, 5, 7000)
+survDeep <- pdelap(c(qDeep, qDeep - 100), 5, 5, 7000, lower.tail = FALSE)
 expect_true(survDeep[1] <= 2e-12)
 expect_true(survDeep[2] > 1e-12)
 

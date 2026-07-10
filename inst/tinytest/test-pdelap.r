@@ -244,8 +244,11 @@ for (prm in list(c(5, 3, 800), c(2, 7, 1500))) {
 }
 
 # The recurrence fast path and the per-element summation path (forced by a
-# vector-valued parameter) must agree to rounding.
-qtst <- 0:400
+# vector-valued parameter) must agree to rounding. The grid is sparse on
+# purpose: each elemental point costs O(q^2), so a dense 0:400 sweep spends
+# seconds re-verifying the same branches; these points span below-mode,
+# mode, mid-range, the TAILSWITCH crossing, and the deep tail.
+qtst <- c(0:15, 20, 30, 50, 75, 100, 150, 200, 300, 400)
 expect_equal(pdelap(qtst, 4, 6, 10), pdelap(qtst, c(4, 4), 6, 10),
              tolerance = tol)
 expect_equal(pdelap(qtst, 4, 6, 10, lower.tail = FALSE),

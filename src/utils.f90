@@ -87,8 +87,8 @@ module utils
     real(kind = c_double), parameter :: THREE = 3._c_double
     real(kind = c_double), parameter :: EPS = 2.2204460492503131e-16_c_double
     real(kind = c_double), parameter :: MAXD = REAL(HUGE(1_INT64), c_double)
-    real(kind = c_int),    parameter :: ZEROi = 0_c_int
-    real(kind = c_int),    parameter :: ONEi = 1_c_int
+    integer(kind = c_int), parameter :: ZEROi = 0_c_int
+    integer(kind = c_int), parameter :: ONEi = 1_c_int
     
     ! alpha*beta above which pdelap_f routes around ddelap_table to the legacy
     ! per-element summation build. See routing comment in pdelap_f.

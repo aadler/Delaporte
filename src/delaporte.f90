@@ -969,6 +969,21 @@ contains
 !                 pdelap_f_s_log's endpoint TAILSWITCH rule extended to the
 !                 whole band, and makes qdelap_f's Taylor inversion of these
 !                 values exact rather than noise-limited.
+!
+! MIRROR BAND:   Mirror band: the CDF is below sqrt(EPS), so the linear flip
+!                 would round the survival to 1 and its log to 0; the exact
+!                 complement of the log-CDF keeps the sub-EPS resolution, as in
+!                 the table path.
+!
+!                 Mirror band repair for the survival direction: where the
+!                 forward log-CDF is below log(sqrt(EPS)) the log-survival is
+!                 within ~sqrt(EPS) of 0 and the backward accumulation can no
+!                 longer resolve it, while the still-intact forward value at
+!                 this index gives it exactly as log1p(-exp(log F)). The band is
+!                 a prefix, so once entered every remaining index substitutes;
+!                 the one accumulation step that consumes a substituted
+!                 neighbour is the same pattern as the seed rule above and stays
+!                 capped.
 !-------------------------------------------------------------------------------
 
     subroutine pdelap_f(q, nq, a, na, b, nb, l, nl, lt, lg, threads, pmfv) &
@@ -1010,12 +1025,7 @@ contains
                             if (pmfv(i) > log(TAILSWITCH)) then
                                 pmfv(i) = sdelap_f_s_log(q(i), a(imk(i, na)), &
                                 b(imk(i, nb)), l(imk(i, nl)))
-                            else if (pmfv(i) < HALF * log(EPS)) then
-                                ! Mirror band: the CDF is below sqrt(EPS),
-                                ! so the linear flip would round the
-                                ! survival to 1 and its log to 0; the exact
-                                ! complement of the log-CDF keeps the
-                                ! sub-EPS resolution, as in the table path.
+                            else if (pmfv(i) < HALF * log(EPS)) then ! Mirror
                                 pmfv(i) = log1p(-exp(pmfv(i)))
                             else
                                 pmfv(i) = log(HALF - exp(pmfv(i)) + HALF)
@@ -1025,7 +1035,7 @@ contains
                                 pmfv(i) = sdelap_f_s(q(i), a(imk(i, na)), &
                                 b(imk(i, nb)), l(imk(i, nl)))
                             else
-                                pmfv(i) = HALF - pmfv(i) + HALF   ! See dpq.h
+                                pmfv(i) = HALF - pmfv(i) + HALF
                             end if
                         end if
                     end if
@@ -1054,18 +1064,13 @@ contains
                     end do
                 end if
 
-                ! min(.., ZERO) is the log-space image of cFPe's ceiling of 1
-                ! (as in pdelap_f_s_log): near saturation the logaddexp
-                ! cumulative sum can drift a few ulp above log(1) = 0, which
-                ! is not a representable log-probability and which qdelap_f
-                ! correctly rejects as NaN if fed back in.
-                logsvec(1) = min(logpv(1), ZERO)
+                logsvec(1) = min(logpv(1), ZERO) ! log equivalent of cFPe
                 do i = 2, k + 1
                     logsvec(i) = min(logaddexp(logsvec(i - 1), logpv(i)), &
                                      ZERO)
                 end do
 
-                if (lt == ONEi) then
+                if (lt == ONEi) then !saturated-band repair
                     if (logsvec(k + 1) > log(TAILSWITCH)) then
                         srun = sdelap_f_s_log(real(k, c_double), a(1), &
                                               b(1), l(1))
@@ -1080,27 +1085,13 @@ contains
                     if (logsvec(k + 1) > log(TAILSWITCH)) then
                         logsvec(k + 1) = sdelap_f_s_log(real(k, c_double), &
                                                          a(1), b(1), l(1))
-                    else if (logsvec(k + 1) < HALF * log(EPS)) then
-                        ! Same mirror-band rule as the loop below: with the
-                        ! CDF under sqrt(EPS) the linear flip rounds the
-                        ! survival to 1 (log to 0); the exact complement of
-                        ! the log-CDF keeps the sub-EPS resolution.
+                    else if (logsvec(k + 1) < HALF * log(EPS)) then  ! Mirror
                         logsvec(k + 1) = log1p(-exp(logsvec(k + 1)))
                     else
                         logsvec(k + 1) = log(HALF - exp(logsvec(k + 1)) + HALF)
                     end if
                     do i = k, 1, -1
-                        ! Mirror band repair for the survival direction:
-                        ! where the forward log-CDF is below log(sqrt(EPS))
-                        ! the log-survival is within ~sqrt(EPS) of 0 and the
-                        ! backward accumulation can no longer resolve it,
-                        ! while the still-intact forward value at this index
-                        ! gives it exactly as log1p(-exp(log F)). The band
-                        ! is a prefix, so once entered every remaining index
-                        ! substitutes; the one accumulation step that
-                        ! consumes a substituted neighbour is the same
-                        ! pattern as the seed rule above and stays capped.
-                        if (logsvec(i) < HALF * log(EPS)) then
+                        if (logsvec(i) < HALF * log(EPS)) then     ! Mirror
                             logsvec(i) = log1p(-exp(logsvec(i)))
                         else
                             logsvec(i) = min(logaddexp(logsvec(i + 1), &
@@ -1293,9 +1284,8 @@ contains
     real(kind = c_double), intent(in)               :: pp(np)
     real(kind = c_double), intent(out)              :: obsv(np)
     real(kind = c_double), allocatable              :: p(:), svec(:), pv(:)
-    real(kind = c_double), allocatable              :: surv(:)
+    real(kind = c_double), allocatable              :: surv(:), logsurv(:)
     real(kind = c_double), allocatable              :: logpv(:), logsvec(:)
-    real(kind = c_double), allocatable              :: logsurv(:)
     real(kind = c_double)                           :: x, mu, prevCeil, ts
     real(kind = c_double)                           :: xc, xs
     logical                                         :: needC, needS, needBigger
@@ -1308,6 +1298,7 @@ contains
     ! pathological deep-log target cannot allocate multi-GB tables before
     ! its best-effort return.
     integer, parameter                              :: MAXTBL = 2 ** 27
+    
     ! Ceiling on the legacy grow-by-one build in the extreme-parameter
     ! (TBLMAXCOEF) route, whose cost is O(answer ** 2); must stay in sync
     ! with QSMAX in qdelap_f_s (see the cap note there). At the measured
@@ -1328,6 +1319,7 @@ contains
                     real(MAXTBL, c_double)))
                 if (lt == ONEi .and. lg == ZEROi) then
                 x = maxval(p, 1, p < ONE)
+                
                 ! Sentinel: no completed build to compare against yet, so the
                 ! stagnation check below cannot fire on the very first pass.
                 prevCeil = -ONE
@@ -1339,6 +1331,7 @@ contains
                     ! coefficient past TBLMAXCOEF).
                     if (b(1) * (real(k, c_double) + ONE) + l(1) * &
                         (ONE + b(1)) + a(1) * b(1) >= TBLMAXCOEF) exit
+                    
                     allocate(pv(k + 1))
                     allocate(svec(k + 1))
                     call ddelap_table(k, a(1), b(1), l(1), ZEROi, pv)
@@ -1348,12 +1341,14 @@ contains
                         svec(i) = cFPe(svec(i - 1) + pv(i))
                     end do
                     deallocate(pv)
+                    
                     ! EXIT 2: the table reached the largest target x (the
                     ! normal success), or -- defensively -- hit the MAXTBL
                     ! ceiling. Either way svec is complete for every target
                     ! it can resolve; targets beyond its saturated ceiling
                     ! are handled by the survival search in the lookup loop.
                     if (svec(k + 1) >= x .or. k >= MAXTBL) exit
+                    
                     ! EXIT 3: bitwise stagnation. x sits closer to 1 than this
                     ! linear-space cumulative sum can ever resolve: cFPe caps
                     ! every partial sum at 1, and once the tail mass being
@@ -1376,6 +1371,7 @@ contains
                     ! added since then was individually too small to move the
                     ! sum.
                     if (prevCeil >= ZERO .and. svec(k + 1) == prevCeil) exit
+                    
                     prevCeil = svec(k + 1)
                     ! Reached only when looping again: the table was too
                     ! short, so release it before rebuilding at double size.
@@ -1395,6 +1391,7 @@ contains
                     i = 1
                     do
                         if (svec(i) >= x) exit
+                        
                         ! O(i ** 2) growth; past QMAXLEGACY the deepest
                         ! target is declared unreachable. Targets the
                         ! partial CDF did resolve still answer normally;
@@ -1406,6 +1403,7 @@ contains
                             legacyCapped = .true.
                             exit
                         end if
+                        
                         i = i + 1
                         allocate(pv(1:i), source = ZERO)
                         pv(1:i-1) = svec
@@ -1415,6 +1413,7 @@ contains
                                        b(1), l(1))
                     end do
                 end if
+                
                 ! Any target above the forward CDF's saturated ceiling cannot
                 ! be resolved from svec: within ~K * EPS of 1 the cumulative
                 ! sum's accumulated rounding deficit exceeds 1 - p, so it
@@ -1442,6 +1441,7 @@ contains
                     end do
                     deallocate(pv)
                 end if
+                
                 do i = 1, np
                     if (p(i) < ZERO .or. p(i) > ONE .or. ieee_is_nan(p(i))) then
                         obsv(i) = ieee_value(p(i), ieee_quiet_nan)
@@ -1452,18 +1452,20 @@ contains
                         if (j > 0) then
                             obsv(i) = real(j - 1, c_double)
                         else if (legacyCapped) then
+                            
                             ! The capped legacy table plateaued below this
                             ! target; a truncated CDF carries no information
                             ! about a quantile beyond it, so NaN rather than
                             ! a bound (see QMAXLEGACY above).
                             obsv(i) = ieee_value(p(i), ieee_quiet_nan)
                         else
+                            
                             ! Saturated target: the forward CDF plateaued below
                             ! p(i) (base R's qpois returns a finite quantile for
                             ! the analogous case, and so must this). Resolve it
                             ! from the accurate survival table: find the
                             ! smallest q = qlo - 1 with P(X > q) = surv(qlo)
-                            ! <= 1 - p(i). surv is decreasing and surv(size) ~ 0,
+                            ! <= 1 - p(i). surv is decreasing and surv(size)~0,
                             ! so a satisfying index always exists. Computing
                             ! ts = 1 - p(i) can shed a little precision when
                             ! p(i) itself arrived as an upper-tail 1 - p input,
@@ -1492,6 +1494,7 @@ contains
                 end if
                 deallocate(svec)
                 else if (lg == ZEROi) then
+                    
                     ! lower.tail = FALSE in linear space: the targets are
                     ! survival probabilities, searched directly against a
                     ! survival table. Flipping 1 - p first inflates targets

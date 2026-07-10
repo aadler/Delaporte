@@ -150,7 +150,7 @@ module delaporte
     !$ use omp_lib
     use utils, only: imk, cFPe, log1p, unifrnd, lower_bound, logaddexp, ZERO, &
                      HALF, ONE, THREEHALFS, TWO, THREE, EPS, MAXD, MAXVECSIZE, &
-                     TBLMAXCOEF, TBLMINRATIO, TAILSWITCH
+                     TBLMAXCOEF, TBLMINRATIO, TAILSWITCH, ZEROi, ONEi 
 
     implicit none
     private

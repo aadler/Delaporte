@@ -98,16 +98,20 @@
 !                                  negative values have 0 probability so have
 !                                  0 CDF as well.
 !                         qdelap:
-!                               1) Uses ddelap_table where possible for speed.
-!                               2) Trap singleton NaN error which resulted in
-!                                  function hanging until memory was exhausted.
-!                               3) Replaced minloc with "lower_bound" which is
-!                                  a binary search, O(log n), instead of a
-!                                  linear scan, O(n).
-!                               4) Grows lookup table geometrically instead of
-!                                  observation by observation.
-!                               5) Now matches R convention to return Inf at 1
-!                                  and NaN when > 1.
+!                               1) Rewrite of the lower.tail = FALSE and
+!                                  log.p = TRUE search paths (the default path
+!                                  is retained verbatim and verified
+!                                  bitwise-identical) to achieve full deep-tail
+!                                  accuracy and establish the round-trip
+!                                  identity qdelap(pdelap(x)) = x across all
+!                                  modes. It is exact in log space and it is
+!                                  accurate, to documented representation limits
+!                                  in linear space. Extreme parameter sets now
+!                                  refuse with NaN and a warning instead of
+!                                  hanging. Squashed several small bugs along
+!                                  the way, most of which would not surface in
+!                                  normal use but were found when stress-testing
+!                                  edge cases.
 !                         rdelap:
 !                               1) Trap singleton NaN error which resulted in
 !                                  function hanging until memory was exhausted.
@@ -1090,13 +1094,27 @@ contains
 !
 ! GENERAL NOTE: Calculated through explicit summation. Returns NaN and Inf
 !               where appropriate.
+!
+! QUADRATICMAX: Explicit summation costs O(value ** 2): each step's ddelap_f_s
+!               carries ! an O(value) inner sum (measured: 0.03 / 0.23 / 0.88 s
+!               at answers of 1e3 / 3e3 / 6e3 -- cleanly quadratic). A truncated
+!               sum holds no information about a quantile beyond it (the
+!               accumulated CDF is still ~ 0), so past the cap the honest answer
+!               is NaN, not a guess. The parameter sets that reach the cap
+!               generally put the true quantile beyond 2 ** 53, where a count is
+!               no longer exactly representable in a double in any case. The
+!               primary refusal (with its specific warning) lives in qdelap_f;
+!               this cap is the airtight backstop for the R_RegisterCCallable
+!               entry points that bypass the driver, and must stay in sync with
+!               QMAXLEGACY there.
 !-------------------------------------------------------------------------------
-
+ 
     pure elemental function qdelap_f_s(p, alpha, beta, lambda) result(value)
-
+ 
     real(kind = c_double), intent(in)   :: p, alpha, beta, lambda
     real(kind = c_double)               :: testcdf, value
-
+    real(kind = c_double), parameter    :: QSMAX = 2._c_double ** 15
+ 
         if (alpha <= ZERO .or. beta <= ZERO .or. lambda <= ZERO .or. p < ZERO &
           .or. p > ONE .or. ieee_is_nan(p) &
           .or. .not. ieee_is_finite(alpha + beta + lambda)) then
@@ -1108,10 +1126,14 @@ contains
             testcdf = exp(-lambda) / ((beta + ONE) ** alpha)
             do while (p > testcdf)
                 value = value + ONE
+                if (value > QSMAX) then
+                    value = ieee_value(p, ieee_quiet_nan)
+                    exit
+                end if
                 testcdf = testcdf + ddelap_f_s(value, alpha, beta, lambda)
             end do
         end if
-
+ 
     end function qdelap_f_s
 
 !-------------------------------------------------------------------------------
@@ -1121,23 +1143,44 @@ contains
 !
 ! GENERAL NOTE: If parameters are all singletons (not vectors) then the idea is
 !               to find the largest value in the vector and build the PDF up to
-!               that point. Building the vector has each succesive value
-!               piggyback off of the prior instead of calling p_delap_f_s each
+!               that point. Building the vector has each successive value
+!               piggyback off of the prior instead of calling pdelap_f_s each
 !               time which increases the speed dramatically. Once created,
-!               remaining values are lookups off of the svec vector.
+!               remaining values are lookups off of the table vectors.
 !               Otherwise, each entry will need to build its own pmf value by
-!               calling q_delap_f_s on each entry.
+!               calling qdelap_f_s on each entry.
 !
-! CRITICAL:     The table must be built with the same routine and the same
+! NATIVE-SPACE: Each of the four (lower.tail, log.p) modes searches in the
+!               space its targets arrive in. Transforming first (exp of a
+!               log-probability, 1 - p of a survival probability) and then
+!               searching the linear CDF collapses every log-probability below
+!               ~ -745 to 0 and every survival probability below EPS to
+!               exactly 1 - so qdelap returned Inf where base R's qpois
+!               resolves a finite quantile - and inflates near-1 targets by an
+!               ulp, stepping round-trip quantiles up by one. Instead:
+!               (T,F) searches the linear CDF (unchanged, bitwise-stable);
+!               (F,F) searches a linear survival table built exactly as
+!               pdelap_f's upper-tail branch builds one; (T,T) splits interior
+!               targets at log(TAILSWITCH) between the forward log-CDF and,
+!               via ts = log(-expm1(p)) (2-term Taylor, |p| < 1.5e-8 there),
+!               the log-survival table; (F,T) searches the log-survival table
+!               directly. Base R >= 4.1 searches discrete quantiles in native
+!               log space for the same reason.
+!
+! CRITICAL:     The tables must be built with the same routines and the same
 !               accumulation order as pdelap_f (existing test suite caught it
 !               immediately). The shared ddelap_table + identical cumsum
-!               guarantees bitwise-identical CDFs.
+!               guarantees bitwise-identical CDFs on the lower.tail = TRUE,
+!               log.p = FALSE path, and survival/log tables consistent with
+!               pdelap_f's to within table-length context (see pdelap_f).
 !
 ! TABLE GROWTH: The table length is unknown in advance, so it starts from a
 !               moment-based estimate of mean + 10 standard deviations, which
 !               reaches any practical percentile directly. If the vector
-!               exhausts, ir doubles in size so long as the accumulated CDF
-!               still lies below the largest requested percentile.
+!               exhausts, it doubles in size so long as the accumulated table
+!               cannot yet resolve the most extreme requested target. Every
+!               sufficiency test is made against the very array the lookup
+!               loop searches, so coverage is exact, never estimated.
 !               Geometric doubling with full rebuilds costs at most twice the
 !               final build, O(K), total work and O(1) allocations. This
 !               replaces the old grow-by-one allocate/copy/move_alloc dance
@@ -1146,11 +1189,31 @@ contains
 ! ARCHITECTURE: It is preferable to place the copy on the heap to prevent
 !               blowing out the stack. So the accumulation vectors are created
 !               as allocatable and not as fixed size.
+!
+! TOLERANCES:   Interior search targets carry one-sided widenings sized to
+!               their actual noise sources, in the spirit of base R's 64 * EPS
+!               fuzz in qpois.c: relative 2 * K * EPS for survival-table
+!               chain-length noise, plus an absolute 2 * K * EPS component
+!               only for targets that can have come through pdelap_f's
+!               1 - CDF flip (linear targets >= sqrt(EPS); log images
+!               likewise). The (T,F) and (T,T) forward-CDF searches are exact
+!               (bitwise prefix property). The elemental vector-parameter
+!               path retains base R's verbatim 64 * EPS multiplicative shrink
+!               on transformed interior targets.
+!
+! EXTREMES:     The TBLMAXCOEF legacy route costs O(answer ** 2); past
+!               QMAXLEGACY steps the remaining targets are refused as NaN
+!               with a specific warning rather than chased (a truncated CDF
+!               holds no information about a quantile beyond it, and such
+!               quantiles generally exceed 2 ** 53, beyond exact integer
+!               representation in a double). qdelap_f_s carries the matching
+!               QSMAX backstop for the C-callable entry points. MAXTBL bounds
+!               table memory at 2 ** 27 entries (~1GB per vector).
 !-------------------------------------------------------------------------------
-
+ 
     subroutine qdelap_f(pp, np, a, na, b, nb, l, nl, lt, lg, threads, obsv) &
                bind(C, name="qdelap_f")
-
+ 
     integer(kind = c_int), intent(in), value        :: np, na, nb, nl
     real(kind = c_double), intent(in)               :: a(na), b(nb), l(nl)
     integer(kind = c_int), intent(in)               :: lg, lt, threads
@@ -1158,30 +1221,40 @@ contains
     real(kind = c_double), intent(out)              :: obsv(np)
     real(kind = c_double), allocatable              :: p(:), svec(:), pv(:)
     real(kind = c_double), allocatable              :: surv(:)
+    real(kind = c_double), allocatable              :: logpv(:), logsvec(:)
+    real(kind = c_double), allocatable              :: logsurv(:)
     real(kind = c_double)                           :: x, mu, prevCeil, ts
+    real(kind = c_double)                           :: xc, xs
+    logical                                         :: needC, needS, needBigger
+    logical                                         :: legacyCapped
     integer                                         :: i, j, k, qlo, qhi, qmid
-
-    ! Hard ceiling on the lookup table (2**30 support points ~ 8GB per
+ 
+    ! Hard ceiling on the lookup table (2**27 support points ~ 1GB per
     ! vector); unreachable for any parameters of practical size, present so
-    ! integer arithmetic in the doubling below can never overflow.
-    integer, parameter                              :: MAXTBL = 2 ** 30
-
+    ! integer arithmetic in the doubling below can never overflow and so a
+    ! pathological deep-log target cannot allocate multi-GB tables before
+    ! its best-effort return.
+    integer, parameter                              :: MAXTBL = 2 ** 27
+    ! Ceiling on the legacy grow-by-one build in the extreme-parameter
+    ! (TBLMAXCOEF) route, whose cost is O(answer ** 2); must stay in sync
+    ! with QSMAX in qdelap_f_s (see the cap note there). At the measured
+    ! quadratic rate the worst time spent before refusing is ~half a minute.
+    integer, parameter                              :: QMAXLEGACY = 2 ** 15
+ 
         allocate(p, source = pp)
-        
-        if (lg == 1_c_int) p = exp(p)
-
-        if (lt == 0_c_int) p = HALF - p + HALF  ! See dpq.h in R source code
-
+        legacyCapped = .false.
+ 
         if(na == 1 .and. nb == na .and. nl == nb) then
             if (a(1) <= ZERO .or. b(1) <= ZERO .or. l(1) <= ZERO .or. &
                 .not. ieee_is_finite(a(1) + b(1) + l(1))) then
                 obsv = ieee_value(p, ieee_quiet_nan)
             else
-                x = maxval(p, 1, p < ONE)
                 mu = a(1) * b(1) + l(1)
                 k = int(min(mu + 10._c_double * &
                     sqrt(a(1) * b(1) * (ONE + b(1)) + l(1)) + 9._c_double, &
                     real(MAXTBL, c_double)))
+                if (lt == 1_c_int .and. lg == 0_c_int) then
+                x = maxval(p, 1, p < ONE)
                 ! Sentinel: no completed build to compare against yet, so the
                 ! stagnation check below cannot fire on the very first pass.
                 prevCeil = -ONE
@@ -1249,6 +1322,17 @@ contains
                     i = 1
                     do
                         if (svec(i) >= x) exit
+                        ! O(i ** 2) growth; past QMAXLEGACY the deepest
+                        ! target is declared unreachable. Targets the
+                        ! partial CDF did resolve still answer normally;
+                        ! the rest are NaN'd in the lookup below with a
+                        ! specific warning. This exit can only fire with
+                        ! svec(i) < x, i.e. with at least one target
+                        ! genuinely unresolved.
+                        if (i > QMAXLEGACY) then
+                            legacyCapped = .true.
+                            exit
+                        end if
                         i = i + 1
                         allocate(pv(1:i), source = ZERO)
                         pv(1:i-1) = svec
@@ -1270,7 +1354,10 @@ contains
                 ! P(X > i - 1) and is monotone decreasing. Built only when a
                 ! saturated target actually exists; svec and the byte-identical
                 ! CDF lookup used for every resolvable target are untouched.
-                if (svec(size(svec)) < x) then
+                ! Never entered on the capped legacy route: ddelap_table is
+                ! exactly what the TBLMAXCOEF gate protects against there,
+                ! and the unresolved targets are NaN'd in the lookup instead.
+                if (svec(size(svec)) < x .and. .not. legacyCapped) then
                     allocate(surv(size(svec)))
                     allocate(pv(size(svec)))
                     call ddelap_table(size(svec) - 1, a(1), b(1), l(1), &
@@ -1291,6 +1378,12 @@ contains
                         j = lower_bound(svec, p(i))
                         if (j > 0) then
                             obsv(i) = real(j - 1, c_double)
+                        else if (legacyCapped) then
+                            ! The capped legacy table plateaued below this
+                            ! target; a truncated CDF carries no information
+                            ! about a quantile beyond it, so NaN rather than
+                            ! a bound (see QMAXLEGACY above).
+                            obsv(i) = ieee_value(p(i), ieee_quiet_nan)
                         else
                             ! Saturated target: the forward CDF plateaued below
                             ! p(i) (base R's qpois returns a finite quantile for
@@ -1320,9 +1413,438 @@ contains
                     end if
                 end do
                 if (allocated(surv)) deallocate(surv)
+                if (legacyCapped) then
+                    call rwarn("quantile too large to compute exactly for &
+                               &these parameter values; NaN returned")
+                end if
                 deallocate(svec)
+                else if (lg == 0_c_int) then
+                    ! lower.tail = FALSE in linear space: the targets are
+                    ! survival probabilities, searched directly against a
+                    ! survival table. Flipping 1 - p first inflates targets
+                    ! near 1 by an ulp (off-by-one round trips) and collapses
+                    ! targets below EPS to exactly 1, returning Inf where
+                    ! base R's qpois resolves a finite quantile. Targets at
+                    ! or above TAILSWITCH are the one exception: there the
+                    ! survival table's absolute O(K * EPS) noise exceeds the
+                    ! distance to 1, while the complement 1 - p is exact
+                    ! (Sterbenz, p >= 1/2) and the forward CDF resolves it
+                    ! accurately, so those route to a CDF-side search -- the
+                    ! mirror image of pdelap_f's TAILSWITCH seed rule.
+                    needS = any(pp > ZERO .and. pp < TAILSWITCH)
+                    needC = any(pp >= TAILSWITCH .and. pp < ONE)
+                    if (needS) then
+                        x = minval(pp, 1, pp > ZERO .and. pp < TAILSWITCH)
+                    end if
+                    if (needC) then
+                        xc = HALF - minval(pp, 1, pp >= TAILSWITCH .and. &
+                                           pp < ONE) + HALF
+                    end if
+                    do
+                        ! Extreme parameters: fall through to the elemental
+                        ! search below with surv never allocated (the exact
+                        ! analogue of the lower-tail legacy route).
+                        if (b(1) * (real(k, c_double) + ONE) + l(1) * &
+                            (ONE + b(1)) + a(1) * b(1) >= TBLMAXCOEF) exit
+                        allocate(pv(k + 1))
+                        allocate(svec(k + 1))
+                        allocate(surv(k + 1))
+                        call ddelap_table(k, a(1), b(1), l(1), 0_c_int, pv)
+                        pv(1) = cFPe(pv(1))
+                        svec(1) = pv(1)
+                        do i = 2, k + 1
+                            svec(i) = cFPe(svec(i - 1) + pv(i))
+                        end do
+                        ! Identical survival construction to pdelap_f's
+                        ! upper-tail branch: an accurate direct tail sum
+                        ! seeds the top when the forward CDF sits inside the
+                        ! cancellation band, backward PMF accumulation fills
+                        ! below. surv(i) = P(X > i - 1), monotone decreasing.
+                        if (svec(k + 1) > TAILSWITCH) then
+                            surv(k + 1) = sdelap_f_s(real(k, c_double), &
+                                                     a(1), b(1), l(1))
+                        else
+                            surv(k + 1) = HALF - svec(k + 1) + HALF ! See dpq.h
+                        end if
+                        do i = k, 1, -1
+                            surv(i) = cFPe(surv(i + 1) + pv(i + 1))
+                        end do
+                        deallocate(pv)
+                        ! Sufficiency is tested on the very arrays the
+                        ! lookups search, so coverage is exact. surv(k + 1)
+                        ! shrinks as k doubles -- the seed is a direct tail
+                        ! sum that decreases strictly until it underflows to
+                        ! zero -- so any positive target is eventually
+                        ! reached; MAXTBL is the defensive ceiling. No
+                        ! short-circuit guarantee in Fortran, so each array
+                        ! is referenced only under its own need flag.
+                        needBigger = .false.
+                        if (needS) then
+                            if (surv(k + 1) > x) needBigger = .true.
+                        end if
+                        if (needC) then
+                            if (svec(k + 1) < xc) needBigger = .true.
+                        end if
+                        if (.not. needBigger .or. k >= MAXTBL) exit
+                        k = min(2 * k, MAXTBL)
+                        deallocate(svec)
+                        deallocate(surv)
+                    end do
+                    if (.not. allocated(surv)) then
+                        ! TBLMAXCOEF corner: qdelap_f_s on the flipped target
+                        ! performs the identical seed, identical ddelap_f_s
+                        ! forward summation, and identical >= stopping
+                        ! comparison the legacy incremental table performed,
+                        ! so the historical extreme-parameter semantics
+                        ! (including the 1 - p flip) are reproduced bit for
+                        ! bit without a second copy of the legacy machinery.
+                        do i = 1, np
+                            obsv(i) = qdelap_f_s(HALF - pp(i) + HALF, a(1), &
+                                                 b(1), l(1))
+                        end do
+                        ! NaN for a valid in-range input can only be
+                        ! qdelap_f_s's QSMAX iteration cap (parameters were
+                        ! screened above); surface it with the same specific
+                        ! warning as the legacy route.
+                        if (any(ieee_is_nan(obsv) .and. &
+                                .not. ieee_is_nan(pp) .and. &
+                                pp >= ZERO .and. pp <= ONE)) then
+                            call rwarn("quantile too large to compute &
+                                       &exactly for these parameter values; &
+                                       &NaN returned")
+                        end if
+                    else
+                        do i = 1, np
+                            if (ieee_is_nan(pp(i)) .or. pp(i) < ZERO .or. &
+                                pp(i) > ONE) then
+                                obsv(i) = ieee_value(pp(i), ieee_quiet_nan)
+                            else if (pp(i) == ZERO) then
+                                obsv(i) = ieee_value(pp(i), &
+                                                     ieee_positive_inf)
+                            else if (pp(i) == ONE) then
+                                obsv(i) = ZERO
+                            else if (pp(i) >= TAILSWITCH) then
+                                ! Near-1 survival target: search the forward
+                                ! CDF for the exact complement instead (see
+                                ! the routing note above). Same quantile
+                                ! criterion, computed from the side that can
+                                ! actually resolve it.
+                                ts = HALF - pp(i) + HALF
+                                j = lower_bound(svec, ts)
+                                if (j > 0) then
+                                    obsv(i) = real(j - 1, c_double)
+                                else
+                                    ! Only reachable if the doubling hit
+                                    ! MAXTBL (2^30 entries, multi-GB) before
+                                    ! covering the target; table end as a
+                                    ! best effort. Untestable without that
+                                    ! allocation, retained as the safety net
+                                    ! for lower_bound's index-0 contract.
+                                    obsv(i) = real(size(svec) - 1, &
+                                                   c_double)   ! # nocov
+                                end if
+                            else
+                                ! Smallest q with P(X > q) <= p; surv is
+                                ! decreasing so the binary search descends.
+                                ! The target is widened by a relative
+                                ! 2 * K * EPS: the caller's survival
+                                ! probability and this table approximate the
+                                ! same quantity through accumulation chains
+                                ! of different lengths, so they can disagree
+                                ! by O(K * EPS) relative (measured: ~2.8e3
+                                ! ulps at K ~ 3e3), and without the band a
+                                ! round-tripped target lands one support
+                                ! point high. Same rationale as base R's
+                                ! 64 * EPS fuzz in qpois, scaled to the
+                                ! actual chain length. If the doubling hit
+                                ! MAXTBL before covering the target this
+                                ! returns the table end as a best effort.
+                                ts = pp(i) * (ONE + TWO * &
+                                     real(size(surv), c_double) * EPS)
+                                ! Targets at or above sqrt(EPS) can have come
+                                ! through pdelap_f's 1 - CDF flip (taken when
+                                ! CDF <= TAILSWITCH), whose error is absolute
+                                ! O(K * EPS), not relative; widen by the same
+                                ! absolute amount there. Below sqrt(EPS) the
+                                ! flip is never the source (pdelap_f seeds
+                                ! with the direct tail sum instead), and an
+                                ! absolute band would wipe out deep-tail
+                                ! resolution, so it is not applied.
+                                if (pp(i) >= sqrt(EPS)) then
+                                    ts = ts + TWO * &
+                                         real(size(surv), c_double) * EPS
+                                end if
+                                qlo = 1
+                                qhi = size(surv)
+                                do while (qlo < qhi)
+                                    qmid = (qlo + qhi) / 2
+                                    if (surv(qmid) <= ts) then
+                                        qhi = qmid
+                                    else
+                                        qlo = qmid + 1
+                                    end if
+                                end do
+                                obsv(i) = real(qlo - 1, c_double)
+                            end if
+                        end do
+                        deallocate(svec)
+                        deallocate(surv)
+                    end if
+                else
+                    ! log.p = TRUE (either tail), searched natively in log
+                    ! space. exp() of the target first collapses every
+                    ! log-probability below ~ -745 to 0 and every one above
+                    ! ~ -EPS to 1, destroying exactly the deep-tail
+                    ! resolution the log-space tables carry.
+                    if (lt == 1_c_int) then
+                        ! Interior targets split at log(TAILSWITCH), the log
+                        ! image of pdelap_f's cancellation band: at or below
+                        ! it the forward log-CDF resolves the target; above
+                        ! it (within ~sqrt(EPS) of 0) the log-CDF is
+                        ! saturated and the target converts to a
+                        ! log-survival target log(1 - exp(p)) =
+                        ! log(-expm1(p)), evaluated by the 2-term Taylor
+                        ! -p * (1 + p / 2) since |p| < 1.5e-8 there
+                        ! (relative error ~ p**2 / 6, far below EPS;
+                        ! gfortran has no expm1 intrinsic). The Taylor
+                        ! argument is monotone in p, so the sizing target xs
+                        ! is the image of the largest survival-side p.
+                        needC = any(ieee_is_finite(pp) .and. &
+                                    pp <= log(TAILSWITCH))
+                        needS = any(pp > log(TAILSWITCH) .and. pp < ZERO)
+                        if (needC) then
+                            xc = maxval(pp, 1, ieee_is_finite(pp) .and. &
+                                        pp <= log(TAILSWITCH))
+                        end if
+                        if (needS) then
+                            xs = maxval(pp, 1, pp > log(TAILSWITCH) .and. &
+                                        pp < ZERO)
+                            xs = log(-xs * (ONE + xs * HALF))
+                        end if
+                    else
+                        ! lower.tail = FALSE: interior targets are
+                        ! log-survival probabilities; the deepest one sizes
+                        ! the table. Targets above log(TAILSWITCH) -- a
+                        ! survival probability within ~sqrt(EPS) of 1 --
+                        ! route to the CDF side through the exact complement
+                        ! log(1 - exp(p)) = log(-expm1(p)), by the same
+                        ! 2-term Taylor as the lower-tail split: there the
+                        ! log-survival table's own absolute O(K * EPS) noise
+                        ! exceeds the target's distance to 0, while the
+                        ! forward log-CDF resolves the complement
+                        ! accurately. Mirror image of pdelap_f's TAILSWITCH
+                        ! rule, in the opposite direction to the lt == 1
+                        ! split above.
+                        needC = any(pp > log(TAILSWITCH) .and. pp < ZERO)
+                        needS = any(ieee_is_finite(pp) .and. &
+                                    pp <= log(TAILSWITCH))
+                        if (needS) then
+                            xs = minval(pp, 1, ieee_is_finite(pp) .and. &
+                                        pp <= log(TAILSWITCH))
+                        end if
+                        if (needC) then
+                            xc = minval(pp, 1, pp > log(TAILSWITCH) .and. &
+                                        pp < ZERO)
+                            xc = log(-xc * (ONE + xc * HALF))
+                        end if
+                    end if
+                    do
+                        allocate(logpv(k + 1))
+                        allocate(logsvec(k + 1))
+                        ! Same two gates as pdelap_f's log path: extreme
+                        ! coefficients or a per-step PMF ratio below the
+                        ! rescue band route to the elemental fill (see
+                        ! TBLMINRATIO in utils.f90).
+                        if (b(1) * (real(k, c_double) + ONE) + l(1) * &
+                            (ONE + b(1)) + a(1) * b(1) < TBLMAXCOEF .and. &
+                            max(l(1) / (real(k, c_double) + ONE), &
+                                min(a(1), ONE) * b(1) / (ONE + b(1))) &
+                                >= TBLMINRATIO) then
+                            call ddelap_table(k, a(1), b(1), l(1), 1_c_int, &
+                                              logpv)
+                        else
+                            do i = 1, k + 1
+                                logpv(i) = ddelap_f_s_log(real(i - 1, &
+                                           c_double), a(1), b(1), l(1))
+                            end do
+                        end if
+                        ! Same log-space ceiling as pdelap_f's tables.
+                        logsvec(1) = min(logpv(1), ZERO)
+                        do i = 2, k + 1
+                            logsvec(i) = min(logaddexp(logsvec(i - 1), &
+                                             logpv(i)), ZERO)
+                        end do
+                        if (needS) then
+                            ! Log image of pdelap_f's upper-tail seed rule.
+                            allocate(logsurv(k + 1))
+                            if (logsvec(k + 1) > log(TAILSWITCH)) then
+                                logsurv(k + 1) = sdelap_f_s_log(real(k, &
+                                                 c_double), a(1), b(1), l(1))
+                            else
+                                logsurv(k + 1) = log(HALF - &
+                                                 exp(logsvec(k + 1)) + HALF)
+                            end if
+                            do i = k, 1, -1
+                                logsurv(i) = min(logaddexp(logsurv(i + 1), &
+                                                 logpv(i + 1)), ZERO)
+                            end do
+                        end if
+                        deallocate(logpv)
+                        ! Sufficiency is tested on the very arrays the
+                        ! lookups search, so coverage is exact. Fortran does
+                        ! not guarantee short-circuit evaluation, so each
+                        ! array is only referenced under its own need flag.
+                        needBigger = .false.
+                        if (needC) then
+                            if (logsvec(k + 1) < xc) needBigger = .true.
+                        end if
+                        if (needS) then
+                            if (logsurv(k + 1) > xs) needBigger = .true.
+                        end if
+                        if (.not. needBigger .or. k >= MAXTBL) exit
+                        k = min(2 * k, MAXTBL)
+                        deallocate(logsvec)
+                        if (allocated(logsurv)) deallocate(logsurv)
+                    end do
+                    if (lt == 1_c_int) then
+                        do i = 1, np
+                            if (ieee_is_nan(pp(i)) .or. pp(i) > ZERO) then
+                                obsv(i) = ieee_value(pp(i), ieee_quiet_nan)
+                            else if (pp(i) == ZERO) then
+                                ! log(1): the entire mass, so q = Inf.
+                                obsv(i) = ieee_value(pp(i), &
+                                                     ieee_positive_inf)
+                            else if (.not. ieee_is_finite(pp(i))) then
+                                obsv(i) = ZERO         ! log(0): q = 0
+                            else if (pp(i) <= log(TAILSWITCH)) then
+                                j = lower_bound(logsvec, pp(i))
+                                if (j > 0) then
+                                    obsv(i) = real(j - 1, c_double)
+                                else
+                                    ! Only reachable if the doubling hit
+                                    ! MAXTBL (2^30 entries, multi-GB) before
+                                    ! covering the target; table end as a
+                                    ! best effort. Untestable without that
+                                    ! allocation, retained as the safety net
+                                    ! for lower_bound's index-0 contract.
+                                    obsv(i) = real(size(logsvec) - 1, &
+                                                   c_double)   ! # nocov
+                                end if
+                            else
+                                ! Survival-side target. With pdelap_f's
+                                ! saturated-band values now derived from the
+                                ! survival side, the 2-term Taylor inversion
+                                ! recovers log S to relative accuracy, so
+                                ! the tolerance is the same chain-length
+                                ! band as the lower.tail = FALSE searches:
+                                ! additive 2 * (K + |ts|) * EPS in log space
+                                ! is a relative 2 * K * EPS band in linear
+                                ! space plus the log value's representation
+                                ! noise. (An absolute widening here would
+                                ! flatten every target below it and destroy
+                                ! the deep-band resolution the band repair
+                                ! provides.)
+                                ts = log(-pp(i) * (ONE + pp(i) * HALF))
+                                ts = ts + TWO * EPS * &
+                                     (real(size(logsurv), c_double) + &
+                                      abs(ts))
+                                qlo = 1
+                                qhi = size(logsurv)
+                                do while (qlo < qhi)
+                                    qmid = (qlo + qhi) / 2
+                                    if (logsurv(qmid) <= ts) then
+                                        qhi = qmid
+                                    else
+                                        qlo = qmid + 1
+                                    end if
+                                end do
+                                obsv(i) = real(qlo - 1, c_double)
+                            end if
+                        end do
+                    else
+                        do i = 1, np
+                            if (ieee_is_nan(pp(i)) .or. pp(i) > ZERO) then
+                                obsv(i) = ieee_value(pp(i), ieee_quiet_nan)
+                            else if (pp(i) == ZERO) then
+                                obsv(i) = ZERO         ! log(1): S = 1, q = 0
+                            else if (.not. ieee_is_finite(pp(i))) then
+                                ! log(0): S = 0, only reached in the limit.
+                                obsv(i) = ieee_value(pp(i), &
+                                                     ieee_positive_inf)
+                            else if (pp(i) > log(TAILSWITCH)) then
+                                ! Near-1 survival target: search the forward
+                                ! log-CDF for the Taylor complement instead
+                                ! (see the routing note above).
+                                ts = log(-pp(i) * (ONE + pp(i) * HALF))
+                                j = lower_bound(logsvec, ts)
+                                if (j > 0) then
+                                    obsv(i) = real(j - 1, c_double)
+                                else
+                                    ! Only reachable if the doubling hit
+                                    ! MAXTBL (2^30 entries, multi-GB) before
+                                    ! covering the target; table end as a
+                                    ! best effort. Untestable without that
+                                    ! allocation, retained as the safety net
+                                    ! for lower_bound's index-0 contract.
+                                    obsv(i) = real(size(logsvec) - 1, &
+                                                   c_double)   ! # nocov
+                                end if
+                            else
+                                ! Smallest q with log P(X > q) <= p, with
+                                ! the same chain-length tolerance as the
+                                ! linear survival search: additive
+                                ! 2 * (K + |p|) * EPS in log space is the
+                                ! image of a relative 2 * K * EPS band in
+                                ! linear space plus the log value's own
+                                ! representation noise.
+                                ts = pp(i) + TWO * EPS * &
+                                     (real(size(logsurv), c_double) + &
+                                      abs(pp(i)))
+                                ! Same flip-band absolute widening as the
+                                ! linear search, expressed additively in log
+                                ! space: an absolute band of 2 * K * EPS on a
+                                ! survival value s is 2 * K * EPS / s in its
+                                ! log. Bounded by 2 * K * sqrt(EPS) on this
+                                ! branch, orders below any support step.
+                                if (pp(i) >= HALF * log(EPS)) then
+                                    ts = ts + TWO * &
+                                         real(size(logsurv), c_double) * &
+                                         EPS * exp(-pp(i))
+                                end if
+                                qlo = 1
+                                qhi = size(logsurv)
+                                do while (qlo < qhi)
+                                    qmid = (qlo + qhi) / 2
+                                    if (logsurv(qmid) <= ts) then
+                                        qhi = qmid
+                                    else
+                                        qlo = qmid + 1
+                                    end if
+                                end do
+                                obsv(i) = real(qlo - 1, c_double)
+                            end if
+                        end do
+                    end if
+                    deallocate(logsvec)
+                    if (allocated(logsurv)) deallocate(logsurv)
+                end if
             end if
         else
+            if (lg == 1_c_int) p = exp(p)
+            if (lt == 0_c_int) p = HALF - p + HALF  ! See dpq.h in R source code
+            if (lg == 1_c_int .or. lt == 0_c_int) then
+                ! Base R's fuzz (qpois.c and kin): a transformed target can
+                ! arrive one ulp above the CDF value it round-trips from
+                ! (1 - p inflation, exp/log noise), stepping the quantile up
+                ! by one. Shrink strictly interior targets by 64 EPS exactly
+                ! as base R does before its search; boundaries and the
+                ! untransformed path are untouched.
+                do i = 1, np
+                    if (p(i) > ZERO .and. p(i) < ONE) then
+                        p(i) = p(i) * (ONE - 64._c_double * EPS)
+                    end if
+                end do
+            end if
             !$omp parallel do num_threads(threads) default(shared) private(i) &
             !$omp schedule(static)
             do i = 1, np

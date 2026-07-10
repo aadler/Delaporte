@@ -12,8 +12,9 @@ extern void pdelap_f(double *q, int nq, double *a, int na, double *b, int nb,
                      double *ret);
 
 /* First parameter renamed p -> pp to mirror the Fortran dummy, and
- * const-qualified as qdelap_f works on an internal copy and never writes to the
- input, so passing REAL(p) directly from the SEXP is now safe. */
+   const-qualified as qdelap_f works on an internal copy and never writes to the
+  input, so passing REAL(p) directly from the SEXP is now safe.
+*/
 extern void qdelap_f(const double *pp, int np, double *a, int na, double *b,
                      int nb, double *l, int nl, int *lt, int *lg, int *threads,
                      double *ret);

@@ -88,12 +88,14 @@ double summation for each entry in \eqn{q}.
 }
 \subsection{Distributional Functions}{
 \subsection{Density and Distribution}{
-\code{ddelap} will return 0 for all values \eqn{> 2^{31}}{> 2^31} whereas
+\code{ddelap} will return 0 for all values \eqn{> 2^{63}}{> 2^63} whereas
 \code{pdelap} will not run at all, due to the limitations of integer
-representation. Also, for values \eqn{> 2^{15}}{> 2^15}, \code{pdelap} will ask
-for positive input from the user to continue, as otherwise, depending on the
-parameters, the function can take hours to complete given its double-summation
-nature.
+representation. For values \eqn{> 2^{24}}{> 2^24}, or \eqn{> 2^{15}}{> 2^15}
+when slower code paths must be used, when using \R interactively, \code{pdelap}
+will ask for positive input from the user to continue, as otherwise, depending
+on the parameters, the function can take hours to complete. When run as a
+script, pdelap at those values will stop with an error, and offer the user the
+option to set an environment variable to proceed nevertheless.
 
 \code{ddelap} with \code{log = TRUE} and \code{pdelap} with \code{log.p = TRUE}
 compute log-probabilities directly in log space rather than taking \code{log()}
@@ -217,13 +219,9 @@ non-normal distributions.
 \value{
   \code{ddelap} gives the probability mass function, \code{pdelap} gives the
   cumulative distribution function, \code{qdelap} gives the quantile function,
-  and \code{rdelap} generates random deviates. Values close to 0 (less than or
-  equal to machine epsilon) for \eqn{\alpha, \beta} or \eqn{\lambda} will return
-  \code{NaN} for that particular entry. Proper triplets within a set of vectors
-  should still return valid values. For the approximate versions of
-  \code{qdelap} and \code{rdelap}, having a value close to 0 will trip an error,
-  sending the user to the exact version which currently properly handles
-  vector-based inputs which contain 0.
+  and \code{rdelap} generates random deviates. Non-positive or non-finite values
+  for \eqn{\alpha}, \eqn{\beta}, or \eqn{\lambda} return \code{NaN} for that
+  particular entry.
   
   \code{MoMdelap} returns a triplet comprising a method-of-moments based
   estimate of \eqn{\alpha}, \eqn{\beta}, and \eqn{\lambda}.
@@ -247,10 +245,10 @@ these algorithms.
 First, \code{pdelap} with \code{lower.tail = FALSE} builds its survival values
 by backward accumulation over an internal table sized to \code{max(q)}, so a
 given survival probability may differ, at the level of its accumulated rounding,
-where the survival is derived from \eqn{1 - \textrm{CDF}}{1 - CDF}), depending
-on the other elements of \code{q} supplied in the same call. The relative
-rounding error is of order \code{K * .Machine$double.eps} for a table of length
-\eqn{K}, and up to about \code{sqrt(.Machine$double.eps)}.
+depending on the other elements of \code{q} supplied in the same call. The
+relative rounding error is of order \code{K * .Machinedouble.eps} for a table of
+length \eqn{K}, and up to about \code{sqrt(.Machine double.eps)} where the
+survival is derived from \eqn{1 - \textrm{CDF}}{1 - CDF}.
 
 Second, in \emph{linear} space (\code{log.p = FALSE}), survival targets within
 about \code{K * .Machine$double.eps} of \eqn{1} sit below the accumulation's

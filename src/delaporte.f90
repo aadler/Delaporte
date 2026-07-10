@@ -80,23 +80,21 @@
 !                                  handle exception cases.
 !                               3) Bring into compliance with base R in that
 !                                  negative values have 0 probability.
-!                               4) Caught catatstrophic cancellation bug in
+!                               4) Caught catastrophic cancellation bug in
 !                                  ddelap_f_s & ddelap_f_s_log.
 !                         pdelap:
-!                               1) When log.p = TRUE, new functions exist which
-!                                  accumuate all values in log space. These end
-!                                  in _log, like their ddelap analogue.
-!                               2) When lower.tail = FALSE, new functions exists
-!                                  that will calculate the upper tail from the
-!                                  top to prevent catastrophic cancelation of
-!                                  1 - CDF when CDF is very small (near or below
-!                                  machine precision). These begin with "s" for
-!                                  "survival".
-!                               3) Prevented from overwriting passed p vector.
-!                               4) Uses ddelap_table where possible for speed.
-!                               5) Bring into compliance with base R in that
+!                               1) Rewrite of the lower.tail = FALSE and
+!                                  log.p = TRUE search paths (the default path
+!                                  is retained verbatim and verified
+!                                  bitwise-identical) to achieve full deep-tail
+!                                  accuracy and establish the round-trip
+!                                  identity qdelap(pdelap(x)) = x across all
+!                                  modes. Log-space functions end in _log and
+!                                  survival (upper tail) functions begin with s.
+!                               2) Bring into compliance with base R in that
 !                                  negative values have 0 probability so have
 !                                  0 CDF as well.
+!                               3) Other bug fixes (see commit log).
 !                         qdelap:
 !                               1) Rewrite of the lower.tail = FALSE and
 !                                  log.p = TRUE search paths (the default path
@@ -105,7 +103,7 @@
 !                                  accuracy and establish the round-trip
 !                                  identity qdelap(pdelap(x)) = x across all
 !                                  modes. It is exact in log space and it is
-!                                  accurate, to documented representation limits
+!                                  accurate to documented representation limits
 !                                  in linear space. Extreme parameter sets now
 !                                  refuse with NaN and a warning instead of
 !                                  hanging. Squashed several small bugs along
@@ -165,14 +163,14 @@ contains
 !                 observation and return the value or its log.
 !
 ! GENERAL NOTE:   This function uses explicit summation. Follows R convention
-!                 real observations, non-finite observations, and observations
-!                 outside the support have 0 probability. Calls cFPe to
-!                 implement a hard floor of 0 and a hard ceiling of 1 to prevent
-!                 spurious floating point errors.
+!                 that non-integral observations, non-finite observations, and
+!                 observations outside the support have 0 probability. Calls
+!                 cFPe to implement a hard floor of 0 and a hard ceiling of 1 to
+!                 prevent spurious floating point errors.
 !
 ! ADDITIONAL:     The four loop-invariant transcendental calls---log(beta),
 !                 log(lambda), log_gamma(alpha), log1p(beta)---are manually
-!                 hoisted out of the summation loop . gfortran under R's default
+!                 hoisted out of the summation loop. gfortran under R's default
 !                 IEEE-strict flags will not hoist libm calls on its own, as
 !                 they may set errno and floating-point exception flags. The
 !                 measured speedup from manual hoisting is roughly 10%. The
@@ -279,9 +277,9 @@ contains
 !                 positive mass thus there is no PMF to report. Without the
 !                 screen, Inf-driven NaNs from the log-space summands are
 !                 laundered into hard 0s and 1s by the cFPe clamps. For example,
-!                 ddelap(1, Inf, Inf, Inf) returned exactly 1). Also, base R
+!                 ddelap(1, Inf, Inf, Inf) returned exactly 1. Also, base R
 !                 convention is that x below the support, including x = -Inf,
-!                 has probability 0 and thus a log-probability pf -Inf. This has
+!                 has probability 0 and thus a log-probability of -Inf. This has
 !                 to be handled before the call to floor(x, INT64), which would
 !                 overflow the integer kind on -Inf.
 !
@@ -299,10 +297,10 @@ contains
 !                 -1e-50 (off by 60 orders of magnitude), which then corrupted
 !                 pdelap's log-space CDF accumulation, as logaddexp of the
 !                 corrupted PMF(0) with PMF(1) yielded a positive "log-CDF", an
-!                 impossibility that surfaced the bug). Isolating the
+!                 impossibility that surfaced the bug. Isolating the
 !                 cancellation first means the running sum is already at its
-!                 true,potentially 0, magnitude before lambda is added, so
-!                 nothing is lost regardless of how large log_gamma(alpha) is.!
+!                 true, potentially 0, magnitude before lambda is added, so
+!                 nothing is lost regardless of how large log_gamma(alpha) is.
 !-------------------------------------------------------------------------------
 
     pure elemental function ddelap_f_s_log(x, alpha, beta, lambda) result(lpmf)
@@ -425,8 +423,8 @@ contains
 ! PRECONDITION:   Callers must have validated alpha, beta, lambda as strictly
 !                 positive, finite, non-NaN, and small enough that the bracketed
 !                 coefficient below cannot overflow when multiplied by CAP. 
-!                 pdelap_f checks coefmax < TBLMAXCOEF before selecting this
-!                 path.
+!                 Callers check TBLMAXCOEF and TBLMINRATIO conditions before
+!                 selecting this path.
 !-------------------------------------------------------------------------------
 
     pure subroutine ddelap_table(k, alpha, beta, lambda, lg, pv)
@@ -531,9 +529,9 @@ contains
 !                 properly recycle the vectors, the index needs to be reduced by
 !                 one, mod applied, and then increased by one again. This is
 !                 handled by the imk function found in the utils module. Follows
-!                 R convention that real observations are errors and have 0
-!                 probability, so returns 0 for non-integer without calling
-!                 summation loop.
+!                 R convention that non-integral observations, non-finite
+!                 observations, and observations outside the support have 0
+!                 probability.
 !
 !                 When every parameter is a singleton and the observations are
 !                 well-behaved, the PMF (or log-PMF) at 0..max(x) is built once
@@ -547,8 +545,8 @@ contains
 !                 over-large observation; invalid parameters; or parameters past
 !                 TBLMAXCOEF fall through to the per-element path, which is
 !                 unchanged. Non-integer x inside the fast path needs no table
-!                  -Inf (lg = 1) by convention, and its floor is still <= k so
-!                 sizing remains unaffected.
+!                 lookup. It is 0 (lg = 0) or -Inf (lg = 1) by convention, and
+!                 its floor is still <= k so sizing remains unaffected.
 !-------------------------------------------------------------------------------
 
     subroutine ddelap_f(x, nx, a, na, b, nb, l, nl, lg, threads, pmfv) &
@@ -636,9 +634,9 @@ contains
 !                 single observation and return the value or its log.
 !
 ! GENERAL NOTE:   Calculated through explicit summation. Follows R convention
-!                 that real observations, non-finite observations, and
-!                 observations outside the support have 0 probability. So
-!                 non-integers are "floored" and values below the support have
+!                 that non-integral, non-finite, and below-support observations
+!                 carry 0 probability mass; hence non-integers are "floored",
+!                 CDF(q) = CDF(floor(q)), and values below the support have
 !                 CDF = 0. However, +Inf has the entire support beneath it, so
 !                 it has CDF = 1. The function calls cFPe to implement a hard
 !                 floor of 0 and a hard ceiling of 1 to prevent spurious
@@ -767,13 +765,11 @@ contains
             .or. .not. ieee_is_finite(alpha + beta + lambda)) then
             
             ! Defence in depth, unreachable through R: pdelap_f only calls this
-            ! function when the CDF it just computed for the very same arguments
-            ! exceeds one half, which invalid parameters and NaNs can never
-            ! satisfy. For in that case, the CDF is NaN, and NaN comparisons are
-            ! always false. Retained nevertheless, because without it a future
-            ! caller passing invalid parameters would hang rather return NaN as
-            ! every term from ddelap_f_s would be NaN, and NaN fails both exit
-            ! comparisons in the summation loop below, so it would never end!
+            ! function when TAILSWITCH is triggered, which invalid parameters
+            ! and NaNs can never satisfy. Retained nevertheless, because without
+            ! it a future caller passing invalid parameters would hang rather
+            ! return NaN as every term from ddelap_f_s would be NaN which fails
+            ! both exit comparisons in the summation loop below.
             sf = ieee_value(q, ieee_quiet_nan) ! # nocov
         else if (.not. ieee_is_finite(q)) then
             sf = ZERO
@@ -829,10 +825,10 @@ contains
 !                 bound itself, so no intermediate can overflow or underflow
 !                 even when accumulated terms are astronomically small.
 !
-! PRECONDITION:   Identical to sdelap_f_s: callers must invoke this only when
+! PRECONDITION:   Similar to sdelap_f_s: callers must invoke this only when
 !                 the survival probability is small enough to need direct
 !                 summation, i.e. when the lower-tail log-CDF at q exceeds
-!                 log(TAILSWITCH) (see TAILSWITCH's definition in utils.f90).
+!                 log(TAILSWITCH).
 !-------------------------------------------------------------------------------
 
     pure elemental function sdelap_f_s_log(q, alpha, beta, lambda) result(lsf)
@@ -845,10 +841,12 @@ contains
             .or. ieee_is_nan(q) &
             .or. .not. ieee_is_finite(alpha + beta + lambda)) then
             
-            ! Defence in depth; see the identical note in sdelap_f_s - pdelap_f
-            ! only reaches here after a log-CDF computed from the same
-            ! arguments exceeded log(0.5), which invalid parameters or NaN q
-            ! can never satisfy (NaN comparisons are always false).
+            ! Defence in depth, unreachable through R: pdelap_f only calls this
+            ! function when TAILSWITCH is triggered, which invalid parameters
+            ! and NaNs can never satisfy. Retained nevertheless, because without
+            ! it a future caller passing invalid parameters would hang rather
+            ! return NaN as every term from ddelap_f_s would be NaN which fails
+            ! both exit comparisons in the summation loop below.
             lsf = ieee_value(q, ieee_quiet_nan) ! # nocov
         else if (.not. ieee_is_finite(q)) then
             lsf = ieee_value(q, ieee_negative_inf)   ! log(0): no mass above Inf
@@ -879,8 +877,8 @@ contains
                 ! term * (rb / (1 - rb)) <= sf * EPS in sdelap_f_s.
                 if (lterm < plterm) then
                     rb = max(exp(lterm - plterm), beta / (beta + ONE))
-                    if (lterm + log(rb / (ONE - rb)) <= mx + log(s) + log(EPS)) &
-                        exit
+                    if (lterm + log(rb / (ONE - rb)) <= mx + log(s) &
+                        + log(EPS)) exit
                 end if
                 plterm = lterm
                 i = i + 1_INT64
@@ -897,8 +895,8 @@ contains
 ! DESCRIPTION:    Vector-based CDF allowing parameter vector recycling.
 !
 ! GENERAL NOTE:   If parameters are all singletons, not vectors, the idea is to
-!                 find the largest value in the vector and build the PDF up to
-!                 that point. Building the vector has each succesive value
+!                 find the largest value in the vector and build the PMF up to
+!                 that point. Building the vector has each successive value
 !                 piggyback off of the prior instead of calling the singleton
 !                 function each time which increases the speed dramatically.
 !                 Once created, remaining values are simple lookups off of the
@@ -920,19 +918,22 @@ contains
 !                 summation (sdelap_f_s / sdelap_f_s_log) only once the survival
 !                 probability is small enough that 1 - CDF would lose precision
 !                 to catastrophic cancellation: when CDF > TAILSWITCH, the
-!                 constant set at 1 - sqrt(EPS). Below that, the complement is
-!                 accurate to ~1e-13 relative, already at the precision of the
-!                 direct sum, but whose time is O(1) instead of the direct sum's
-!                 O(beta**2) worst case (see TAILSWITCH's definition in
-!                 utils.f90).  NaN CDFs fail both threshold tests and propagate
+!                 constant set at 1 - sqrt(EPS). Below that, the complement's
+!                 error is absolute, of order K * EPS for a table of length K;
+!                 its relative error grows toward the sqrt(EPS) edge, to roughly
+!                 K * EPS / sqrt(EPS) worst case (measured 2.7e-9 at K ~ 770).
+!                 This is a documented tradeoff (see accuracy note in manual),
+!                 bought at O(1) instead of the direct sum's O(beta**2) worst
+!                 case. NaN CDFs fail both threshold tests and propagate
 !                 through the complement unchanged. The lg == 1 complement
 !                 recovers the linear CDF via exp() of the already-accurate
 !                 log-CDF. This is safe because this branch only runs when CDF
 !                 <= TAILSWITCH, nowhere near 1 or 0. So it takes the identical
 !                 linear complement, and re-logs it. This avoids needing a
-!                 general log(1 - exp(.)) routine, which would require a
-!                 specialized EXPM1 to stay accurate as log-CDF approaches 0.
-!                 Fortran 2008 does not have EXPM1 intrinsically.
+!                 general log(1 - exp(.)) routine in the mid band where log-CDF
+!                 is far from 0; the bands' use is safe without EXPM1 because
+!                 their arguments satisfy exp(·) < √EPS, keeping the module
+!                 log1p in its Taylor branch
 !
 !                 Specifically for the log version, the backwards accumulation
 !                 calls new function logaddexp, the log-space image of the
@@ -944,8 +945,8 @@ contains
 !                 overflow a double (~1.8e308), the function cannot use the fast
 !                 table. TBLMAXCOEF of 1e30 leaves seven orders of magnitude of
 !                 headroom. Parameters beyond it (including infinities) take the
-!                 legacy O(K**2) singleton-function-based  summation build,
-!                 which reproduces the pre-recurrence behavior exactly.
+!                 legacy O(K**2) singleton-function-based summation build, which
+!                 reproduces the pre-recurrence behavior exactly.
 !
 !                 Specifically for the log version, there is a TBLMINRATIO
 !                 degeneracy check: a single recurrence step whose ratio is too
@@ -1160,7 +1161,7 @@ contains
 !                 where appropriate.
 !
 ! QUADRATICMAX:   Explicit summation costs O(value ** 2): each step's ddelap_f_s
-!                 carries ! an O(value) inner sum (measured: 0.03/0.23/0.88 s
+!                 carries an O(value) inner sum (measured: 0.03/0.23/0.88 sec
 !                 at answers of 1e3/3e3/6e3---cleanly quadratic). A truncated
 !                 sum holds no information about a quantile beyond it (the
 !                 accumulated CDF is still ~ 0), so past the cap the honest
@@ -1208,7 +1209,7 @@ contains
 ! DESCRIPTION:    Vector-based quantile function w/ parameter vector recycling.
 !
 ! GENERAL NOTE:   If parameters are all singletons (not vectors) then the idea
-!                 is to find the largest value in the vector and build the PDF
+!                 is to find the largest value in the vector and build the PMF
 !                 up to that point. Building the vector has each successive
 !                 value piggyback off of the prior instead of calling pdelap_f_s
 !                 each time which increases the speed dramatically. Remaining
@@ -1624,11 +1625,10 @@ contains
                                     obsv(i) = real(j - 1, c_double)
                                 else
                                     ! Only reachable if the doubling hit
-                                    ! MAXTBL (2^30 entries, multi-GB) before
-                                    ! covering the target; table end as a
-                                    ! best effort. Untestable without that
-                                    ! allocation, retained as the safety net
-                                    ! for lower_bound's index-0 contract.
+                                    ! MAXTBL before covering the target.
+                                    ! Untestable without that allocation and
+                                    ! retained as the safety net for
+                                    ! lower_bound's index-0 contract.
                                     obsv(i) = real(size(svec) - 1, &
                                                    c_double)   ! # nocov
                                 end if
@@ -1811,11 +1811,10 @@ contains
                                     obsv(i) = real(j - 1, c_double)
                                 else
                                     ! Only reachable if the doubling hit
-                                    ! MAXTBL (2^30 entries, multi-GB) before
-                                    ! covering the target; table end as a
-                                    ! best effort. Untestable without that
-                                    ! allocation, retained as the safety net
-                                    ! for lower_bound's index-0 contract.
+                                    ! MAXTBL before covering the target.
+                                    ! Untestable without that allocation and
+                                    ! retained as the safety net for
+                                    ! lower_bound's index-0 contract.
                                     obsv(i) = real(size(logsvec) - 1, &
                                                    c_double)   ! # nocov
                                 end if
@@ -1870,11 +1869,10 @@ contains
                                     obsv(i) = real(j - 1, c_double)
                                 else
                                     ! Only reachable if the doubling hit
-                                    ! MAXTBL (2^30 entries, multi-GB) before
-                                    ! covering the target; table end as a
-                                    ! best effort. Untestable without that
-                                    ! allocation, retained as the safety net
-                                    ! for lower_bound's index-0 contract.
+                                    ! MAXTBL before covering the target.
+                                    ! Untestable without that allocation and
+                                    ! retained as the safety net for
+                                    ! lower_bound's index-0 contract.
                                     obsv(i) = real(size(logsvec) - 1, &
                                                    c_double)   ! # nocov
                                 end if

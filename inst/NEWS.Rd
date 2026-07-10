@@ -98,10 +98,11 @@
       case. \code{pdelap(694, 1, 1000, 1, lower.tail = FALSE)}, for example,
       took roughly 27.5 seconds to return a survival of approximately 0.5 - a
       value the ordinary complement gives instantly and to full accuracy.
-      Raising the threshold leaves results unchanged outside a narrow survival
-      band (\eqn{\sqrt{\epsilon}}{sqrt(EPS)} to about \eqn{10^{-8}}{1e-8}
-      wide) where the complement's own accuracy (about 1e-13 relative) already
-      matches what the direct sum bought.
+      Raising the threshold changes results only for survival values between
+      sqrt(EPS) and one half, and there only at the level of the complement's
+      accumulated rounding---absolute error of order K * EPS (about 1e-13 at
+      ordinary table lengths), growing in relative terms toward the sqrt(EPS)
+      edge, as documented in the manual's accuracy note.
       
       \item \strong{Breaking:} \code{pdelap} with \code{log.p = TRUE} could
       return \emph{positive} log-probabilities (up to about \code{+1.6e-14})
@@ -195,8 +196,8 @@
       working vector) to bound memory on pathological deep-tail log targets.
 
       \item For \eqn{x \geq 2^{63}}, including +\code{Inf}, the functions no
-      longer convert \code{x} to an integer kind it which it then overflows.
-      Instead, they return 0 or −Inf directly.
+      longer convert \code{x} to an integer kind which it then overflows.
+      Instead, they return 0 or \code{-Inf} directly.
 
       \item Trapping for 0-length parameters in both C and \R prevents a
       segfault in Fortran.
@@ -216,7 +217,7 @@
       
       \item The approximate form of \code{qdelap}, which has much less utility
       now (see documentation), will always generate at least 10,000 variates for
-      pooling. It remains capped at no more that 10M variates.
+      pooling. It remains capped at no more than 10M variates.
     }
   }
   \subsection{Changed}{
@@ -230,7 +231,7 @@
       underflows---roughly \eqn{\lambda + \alpha\log(1+\beta) > 745}---are
       handled by internal rescaling, allowing accuracy to be retained for very
       large \eqn{\lambda}. This is why the change is considered \emph{breaking}.
-      Some results that formerly returned an error out may not do so now.
+      Some results that formerly returned an error may not do so now.
       Parameters extreme enough to risk overflow in the recurrence fall back to
       the summation algorithm, and vector-valued parameters continue to use the
       per-element path.
@@ -265,7 +266,7 @@
       \env{OMP_THREAD_LIMIT}.
       
       \item \code{qdelap} and \code{rdelap} with singleton parameters now size
-      their quantile lookup table from a moment-based  estimate and grow it
+      their quantile lookup table from a moment-based estimate and grow it
       geometrically, replacing element-by-element growth whose copying was
       \eqn{O(K^2)}. The table is built with the identical routine and
       accumulation order as \code{pdelap}, so the \code{qdelap(pdelap(k)) == k}
@@ -273,10 +274,10 @@
       sorted CDF vector by a binary search instead of a linear scan.
       
       \item Changing \code{qdelap} to use the lookup table most of the time
-      \code{exact = TRUE} orders of magnitude faster than \code{exact = FALSE}
-      for essentially all practical parameter ranges. The only time where
-      \code{exact = FALSE} may still be worth considering is when the expected
-      table length, \eqn{K = \alpha\beta + \lambda +
+      \code{exact = TRUE} makes it orders of magnitude faster than
+      \code{exact = FALSE} for essentially all practical parameter ranges.
+      The only time where \code{exact = FALSE} may still be worth considering is
+      when the expected table length, \eqn{K = \alpha\beta + \lambda +
       10\sqrt{\alpha\beta(1+\beta) + \lambda}}, exceeds roughly \eqn{1.5\times
       10^{7}}{1.5e7}. Beyond that point, the exact path's memory use of ~17 bytes
       per unit of K begins to exceed the bounded ~330MB/2.5s cost of the Monte
@@ -288,9 +289,10 @@
       across distinct parameter triplets.
       
       \item \code{MoMdelap} now checks that at least 3 values are passed to it,
-      otherwise it will error. This is not considered breaking as it used to
-      fail with a different error which propagated from the Fortran (missing
-      value where TRUE/FALSE needed). Now it never triggers a Fortran call.
+      none of which are \code{NA}, otherwise it will error. This is not
+      considered breaking as it used to fail with a different error which
+      propagated from the Fortran (missing value where TRUE/FALSE needed). Now
+      it never triggers a Fortran call.
       
       \item Cleaned \file{Makevars} from unneeded calls to \acronym{BLAS} and
       \acronym{LAPACK} libraries.
@@ -312,13 +314,10 @@
       raised from \eqn{2^{14}} to \eqn{2^{24}}, and the interactive
       confirmation prompt now guards only the genuinely slow routes:
       vector-valued parameters with \code{q} at or above \eqn{2^{15}}, or any
-      \code{q} at or above \eqn{2^{24}}.
-      
-      \item Size gate in \code{qdelap} now only asks for continuation when
-      sessions are interactive. Otherwise it checks the new (and undocumented)
-      \code{Delaporte.maxq} option in the local environment and stops if the
-      largest value exceeds the option or warns if it does not. The default
-      value is \eqn{2^{15}}.
+      \code{q} at or above \eqn{2^{24}}. When not interative, \code{pdelap}
+      checks the new (and undocumented) \code{Delaporte.maxq} option in the
+      local environment and stops if the largest value exceeds the option or
+      warns if it does not. The default value is \eqn{2^{15}}.
       
       \item The manual now documents the package's accuracy limits at the
       representation edges: the context dependence of \code{lower.tail =

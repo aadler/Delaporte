@@ -90,14 +90,15 @@ module utils
     integer(kind = c_int), parameter :: ZEROi = 0_c_int
     integer(kind = c_int), parameter :: ONEi = 1_c_int
     
-    ! alpha*beta above which pdelap_f routes around ddelap_table to the legacy
-    ! per-element summation build. See routing comment in pdelap_f.
+    ! b(k+1)+λ(1+b)+ab above which delap_f, pdelap_f, and qdelap_f route around
+    ! ddelap_table to the legacy per-element summation build. See routing
+    ! comment in pdelap_f.
     real(kind = c_double), parameter :: TBLMAXCOEF = 1.e30_c_double
     
-    ! Floor on the guaranteed per-step PMF ratio below which ddelap_f routes
-    ! log-space requests around ddelap_table to the elemental path. The
-    ! table's downward rescale can rescue a decaying scaled mass only within
-    ! the band between the rescale floor 2**(-900) and hard underflow at
+    ! Floor on the guaranteed per-step PMF ratio below which delap_f, pdelap_f,
+    ! and qdelap_f route log-space requests around ddelap_table to the elemental
+    ! path. The table's downward rescale can rescue a decaying scaled mass only
+    ! within the band between the rescale floor 2**(-900) and hard underflow at
     ! 2**(-1074); a single step whose ratio is below that 2**(-174)-wide band
     ! jumps over it, lands on exact zero, and the log-PMF would wrongly
     ! return -Inf (e.g. ddelap(1e4, 1e-50, 1e-100, 1e-50, log = TRUE), whose
@@ -106,28 +107,29 @@ module utils
     ! (f⊛g)(n+1) = Σ f(i)·g(n+1−i) ≥ min_ratio(g) · Σ f(i)·g(n−i)
     ! its ratio p(n+1)/p(n) is bounded below by the larger of the components'
     ! minimum ratios: λ/(k+1) for the Poisson factor and
-    ! (α+n)/(n+1) · β/(1+β) ≥ min(α,1)·β/(1+β) or min(alpha, 1)*beta/(1+beta)
-    ! for the NB factor. Requiring that bound >= 2**(-120) keeps every 
-    ! intermediate at or above 2**(-1020)---nonzero AND full-precision
-    ! normal---with a 2**54 safety margin over the band. Any statistically
-    ! meaningful distribution passes by hundreds of orders of magnitude; only
-    ! point-mass-plus-dust degeneracies route.
-    ! (AA & Claude: 2026-07-07)
+    ! (α+n)/(n+1) · β/(1+β) ≥ min(α,1)·β/(1+β) for the NB factor. Requiring that
+    ! bound >= 2**(-120) keeps every  intermediate at or above 2**(-1020),
+    ! nonzero AND full-precision normal, with a 2**54 safety margin over the
+    ! band. Any statistically meaningful distribution passes by hundreds of
+    ! orders of magnitude; only point-mass-plus-dust degeneracies route.
     real(kind = c_double), parameter :: TBLMINRATIO = 2._c_double ** (-120)
     
-    ! Lower-tail CDF threshold above which pdelap_f's upper-tail anchor point,
-    ! the largest requested q, is computed by direct tail summation:
-    ! (sdelap_f_s / sdelap_f_s_log) rather than by the ordinary complement
-    ! (1 - CDF). The log-space branch recovers CDF via exp() of the already
-    ! accurate log-CDF, applies the same linear complement, then re-logs it. 
-    ! This is safe because survival >= sqrt(EPS) is nowhere near underflow.
+    ! Lower-tail CDF threshold acting as the universal cancellation-band
+    ! boundary, above which values are computed by direct tail summation rather
+    ! than by the ordinary complement. The log-space branch recovers CDF via
+    ! exp() of the already accurate log-CDF, applies the same linear complement,
+    ! then re-logs it.  This is safe because survival >= sqrt(EPS) is nowhere
+    ! near underflow.
+    !
     ! The direct sum exists to avoid catastrophic cancellation once the survival
     ! probability nears machine epsilon, but it is genuinely needed only once
-    ! the survival is below about sqrt(EPS) ~ 1.49e-8. The complement is
-    ! accurate to ~1e-13 relative everywhere above that, which is already at the
-    ! precision of the direct sum. The old threshold (CDF > HALF, i.e.
-    ! "whichever tail is smaller") fired far more often than necessary, and
-    ! sdelap_f_s's cost is NOT O(q):
+    ! the survival is below about sqrt(EPS) ~ 1.49e-8. The complement's error is
+    ! absolute, of order K * EPS for a table of length K; its relative error
+    ! grows toward the sqrt(EPS) edge, to roughly K * EPS / sqrt(EPS) worst case
+    ! (measured 2.7e-9 at K ~ 770). This is a documented tradeoff (see accuracy
+    ! note in manual), bought at O(1) instead of the direct sum's O(beta**2)
+    ! worst. The old threshold (CDF > HALF, i.e. "whichever tail is smaller")
+    ! fired far more often than necessary, and sdelap_f_s's cost is NOT O(q):
     ! its rb = max(term / ptrm, beta / (beta + 1)) remainder-bound floor
     ! saturates toward 1 as beta grows, forcing roughly 36 * beta iterations
     ! regardless of q, each an O(i) ddelap_f_s call, for an O(beta**2) cost per
@@ -135,18 +137,13 @@ module utils
     ! pdelap(694, 1, 1000, 1, lower.tail = FALSE) took 27.5s under the old
     ! HALF threshold (CDF ~ 0.5 there, well above sqrt(EPS)) and is effectively
     ! instant under this one, with the lower-tail CDF itself byte-identical.
-    ! This constant only changes which method computes the upper-tail anchor and
-    ! the complement's ~1e-13 relative error in the (sqrt(EPS), 1) band
-    ! was confirmed via cross-check against 1 - CDF.
-    ! (AA & Claude: 2026-07-08)
+    ! This constant only changes which method computes the upper-tail anchor.
     real(kind = c_double), parameter :: TAILSWITCH = ONE - sqrt(EPS)
     
     ! Maximum allowable q for pdelap's singleton fast path. Raised from 2**14
     ! = 16384 to 2**24 now that the CDF table is built by an O(K) three-term
     ! recurrence; the binding constraint is now the two K+1-length work
-    ! vectors (16 bytes per support point, ~270 MB at 2**24), not compute
-    ! time.
-    ! (AA & Claude: 2026-07-07)
+    ! vectors (16 bytes per support point, ~270 MB at 2**24), not compute time.
     integer, parameter               :: MAXVECSIZE = 16777216
     
 ! ------------------------------------------------------------------------------
@@ -247,7 +244,7 @@ contains
 !-------------------------------------------------------------------------------
 ! FUNCTION:     imk (i mod k)
 !
-! DESCRIPTION:  Calculates mod(i - 1, k) + 1 for vector recyling.
+! DESCRIPTION:  Calculates mod(i - 1, k) + 1 for vector recycling.
 ! 
 ! GENERAL NOTE: mod(i - 1, k) has NO internal k == 0 guard: k == 0 is integer
 !               division by zero -> SIGFPE -> the R process dies (the original
@@ -295,7 +292,7 @@ contains
 !               quantile lookups: qdelap/rdelap on np variates cost O(np * K)
 !               there, e.g. ~11s for rdelap(1e6, 50, 100, 100) versus ~0.06s
 !               with the binary search. Requires v non-decreasing, which the
-!               cFPe-clamped cumulative sums built in qdelap_f always are.
+!               min-capped cumulative sums built in qdelap_f always are.
 !-------------------------------------------------------------------------------
 
     pure function lower_bound(v, p) result(lo)

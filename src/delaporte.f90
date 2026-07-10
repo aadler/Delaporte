@@ -451,7 +451,7 @@ contains
         sc = exp(c)                        ! current scale; may be 0 (see above)
         psm1 = ZERO                        ! scaled p(-1)
         ps = ONE                           ! scaled p(0)
-        if (lg == 1_c_int) then
+        if (lg == ONEi) then
             pv(1) = c                      ! log(p(0)); log(ps) = log(1) = 0
         else
             pv(1) = ps * sc
@@ -465,7 +465,7 @@ contains
                 ps = ps / CAP              ! values and grow the scale.
                 c = c + LCAP
                 sc = exp(c)
-            else if (lg == 1_c_int .and. psp1 < CAPINV .and. &
+            else if (lg == ONEi .and. psp1 < CAPINV .and. &
                      psp1 > ZERO) then
                 
                 ! Decaying tail, log variant only: rescale downward so ps
@@ -480,7 +480,7 @@ contains
             end if
             psm1 = ps
             ps = psp1
-            if (lg == 1_c_int) then
+            if (lg == ONEi) then
                 if (ps > ZERO) then
                     pv(n + 2) = min(c + log(ps), ZERO) ! log version of cFPe
                 else
@@ -568,7 +568,7 @@ contains
             !$omp parallel do num_threads(threads) default(shared) private(i) &
             !$omp schedule(static)
             do i = 1, nx
-                if (lg == 1_c_int) then
+                if (lg == ONEi) then
                     pmfv(i) = ddelap_f_s_log(x(i), a(imk(i, na)), &
                     b(imk(i, nb)), l(imk(i, nl)))
                 else
@@ -583,13 +583,13 @@ contains
         else if (b(1) * (maxval(x) + ONE) + l(1) * (ONE + b(1)) &
                  + a(1) * b(1) >= TBLMAXCOEF) then
             do i = 1, nx
-                if (lg == 1_c_int) then
+                if (lg == ONEi) then
                     pmfv(i) = ddelap_f_s_log(x(i), a(1), b(1), l(1))
                 else
                     pmfv(i) = ddelap_f_s(x(i), a(1), b(1), l(1))
                 end if
             end do
-        else if (lg == 1_c_int .and. &
+        else if (lg == ONEi .and. &
                  max(l(1) / (real(floor(maxval(x)), c_double) + ONE), &
                      min(a(1), ONE) * b(1) / (ONE + b(1))) < TBLMINRATIO) then
             
@@ -607,14 +607,14 @@ contains
             k = floor(maxval(x))
             allocate(pv(k + 1))
             call ddelap_table(k, a(1), b(1), l(1), lg, pv)
-            if (lg /= 1_c_int) pv = cFPe(pv)
+            if (lg /= ONEi) pv = cFPe(pv)
             !$omp parallel do num_threads(threads) default(shared) &
             !$omp private(i, xi) schedule(static)
             do i = 1, nx
                 xi = x(i)
                 if (xi == real(floor(xi), c_double)) then
                     pmfv(i) = pv(floor(xi) + 1)
-                else if (lg == 1_c_int) then
+                else if (lg == ONEi) then
                     pmfv(i) = ieee_value(xi, ieee_negative_inf)
                 else
                     pmfv(i) = ZERO
@@ -954,24 +954,21 @@ contains
 !                 here also falls back to the elemental ddelap_f_s_log, which
 !                 has no scaled-recurrence overflow/underflow exposure at all.
 !
-! SATURATED BAND: ! Saturated-band repair: forward logaddexp accumulation
-                    ! carries an absolute offset of O(K * EPS), so log-CDF
-                    ! values above log(TAILSWITCH) -- a CDF within
-                    ! ~sqrt(EPS) of 1 -- are pure noise on the log scale
-                    ! (a true -1e-25 can surface as ~-5e-10) even though
-                    ! they are excellent as probabilities. In the band the
-                    ! complement is tiny and a survival accumulation
-                    ! computes it to relative accuracy, so each band value
-                    ! is replaced by log1p(-exp(log S)); with S < sqrt(EPS)
-                    ! the module log1p is always inside its Taylor branch.
-                    ! The band is a suffix of a nondecreasing table, so a
-                    ! single scalar accumulator seeded with the direct tail
-                    ! sum walks down from the top and stops at the first
-                    ! value at or below the switch. This is pdelap_f_s_log's
-                    ! endpoint TAILSWITCH rule extended to the whole band,
-                    ! and makes qdelap_f's Taylor inversion of these values
-                    ! exact rather than noise-limited.
-!
+! SATURATED BAND: Saturated-band repair: forward logaddexp accumulation carries
+!                 an absolute offset of O(K * EPS), so log-CDF values above
+!                 log(TAILSWITCH)---a CDF within ~sqrt(EPS) of 1---are pure
+!                 noise on the log scale (a true -1e-25 can surface as ~-5e-10)
+!                 even though they are excellent as probabilities. In the band
+!                 the complement is tiny and a survival accumulation computes it
+!                 to relative accuracy, so each band value is replaced by
+!                 log1p(-exp(log S)); with S < sqrt(EPS) the module log1p is
+!                 always inside its Taylor branch. The band is a suffix of a
+!                 nondecreasing table, so a single scalar accumulator seeded
+!                 with the direct tail sum walks down from the top and stops at
+!                 the first value at or below the switch. This is
+!                 pdelap_f_s_log's endpoint TAILSWITCH rule extended to the
+!                 whole band, and makes qdelap_f's Taylor inversion of these
+!                 values exact rather than noise-limited.
 !-------------------------------------------------------------------------------
 
     subroutine pdelap_f(q, nq, a, na, b, nb, l, nl, lt, lg, threads, pmfv) &
@@ -995,27 +992,21 @@ contains
             !$omp parallel do num_threads(threads) default(shared) private(i) &
             !$omp schedule(static)
                 do i = 1, nq
-                    if (lg == 1_c_int) then
+                    if (lg == ONEi) then
                         pmfv(i) = pdelap_f_s_log(q(i), a(imk(i, na)), &
                         b(imk(i, nb)), l(imk(i, nl)))
                     else
                         pmfv(i) = pdelap_f_s(q(i), a(imk(i, na)), &
                         b(imk(i, nb)), l(imk(i, nl)))
                     end if
-                    if (lt == 1_c_int .and. lg == 1_c_int .and. &
-                        pmfv(i) > log(TAILSWITCH)) then
-                        ! Same saturated-band repair as the table path: the
-                        ! log-sum-exp CDF is noise on the log scale inside
-                        ! the band; derive it from the accurate survival
-                        ! side instead. Keeps this route (recycling,
-                        ! negative/NaN/oversize q) consistent with the
-                        ! table and TBLMINRATIO elemental-fill routes.
+                    if (lt == ONEi .and. lg == ONEi .and. &
+                        pmfv(i) > log(TAILSWITCH)) then !saturated-band repair
                         pmfv(i) = log1p(-exp(sdelap_f_s_log(q(i), &
                                   a(imk(i, na)), b(imk(i, nb)), &
                                   l(imk(i, nl)))))
                     end if
-                    if (lt == 0_c_int) then
-                        if (lg == 1_c_int) then
+                    if (lt == ZEROi) then
+                        if (lg == ONEi) then
                             if (pmfv(i) > log(TAILSWITCH)) then
                                 pmfv(i) = sdelap_f_s_log(q(i), a(imk(i, na)), &
                                 b(imk(i, nb)), l(imk(i, nl)))
@@ -1046,7 +1037,7 @@ contains
         else
             k = floor(maxval(q))
 
-            if (lg == 1_c_int) then
+            if (lg == ONEi) then
                 allocate (logpv(k + 1))
                 allocate (logsvec(k + 1))
                 
@@ -1055,7 +1046,7 @@ contains
                     max(l(1) / (real(k, c_double) + ONE), &
                         min(a(1), ONE) * b(1) / (ONE + b(1))) &
                         >= TBLMINRATIO) then
-                    call ddelap_table(k, a(1), b(1), l(1), 1_c_int, logpv)
+                    call ddelap_table(k, a(1), b(1), l(1), ONEi, logpv)
                 else
                     do i = 1, k + 1
                         logpv(i) = ddelap_f_s_log(real(i - 1, c_double), &
@@ -1074,7 +1065,7 @@ contains
                                      ZERO)
                 end do
 
-                if (lt == 1_c_int) then
+                if (lt == ONEi) then
                     if (logsvec(k + 1) > log(TAILSWITCH)) then
                         srun = sdelap_f_s_log(real(k, c_double), a(1), &
                                               b(1), l(1))
@@ -1132,7 +1123,7 @@ contains
 
             if (b(1) * (real(k, c_double) + ONE) + l(1) * (ONE + b(1)) &
                 + a(1) * b(1) < TBLMAXCOEF) then
-                call ddelap_table(k, a(1), b(1), l(1), 0_c_int, pv)
+                call ddelap_table(k, a(1), b(1), l(1), ZEROi, pv)
                 pv(1) = cFPe(pv(1))
             else
                 pv(1) = cFPe(exp(-l(1)) / ((b(1) + ONE) ** a(1)))
@@ -1145,7 +1136,7 @@ contains
             do i = 2, k + 1
                 svec(i) = cFPe(svec(i - 1) + pv(i))
             end do
-            if (lt == 0_c_int) then
+            if (lt == ZEROi) then
                 if (svec(k + 1) > TAILSWITCH) then
                     svec(k + 1) = sdelap_f_s(real(k, c_double), a(1), b(1), &
                                              l(1))
@@ -1335,7 +1326,7 @@ contains
                 k = int(min(mu + 10._c_double * &
                     sqrt(a(1) * b(1) * (ONE + b(1)) + l(1)) + 9._c_double, &
                     real(MAXTBL, c_double)))
-                if (lt == 1_c_int .and. lg == 0_c_int) then
+                if (lt == ONEi .and. lg == ZEROi) then
                 x = maxval(p, 1, p < ONE)
                 ! Sentinel: no completed build to compare against yet, so the
                 ! stagnation check below cannot fire on the very first pass.
@@ -1350,7 +1341,7 @@ contains
                         (ONE + b(1)) + a(1) * b(1) >= TBLMAXCOEF) exit
                     allocate(pv(k + 1))
                     allocate(svec(k + 1))
-                    call ddelap_table(k, a(1), b(1), l(1), 0_c_int, pv)
+                    call ddelap_table(k, a(1), b(1), l(1), ZEROi, pv)
                     pv(1) = cFPe(pv(1))
                     svec(1) = pv(1)
                     do i = 2, k + 1
@@ -1443,7 +1434,7 @@ contains
                     allocate(surv(size(svec)))
                     allocate(pv(size(svec)))
                     call ddelap_table(size(svec) - 1, a(1), b(1), l(1), &
-                                      0_c_int, pv)
+                                      ZEROi, pv)
                     surv(size(svec)) = sdelap_f_s(real(size(svec) - 1, &
                                                   c_double), a(1), b(1), l(1))
                     do i = size(svec) - 1, 1, -1
@@ -1500,7 +1491,7 @@ contains
                                &these parameter values; NaN returned")
                 end if
                 deallocate(svec)
-                else if (lg == 0_c_int) then
+                else if (lg == ZEROi) then
                     ! lower.tail = FALSE in linear space: the targets are
                     ! survival probabilities, searched directly against a
                     ! survival table. Flipping 1 - p first inflates targets
@@ -1531,7 +1522,7 @@ contains
                         allocate(pv(k + 1))
                         allocate(svec(k + 1))
                         allocate(surv(k + 1))
-                        call ddelap_table(k, a(1), b(1), l(1), 0_c_int, pv)
+                        call ddelap_table(k, a(1), b(1), l(1), ZEROi, pv)
                         pv(1) = cFPe(pv(1))
                         svec(1) = pv(1)
                         do i = 2, k + 1
@@ -1678,7 +1669,7 @@ contains
                     ! log-probability below ~ -745 to 0 and every one above
                     ! ~ -EPS to 1, destroying exactly the deep-tail
                     ! resolution the log-space tables carry.
-                    if (lt == 1_c_int) then
+                    if (lt == ONEi) then
                         ! Interior targets split at log(TAILSWITCH), the log
                         ! image of pdelap_f's cancellation band: at or below
                         ! it the forward log-CDF resolves the target; above
@@ -1742,7 +1733,7 @@ contains
                             max(l(1) / (real(k, c_double) + ONE), &
                                 min(a(1), ONE) * b(1) / (ONE + b(1))) &
                                 >= TBLMINRATIO) then
-                            call ddelap_table(k, a(1), b(1), l(1), 1_c_int, &
+                            call ddelap_table(k, a(1), b(1), l(1), ONEi, &
                                               logpv)
                         else
                             do i = 1, k + 1
@@ -1788,7 +1779,7 @@ contains
                         deallocate(logsvec)
                         if (allocated(logsurv)) deallocate(logsurv)
                     end do
-                    if (lt == 1_c_int) then
+                    if (lt == ONEi) then
                         do i = 1, np
                             if (ieee_is_nan(pp(i)) .or. pp(i) > ZERO) then
                                 obsv(i) = ieee_value(pp(i), ieee_quiet_nan)
@@ -1912,9 +1903,9 @@ contains
                 end if
             end if
         else
-            if (lg == 1_c_int) p = exp(p)
-            if (lt == 0_c_int) p = HALF - p + HALF  ! See dpq.h in R source code
-            if (lg == 1_c_int .or. lt == 0_c_int) then
+            if (lg == ONEi) p = exp(p)
+            if (lt == ZEROi) p = HALF - p + HALF  ! See dpq.h in R source code
+            if (lg == ONEi .or. lt == ZEROi) then
                 ! Base R's fuzz (qpois.c and kin): a transformed target can
                 ! arrive one ulp above the CDF value it round-trips from
                 ! (1 - p inflation, exp/log noise), stepping the quantile up
@@ -1989,7 +1980,7 @@ contains
         nn = real(n, c_double)
         nnm1 = nn - ONE
         select case (tp)
-            case (1_c_int)
+            case (ONEi)
                 P = ONE
             case (2_c_int)
                 P = sqrt(nn * nnm1) / (nn - TWO)

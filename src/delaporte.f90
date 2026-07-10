@@ -1190,9 +1190,11 @@ contains
             testcdf = exp(-lambda) / ((beta + ONE) ** alpha)
             do while (p > testcdf)
                 value = value + ONE
+                ! # nocov start (Only reachable with O(QSMAX²) cost)
                 if (value > QSMAX) then
                     value = ieee_value(p, ieee_quiet_nan)
                     exit
+                ! # nocov end
                 end if
                 testcdf = testcdf + ddelap_f_s(value, alpha, beta, lambda)
             end do
@@ -1399,10 +1401,13 @@ contains
                         ! specific warning. This exit can only fire with
                         ! svec(i) < x, i.e. with at least one target
                         ! genuinely unresolved.
+                        
+                        ! # nocov start (Only reachable w/ O(QMAXLEGACY²) cost)
                         if (i > QMAXLEGACY) then
                             legacyCapped = .true.
                             exit
                         end if
+                        ! # nocov end
                         
                         i = i + 1
                         allocate(pv(1:i), source = ZERO)
@@ -1451,13 +1456,16 @@ contains
                         j = lower_bound(svec, p(i))
                         if (j > 0) then
                             obsv(i) = real(j - 1, c_double)
+                        ! # nocov start (Only reachable w/ O(QMAXLEGACY²) cost)
                         else if (legacyCapped) then
                             
                             ! The capped legacy table plateaued below this
                             ! target; a truncated CDF carries no information
                             ! about a quantile beyond it, so NaN rather than
                             ! a bound (see QMAXLEGACY above).
+                            
                             obsv(i) = ieee_value(p(i), ieee_quiet_nan)
+                        ! # nocov end
                         else
                             
                             ! Saturated target: the forward CDF plateaued below
@@ -1488,10 +1496,12 @@ contains
                     end if
                 end do
                 if (allocated(surv)) deallocate(surv)
+                ! # nocov start (Only reachable w/ O(QMAXLEGACY²) cost)
                 if (legacyCapped) then
                     call rwarn("quantile too large to compute exactly for &
                                &these parameter values; NaN returned")
                 end if
+                ! # nocov end
                 deallocate(svec)
                 else if (lg == ZEROi) then
                     
@@ -1582,6 +1592,8 @@ contains
                         ! qdelap_f_s's QSMAX iteration cap (parameters were
                         ! screened above); surface it with the same specific
                         ! warning as the legacy route.
+                        
+                        ! # nocov start (Only reachable w/ O(QSMAX²) cost)
                         if (any(ieee_is_nan(obsv) .and. &
                                 .not. ieee_is_nan(pp) .and. &
                                 pp >= ZERO .and. pp <= ONE)) then
@@ -1589,6 +1601,7 @@ contains
                                        &exactly for these parameter values; &
                                        &NaN returned")
                         end if
+                        ! # nocov end
                     else
                         do i = 1, np
                             if (ieee_is_nan(pp(i)) .or. pp(i) < ZERO .or. &

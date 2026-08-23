@@ -6,9 +6,9 @@
 \title{NEWS file for the Delaporte package}
 
 \section{Version 9.0.0 (2026-10-01)}{
-While there are many breaking changes below, the vast majority of them would not
-have been encountered in \dQuote{normal} practice. Most users should see no
-change to their results, other than increased speed and fewer failures.
+While there are breaking changes below, the majority of them would not have been
+encountered in normal practice. Most users should see no change to results,
+other than increased speed and fewer failures.
   \subsection{Fixed}{
     \itemize{
       \item \strong{Breaking:} Internal function \code{log1p} now carries a

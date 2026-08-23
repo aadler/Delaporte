@@ -1,6 +1,8 @@
 # Copyright (c) 2013, Avraham Adler All rights reserved
 # SPDX-License-Identifier: BSD-2-Clause
 
+# nolint start object_name_linter
+
 ddelap <- function(x, alpha, beta, lambda, log = FALSE) {
   if (length(alpha) == 0 || length(beta) == 0 || length(lambda) == 0) {
     return(double())
@@ -146,3 +148,5 @@ MoMdelap <- function(x, type = 2L) { # nolint object_name_linter
   }
   moMDLAP
 }
+
+# nolint end object_name_linter

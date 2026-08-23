@@ -293,7 +293,9 @@ expect_identical(pdelap(Inf, c(1, 1), 2, 3, log.p = TRUE, lower.tail = FALSE),
 # Cross-checked against an independent oracle built from ddelap(..., log = TRUE)
 # which is the same underlying elemental function the fallback loop calls, but
 # accumulated independently in R.
-a <- 1e-50; b <- 1e-100; l <- 1e-50
+a <- 1e-50
+b <- 1e-100
+l <- 1e-50
 qCov <- 0:5
 covOracle <- sapply(qCov, function(qi) {
   lx <- ddelap(0:qi, a, b, l, log = TRUE)

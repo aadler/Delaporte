@@ -13,7 +13,7 @@ VAL <- data.frame(read.csv(file = file.path(".", "RawTest.csv"), header = TRUE))
 # Singleton function accuracy
 expect_equal(ddelap(0:36, 1, 4, 2), VAL$DDELAP_1, tolerance = tol)
 
-# alpha < 0.8
+# Check with alpha < 0.8
 expect_equal(ddelap(4L, 0.5, 4, 0.2), 0.0547024400602606, tolerance = tol)
 
 # Singleton log
@@ -195,8 +195,8 @@ expect_equal(suppressWarnings(ddelap(0:5, 1e-28, 1e31, 2, log = TRUE)),
                                      log = TRUE)), tolerance = tol)
 
 # Invalid parameters through the per-element log path return NaN.
-expect_true(all(is.nan(suppressWarnings(
-  ddelap(0:2, c(-1, -1), 2, 3, log = TRUE)))))
+expect_true(all(is.nan(suppressWarnings(ddelap(0:2, c(-1, -1), 2, 3,
+                                               log = TRUE)))))
 
 # Specialty tests to bring coverage to 100%
 # Trigger lpmf = ieee_value(x, ieee_quiet_nan) in ddelap_f_s_log
@@ -214,7 +214,9 @@ expect_warning(ddelap(2e30, 1, 1, NaN, log = TRUE), nanWarn)
 # magnitude. True value: -lambda - alpha * log1p(beta), since at x = 0 (k = 0)
 # only the i = 0 term contributes, and log_gamma(alpha + 0) - log_gamma(alpha)
 # is exactly 0.
-a <- 1e-50; b <- 1e-100; l <- 1e-50
+a <- 1e-50
+b <- 1e-100
+l <- 1e-50
 expect_equal(ddelap(0, a, b, l, log = TRUE), -l - a * log1p(b), tolerance = tol)
 
 # Non-finite parameters are invalid: any infinite parameter implies an

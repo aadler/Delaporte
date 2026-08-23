@@ -9,6 +9,8 @@ expect_error(setDelapThreads(NA_integer_), "Number of threads must be > 0.")
 expect_silent(setDelapThreads(1.9))
 expect_identical(getDelapThreads(), 1L)
 
+# nolint start undesirable_operator_linter
+
 # State lives in the package namespace (per WRE r88406), never in the
 # user's workspace and never in the global options registry.
 expect_false(exists("DelaporteEnv", envir = globalenv(), inherits = FALSE))
@@ -21,6 +23,8 @@ if (!is.na(ncpus)) {
   expect_message(setDelapThreads(1024 ^ 2), capMsg)
   expect_identical(getDelapThreads(), ncpus)
 }
+
+# nolint end undesirable_operator_linter
 
 # Thread-count independence (added: this invariant was previously untested).
 # ddelap_f/pdelap_f/qdelap_f all carry an OMP parallel-do region, but only in

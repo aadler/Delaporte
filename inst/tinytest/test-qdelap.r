@@ -162,8 +162,8 @@ expect_identical(suppressWarnings(qdelap(c(1, 3), 3, 1, 2, exact = FALSE)),
 
 # Vector parameters route through the elemental path with the same split.
 expect_identical(suppressWarnings(qdelap(1:2, 3, c(1, 1), 2)), c(Inf, NaN))
-expect_identical(suppressWarnings(
-  qdelap(1:3, c(2, 1, 2), c(1, 6, 2), c(1, 2, 0.4))), c(Inf, NaN, NaN))
+expect_identical(suppressWarnings(qdelap(1:3, c(2, 1, 2), c(1, 6, 2),
+                                         c(1, 2, 0.4))), c(Inf, NaN, NaN))
 expect_warning(qdelap(1:2, 3, c(1, 1), 2, exact = FALSE), inpWarn)
 expect_identical(suppressWarnings(qdelap(1:2, 3, c(1, 1), 2, exact = FALSE)),
                  suppressWarnings(qdelap(1:2, 3, c(1, 1), 2)))

@@ -72,6 +72,8 @@ set.seed(17L)
 DOUBL <- rdelap(3, 1, 2, 3)
 expect_equal(INTG, DOUBL, tolerance = 1e-12)
 
+# nolint start undesirable_operator_linter
+
 # Zero-length parameters yield n NaNs with a warning, matching the package's
 # invalid-parameter convention; n = 0 yields numeric(0) with no warning.
 nan3 <- rep.int(NaN, 3L)
@@ -88,6 +90,8 @@ expect_identical(.Call(Delaporte:::rdelap_C, 3L, 2, double(0), 2, 1L), nan3)
 # a zero-length INTSXP (undefined behavior). Now it errors cleanly.
 expect_error(.Call(Delaporte:::rdelap_C, integer(0), 1, 2, 3, 1L),
              "'n' must have positive length")
+
+# nolint end undesirable_operator_linter
 
 expect_warning(rdelap(2, 1, 2, Inf), nanWarn)
 expect_true(all(is.nan(suppressWarnings(rdelap(2, 1, 2, Inf)))))

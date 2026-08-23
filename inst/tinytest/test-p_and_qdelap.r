@@ -65,7 +65,10 @@ expect_identical(qdelap(double(0), 2, 1, 1, lower.tail = FALSE), double(0))
 
 # ---- Elemental (vector-parameter) paths ----------------------------------
 
-av <- c(1, 2); bv <- c(0.5, 3); lv <- c(1, 4); xv <- c(3, 7)
+av <- c(1, 2)
+bv <- c(0.5, 3)
+lv <- c(1, 4)
+xv <- c(3, 7)
 expect_identical(qdelap(pdelap(xv, av, bv, lv, lower.tail = FALSE),
                         av, bv, lv, lower.tail = FALSE), as.numeric(xv))
 expect_identical(qdelap(pdelap(xv, av, bv, lv, log.p = TRUE),

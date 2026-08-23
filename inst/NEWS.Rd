@@ -5,7 +5,7 @@
 \alias{NEWS}
 \title{NEWS file for the Delaporte package}
 
-\section{Version 9.0.0 (2026-10-01)}{
+\section{Version 9.0.0 (2026-08-23)}{
 While there are breaking changes below, the majority of them would not have been
 encountered in normal practice. Most users should see no change to results,
 other than increased speed and fewer failures.

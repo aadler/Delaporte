@@ -41,7 +41,7 @@ preferred-citation:
 repository: https://CRAN.R-project.org/package=Delaporte
 repository-code: https://github.com/aadler/Delaporte
 url: https://github.com/aadler/Delaporte
-date-released: '2026-10-01'
+date-released: '2026-08-23'
 contact:
 - family-names: Adler
   given-names: Avraham

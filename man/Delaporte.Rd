@@ -267,10 +267,11 @@ applies to scalar parameters only.
 Deep upper-tail quantiles on the log scale are exact but not free: the internal
 table must extend until the log-survival reaches the target, so the cost of
 \code{qdelap(lp, ..., lower.tail = FALSE, log.p = TRUE)} grows with \eqn{|lp|}
-divided by the tail's decay rate \eqn{\log((1+\beta)/\beta)}{log((1 + beta) /
-beta)}. At high dispersion this is material: with \eqn{\beta = 40}, a target of
-\code{-2000} requires a table of roughly \eqn{8 \times 10^4}{8e4} support points
-and several seconds of direct tail summation for its seeds.
+divided by the tail's decay rate \eqn{\log\left(\frac{1+\beta}{\beta}\right)
+}{log((1 + beta) / beta)}. At high dispersion this is material: with
+\eqn{\beta = 40}, a target of \code{-2000} requires a table of roughly \eqn{8
+\times 10^4}{8e4} support points and several seconds of direct tail summation
+for its seeds.
 }
 \author{Avraham Adler \email{Avraham.Adler@gmail.com}}
 \references{

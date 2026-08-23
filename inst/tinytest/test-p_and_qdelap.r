@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Avraham Adler All rights reserved
+# Copyright (c) 2026, Avraham Adler All rights reserved
 # SPDX-License-Identifier: BSD-2-Clause
 
 # For CRAN

@@ -33,9 +33,10 @@ other than increased speed and fewer failures.
       log-space as per the call. This may shift results relative to the old
       \dQuote{always sum} algorithm at the level of accumulated rounding: one or
       two \acronym{ulp}s for short tables, growing with table length to roughly
-      the 13th significant digit for very long ones. Parameters extreme enough
-      to risk overflow in the recurrence fall back to the summation algorithm,
-      and vector-valued parameters continue to use the per-element path.
+      the 13th significant digit for very long ones. Both parameters extreme
+      enough to risk overflow in the recurrence fall back to the summation
+      algorithm and vector-valued parameters continue to use the per-element
+      path.
 
       \item \strong{Breaking:} \code{ddelap} and \code{pdelap} now treat
       arguments below the support the same way base \R does. \code{ddelap}
@@ -77,14 +78,13 @@ other than increased speed and fewer failures.
       when the true value is roughly 1.18e-18. The algorithms are now accurate
       to near full double precision. This is technically breaking, but users
       should see no change outside of the deep tail which was likely not of
-      interest to most.
-      
-      This summation is used only once the survival probability is small enough
-      that the ordinary complement \eqn{1 - \textrm{CDF}} would lose meaningful
-      precision (below \eqn{\sqrt{\epsilon} \approx 1.49 \times
-      10^{-8}}{sqrt(EPS) ~ 1.49e-8}). Since the summation's remainder-bound
-      safeguard gives it an \eqn{O(\beta^2)}{O(beta^2)} worst-case cost, it is
-      reserved for where it is genuinely needed.
+      interest to most. This summation is used only once the survival
+      probability is small enough that the ordinary complement
+      \eqn{1 - \textrm{CDF}} would lose meaningful precision: below
+      \eqn{\sqrt{\epsilon} \approx 1.49 \times 10^{-8}}{sqrt(EPS) ~ 1.49e-8}.
+      Since the summation's remainder-bound safeguard gives it an
+      \eqn{O(\beta^2)}{O(beta^2)} worst-case cost, it is reserved for where it
+      is genuinely needed.
       
       \item \strong{Breaking:} \code{pdelap} with \code{log.p = TRUE} previously
       computed the linear-space CDF/survival first and took \code{log()} of the
@@ -94,7 +94,6 @@ other than increased speed and fewer failures.
       throughout, matching the log-space guarantee
       \code{ddelap(..., log = TRUE)} already provides, and is accurate to near
       full double precision even where the linear-space value underflows.
-
       \code{pdelap} derives log-probabilities in the saturated bands---log-CDF
       values within about \code{sqrt(.Machine$double.eps)} of \eqn{0}, and their
       log-survival mirror---from the opposite, relatively accurate side via

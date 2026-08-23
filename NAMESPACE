@@ -6,7 +6,6 @@ importFrom(stats,
            rgamma)
 importFrom(parallel,
            detectCores)
-
 export(ddelap,
        pdelap,
        qdelap,
